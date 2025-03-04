@@ -40,12 +40,21 @@ export default function WeeklyPlan() {
   };
 
   const [mealPlan, setMealPlan] = useState<MealPlanState>(getEmptyPlan());
+  const [activeDay, setActiveDay] = useState<string>(daysOfWeek[0]);
 
   // Load saved meal plan from localStorage on component mount
   useEffect(() => {
     const savedPlan = localStorage.getItem("mealPlan");
     if (savedPlan) {
       setMealPlan(JSON.parse(savedPlan));
+    }
+
+    // Set active day to current day of the week if possible
+    const today = new Date().getDay();
+    // Convert from Sunday-Saturday (0-6) to Monday-Sunday (0-6)
+    const adjustedDay = today === 0 ? 6 : today - 1;
+    if (adjustedDay >= 0 && adjustedDay < daysOfWeek.length) {
+      setActiveDay(daysOfWeek[adjustedDay]);
     }
   }, []);
 
@@ -103,6 +112,30 @@ export default function WeeklyPlan() {
     };
   };
 
+  // Calculate day's nutrition
+  const calculateDayNutrition = (day: string) => {
+    let dayCalories = 0;
+    let dayProtein = 0;
+    let dayCarbs = 0;
+    let dayFat = 0;
+
+    Object.values(mealPlan[day]).forEach((meal) => {
+      if (meal) {
+        dayCalories += meal.nutrition.calories;
+        dayProtein += meal.nutrition.protein;
+        dayCarbs += meal.nutrition.carbs;
+        dayFat += meal.nutrition.fat;
+      }
+    });
+
+    return {
+      calories: dayCalories,
+      protein: dayProtein,
+      carbs: dayCarbs,
+      fat: dayFat,
+    };
+  };
+
   const weeklyNutrition = calculateWeeklyNutrition();
 
   return (
@@ -113,35 +146,54 @@ export default function WeeklyPlan() {
         </h1>
         <Link
           href="/"
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+          className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md"
         >
-          Back to Recipes
+          Browse Recipes
         </Link>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-bold mb-4">Weekly Nutrition Summary</h2>
+      <div className="bg-white rounded-xl shadow-md p-6 mb-8 border border-emerald-100">
+        <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="w-6 h-6 mr-2 text-emerald-600"
+          >
+            <path
+              fillRule="evenodd"
+              d="M2.25 13.5a8.25 8.25 0 0 1 8.25-8.25.75.75 0 0 1 .75.75v6.75H18a.75.75 0 0 1 .75.75 8.25 8.25 0 0 1-16.5 0Z"
+              clipRule="evenodd"
+            />
+            <path
+              fillRule="evenodd"
+              d="M12.75 3a.75.75 0 0 1 .75-.75 8.25 8.25 0 0 1 8.25 8.25.75.75 0 0 1-.75.75h-7.5a.75.75 0 0 1-.75-.75V3Z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Weekly Nutrition Summary
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-purple-100 p-4 rounded-lg text-center">
-            <p className="text-purple-800 font-bold text-xl">
+          <div className="bg-gradient-to-br from-purple-100 to-purple-50 p-4 rounded-xl text-center shadow-sm border border-purple-200">
+            <p className="text-purple-800 font-bold text-2xl">
               {weeklyNutrition.calories}
             </p>
             <p className="text-purple-600">Total Calories</p>
           </div>
-          <div className="bg-red-100 p-4 rounded-lg text-center">
-            <p className="text-red-800 font-bold text-xl">
+          <div className="bg-gradient-to-br from-red-100 to-red-50 p-4 rounded-xl text-center shadow-sm border border-red-200">
+            <p className="text-red-800 font-bold text-2xl">
               {weeklyNutrition.protein}g
             </p>
             <p className="text-red-600">Total Protein</p>
           </div>
-          <div className="bg-yellow-100 p-4 rounded-lg text-center">
-            <p className="text-yellow-800 font-bold text-xl">
+          <div className="bg-gradient-to-br from-yellow-100 to-yellow-50 p-4 rounded-xl text-center shadow-sm border border-yellow-200">
+            <p className="text-yellow-800 font-bold text-2xl">
               {weeklyNutrition.carbs}g
             </p>
             <p className="text-yellow-600">Total Carbs</p>
           </div>
-          <div className="bg-green-100 p-4 rounded-lg text-center">
-            <p className="text-green-800 font-bold text-xl">
+          <div className="bg-gradient-to-br from-green-100 to-green-50 p-4 rounded-xl text-center shadow-sm border border-green-200">
+            <p className="text-green-800 font-bold text-2xl">
               {weeklyNutrition.fat}g
             </p>
             <p className="text-green-600">Total Fat</p>
@@ -149,24 +201,65 @@ export default function WeeklyPlan() {
         </div>
       </div>
 
-      {daysOfWeek.map((day) => (
-        <div key={day} className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">{day}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {mealTypes.map((mealType) => (
-              <MealPlanCard
-                key={`${day}-${mealType}`}
-                day={day}
-                mealType={mealType}
-                meal={mealPlan[day][mealType]}
-                meals={sampleMeals}
-                onAddMeal={addMealToPlan}
-                onRemoveMeal={removeMealFromPlan}
-              />
-            ))}
-          </div>
+      {/* Responsive Week Day Selector */}
+      <div className="flex overflow-x-auto pb-2 mb-6 hideScrollbar">
+        <div className="flex space-x-2">
+          {daysOfWeek.map((day) => {
+            const isActive = day === activeDay;
+            const dayNutrition = calculateDayNutrition(day);
+            const dayOfMonth =
+              new Date().getDate() -
+              (new Date().getDay() - daysOfWeek.indexOf(day) - 1);
+
+            return (
+              <button
+                key={day}
+                onClick={() => setActiveDay(day)}
+                className={`px-4 py-3 rounded-xl flex flex-col items-center transition-all duration-200 whitespace-nowrap min-w-20 
+                  ${
+                    isActive
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md"
+                      : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-200"
+                  }`}
+              >
+                <span
+                  className={`text-xs mb-1 ${
+                    isActive ? "text-emerald-100" : "text-gray-500"
+                  }`}
+                >
+                  {dayOfMonth}
+                </span>
+                <span className="font-medium">{day.slice(0, 3)}</span>
+                <span
+                  className={`text-xs mt-1 ${
+                    isActive ? "text-white" : "text-purple-600"
+                  }`}
+                >
+                  {dayNutrition.calories} cal
+                </span>
+              </button>
+            );
+          })}
         </div>
-      ))}
+      </div>
+
+      {/* Active Day View */}
+      <div className="bg-white rounded-xl shadow-md p-6 mb-8 border border-gray-200">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">{activeDay}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {mealTypes.map((mealType) => (
+            <MealPlanCard
+              key={`${activeDay}-${mealType}`}
+              day={activeDay}
+              mealType={mealType}
+              meal={mealPlan[activeDay][mealType]}
+              meals={sampleMeals}
+              onAddMeal={addMealToPlan}
+              onRemoveMeal={removeMealFromPlan}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

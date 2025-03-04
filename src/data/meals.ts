@@ -8,7 +8,7 @@ export const sampleMeals: Meal[] = [
       "A nutritious breakfast with whole grain toast, avocado, and a perfectly poached egg.",
     category: "breakfast",
     preparationTime: 15,
-    image: "/images/avocado-toast.jpg",
+    image: "/images/avocado-toast.png",
     ingredients: [
       { name: "Whole grain bread", amount: 2, unit: "slices" },
       { name: "Avocado", amount: 1, unit: "medium" },
