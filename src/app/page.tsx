@@ -9,7 +9,7 @@ import { Meal } from "../types/meal";
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [meals, setMeals] = useState<Meal[]>(sampleMeals);
+  const [meals, ] = useState<Meal[]>(sampleMeals);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

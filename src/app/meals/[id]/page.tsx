@@ -1,13 +1,11 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import { sampleMeals } from "../../../data/meals";
-import Image from "next/image";
 
 export default function MealDetails() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
 
   const meal = sampleMeals.find((m) => m.id === id);
@@ -18,7 +16,7 @@ export default function MealDetails() {
         <h1 className="text-3xl font-bold text-gray-800 mb-4">
           Meal Not Found
         </h1>
-        <p className="mb-6">The meal you're looking for doesn't exist.</p>
+        <p className="mb-6">The meal you&apos;re looking for doesn&apos;t exist.</p>
         <Link
           href="/"
           className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
