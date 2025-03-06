@@ -5,6 +5,10 @@ import Link from "next/link";
 import { sampleMeals } from "../../data/meals";
 import MealPlanCard from "../../components/MealPlanCard";
 import { Meal } from "../../types/meal";
+import {
+  calculateRecipeCost,
+  calculateRecipeNutrition,
+} from "@/utils/nutritionCalculator";
 
 interface MealPlanDay {
   [key: string]: Meal | null;
@@ -26,7 +30,6 @@ export default function WeeklyPlan() {
   ];
   const mealTypes = ["Breakfast", "Lunch", "Dinner"];
 
-  // Initialize empty meal plan
   const getEmptyPlan = (): MealPlanState => {
     const plan: MealPlanState = {};
     daysOfWeek.forEach((day) => {
@@ -42,23 +45,19 @@ export default function WeeklyPlan() {
   const [mealPlan, setMealPlan] = useState<MealPlanState>(getEmptyPlan());
   const [activeDay, setActiveDay] = useState<string>(daysOfWeek[0]);
 
-  // Load saved meal plan from localStorage on component mount
   useEffect(() => {
     const savedPlan = localStorage.getItem("mealPlan");
     if (savedPlan) {
       setMealPlan(JSON.parse(savedPlan));
     }
 
-    // Set active day to current day of the week if possible
     const today = new Date().getDay();
-    // Convert from Sunday-Saturday (0-6) to Monday-Sunday (0-6)
     const adjustedDay = today === 0 ? 6 : today - 1;
     if (adjustedDay >= 0 && adjustedDay < daysOfWeek.length) {
       setActiveDay(daysOfWeek[adjustedDay]);
     }
   }, []);
 
-  // Save meal plan to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("mealPlan", JSON.stringify(mealPlan));
   }, [mealPlan]);
@@ -86,57 +85,37 @@ export default function WeeklyPlan() {
     }));
   };
 
-  // Calculate total weekly nutrition
-  const calculateWeeklyNutrition = () => {
-    let totalCalories = 0;
-    let totalProtein = 0;
-    let totalCarbs = 0;
-    let totalFat = 0;
-
-    Object.values(mealPlan).forEach((day) => {
-      Object.values(day).forEach((meal) => {
-        if (meal) {
-          totalCalories += meal.nutrition.calories;
-          totalProtein += meal.nutrition.protein;
-          totalCarbs += meal.nutrition.carbs;
-          totalFat += meal.nutrition.fat;
-        }
-      });
-    });
-
-    return {
-      calories: totalCalories,
-      protein: totalProtein,
-      carbs: totalCarbs,
-      fat: totalFat,
-    };
-  };
-
-  // Calculate day's nutrition
-  const calculateDayNutrition = (day: string) => {
+  // Calculate day's nutrition and cost
+  const calculateDayTotals = (day: string) => {
     let dayCalories = 0;
     let dayProtein = 0;
     let dayCarbs = 0;
     let dayFat = 0;
+    let dayCost = 0;
 
     Object.values(mealPlan[day]).forEach((meal) => {
       if (meal) {
-        dayCalories += meal.nutrition.calories;
-        dayProtein += meal.nutrition.protein;
-        dayCarbs += meal.nutrition.carbs;
-        dayFat += meal.nutrition.fat;
+        const nutrition =
+          meal.calculatedNutrition ||
+          calculateRecipeNutrition(meal.ingredients);
+        const cost = meal.totalCost || calculateRecipeCost(meal.ingredients);
+
+        dayCalories += nutrition.calories;
+        dayProtein += nutrition.protein;
+        dayCarbs += nutrition.carbs;
+        dayFat += nutrition.fat;
+        dayCost += cost;
       }
     });
 
     return {
-      calories: dayCalories,
-      protein: dayProtein,
-      carbs: dayCarbs,
-      fat: dayFat,
+      calories: Math.round(dayCalories),
+      protein: Number(dayProtein.toFixed(1)),
+      carbs: Number(dayCarbs.toFixed(1)),
+      fat: Number(dayFat.toFixed(1)),
+      cost: Number(dayCost.toFixed(2)),
     };
   };
-
-  const weeklyNutrition = calculateWeeklyNutrition();
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -152,61 +131,11 @@ export default function WeeklyPlan() {
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl shadow-md p-6 mb-8 border border-emerald-100">
-        <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="w-6 h-6 mr-2 text-emerald-600"
-          >
-            <path
-              fillRule="evenodd"
-              d="M2.25 13.5a8.25 8.25 0 0 1 8.25-8.25.75.75 0 0 1 .75.75v6.75H18a.75.75 0 0 1 .75.75 8.25 8.25 0 0 1-16.5 0Z"
-              clipRule="evenodd"
-            />
-            <path
-              fillRule="evenodd"
-              d="M12.75 3a.75.75 0 0 1 .75-.75 8.25 8.25 0 0 1 8.25 8.25.75.75 0 0 1-.75.75h-7.5a.75.75 0 0 1-.75-.75V3Z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Weekly Nutrition Summary
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-gradient-to-br from-purple-100 to-purple-50 p-4 rounded-xl text-center shadow-sm border border-purple-200">
-            <p className="text-purple-800 font-bold text-2xl">
-              {weeklyNutrition.calories}
-            </p>
-            <p className="text-purple-600">Total Calories</p>
-          </div>
-          <div className="bg-gradient-to-br from-red-100 to-red-50 p-4 rounded-xl text-center shadow-sm border border-red-200">
-            <p className="text-red-800 font-bold text-2xl">
-              {weeklyNutrition.protein}g
-            </p>
-            <p className="text-red-600">Total Protein</p>
-          </div>
-          <div className="bg-gradient-to-br from-yellow-100 to-yellow-50 p-4 rounded-xl text-center shadow-sm border border-yellow-200">
-            <p className="text-yellow-800 font-bold text-2xl">
-              {weeklyNutrition.carbs}g
-            </p>
-            <p className="text-yellow-600">Total Carbs</p>
-          </div>
-          <div className="bg-gradient-to-br from-green-100 to-green-50 p-4 rounded-xl text-center shadow-sm border border-green-200">
-            <p className="text-green-800 font-bold text-2xl">
-              {weeklyNutrition.fat}g
-            </p>
-            <p className="text-green-600">Total Fat</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Responsive Week Day Selector */}
       <div className="flex overflow-x-auto pb-2 mb-6 hideScrollbar">
         <div className="flex space-x-2">
           {daysOfWeek.map((day) => {
             const isActive = day === activeDay;
-            const dayNutrition = calculateDayNutrition(day);
+            const dayTotals = calculateDayTotals(day);
             const dayOfMonth =
               new Date().getDate() -
               (new Date().getDay() - daysOfWeek.indexOf(day) - 1);
@@ -235,7 +164,7 @@ export default function WeeklyPlan() {
                     isActive ? "text-white" : "text-purple-600"
                   }`}
                 >
-                  {dayNutrition.calories} cal
+                  {dayTotals.calories} cal
                 </span>
               </button>
             );
@@ -243,7 +172,61 @@ export default function WeeklyPlan() {
         </div>
       </div>
 
-      {/* Active Day View */}
+      <div className="bg-white rounded-xl shadow-md p-6 mb-8 border border-emerald-100">
+        <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="w-6 h-6 mr-2 text-emerald-600"
+          >
+            <path
+              fillRule="evenodd"
+              d="M2.25 13.5a8.25 8.25 0 0 1 8.25-8.25.75.75 0 0 1 .75.75v6.75H18a.75.75 0 0 1 .75.75 8.25 8.25 0 0 1-16.5 0Z"
+              clipRule="evenodd"
+            />
+            <path
+              fillRule="evenodd"
+              d="M12.75 3a.75.75 0 0 1 .75-.75 8.25 8.25 0 0 1 8.25 8.25.75.75 0 0 1-.75.75h-7.5a.75.75 0 0 1-.75-.75V3Z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Daily Summary for {activeDay}
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="bg-gradient-to-br from-purple-100 to-purple-50 p-4 rounded-xl text-center shadow-sm border border-purple-200">
+            <p className="text-purple-800 font-bold text-2xl">
+              {calculateDayTotals(activeDay).calories}
+            </p>
+            <p className="text-purple-600">Calories</p>
+          </div>
+          <div className="bg-gradient-to-br from-red-100 to-red-50 p-4 rounded-xl text-center shadow-sm border border-red-200">
+            <p className="text-red-800 font-bold text-2xl">
+              {calculateDayTotals(activeDay).protein}g
+            </p>
+            <p className="text-red-600">Protein</p>
+          </div>
+          <div className="bg-gradient-to-br from-yellow-100 to-yellow-50 p-4 rounded-xl text-center shadow-sm border border-yellow-200">
+            <p className="text-yellow-800 font-bold text-2xl">
+              {calculateDayTotals(activeDay).carbs}g
+            </p>
+            <p className="text-yellow-600">Carbs</p>
+          </div>
+          <div className="bg-gradient-to-br from-green-100 to-green-50 p-4 rounded-xl text-center shadow-sm border border-green-200">
+            <p className="text-green-800 font-bold text-2xl">
+              {calculateDayTotals(activeDay).fat}g
+            </p>
+            <p className="text-green-600">Fat</p>
+          </div>
+          <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-4 rounded-xl text-center shadow-sm border border-blue-200">
+            <p className="text-blue-800 font-bold text-2xl">
+              ${calculateDayTotals(activeDay).cost}
+            </p>
+            <p className="text-blue-600">Total Cost</p>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-white rounded-xl shadow-md p-6 mb-8 border border-gray-200">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">{activeDay}</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
