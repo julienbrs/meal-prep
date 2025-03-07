@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { sampleMeals } from "../../data/meals";
 import MealPlanCard from "../../components/MealPlanCard";
 import { Meal } from "../../types/meal";
 import {
   calculateRecipeCost,
   calculateRecipeNutrition,
 } from "@/utils/nutritionCalculator";
+import { loadMeals } from "@/services/dataservice";
 
 interface MealPlanDay {
   [key: string]: Meal | null;
@@ -42,28 +42,87 @@ export default function WeeklyPlan() {
     return plan;
   };
 
+  const [meals, setMeals] = useState<Meal[]>([]);
   const [mealPlan, setMealPlan] = useState<MealPlanState>(getEmptyPlan());
   const [activeDay, setActiveDay] = useState<string>(daysOfWeek[0]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Load meals and saved meal plan
   useEffect(() => {
-    const savedPlan = localStorage.getItem("mealPlan");
-    if (savedPlan) {
-      setMealPlan(JSON.parse(savedPlan));
+    async function initialize() {
+      setLoading(true);
+
+      try {
+        // Load meals
+        const mealsData = await loadMeals();
+        setMeals(mealsData);
+
+        // Load saved meal plan from localStorage
+        const savedPlan = localStorage.getItem("mealPlan");
+        if (savedPlan) {
+          try {
+            const parsedPlan = JSON.parse(savedPlan);
+
+            // If we already have meals loaded, hydrate the plan with actual meal objects
+            const hydratedPlan: MealPlanState = {};
+
+            // For each day in the saved plan
+            Object.keys(parsedPlan).forEach((day) => {
+              hydratedPlan[day] = {};
+
+              // For each meal type in that day
+              Object.keys(parsedPlan[day]).forEach((mealType) => {
+                const mealData = parsedPlan[day][mealType];
+
+                if (mealData) {
+                  // Find the corresponding meal in our loaded meals
+                  const meal = mealsData.find((m) => m.id === mealData.id);
+                  hydratedPlan[day][mealType] = meal || null;
+                } else {
+                  hydratedPlan[day][mealType] = null;
+                }
+              });
+            });
+
+            setMealPlan(hydratedPlan);
+          } catch (err) {
+            console.error("Error parsing saved meal plan:", err);
+            setMealPlan(getEmptyPlan());
+          }
+        } else {
+          setMealPlan(getEmptyPlan());
+        }
+
+        // Set active day to current day of the week
+        const today = new Date().getDay();
+        const adjustedDay = today === 0 ? 6 : today - 1; // Convert Sunday (0) to 6
+        if (adjustedDay >= 0 && adjustedDay < daysOfWeek.length) {
+          setActiveDay(daysOfWeek[adjustedDay]);
+        }
+
+        setError(null);
+      } catch (err) {
+        console.error("Failed to initialize weekly plan:", err);
+        setError("Failed to load meals. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
     }
 
-    const today = new Date().getDay();
-    const adjustedDay = today === 0 ? 6 : today - 1;
-    if (adjustedDay >= 0 && adjustedDay < daysOfWeek.length) {
-      setActiveDay(daysOfWeek[adjustedDay]);
-    }
+    initialize();
   }, []);
 
+  // Save meal plan to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem("mealPlan", JSON.stringify(mealPlan));
+    if (Object.keys(mealPlan).length > 0) {
+      localStorage.setItem("mealPlan", JSON.stringify(mealPlan));
+    }
   }, [mealPlan]);
 
+  // Add a meal to the plan
   const addMealToPlan = (day: string, mealType: string, mealId: string) => {
-    const meal = sampleMeals.find((m) => m.id === mealId);
+    const meal = meals.find((m) => m.id === mealId);
     if (meal) {
       setMealPlan((prev) => ({
         ...prev,
@@ -75,6 +134,7 @@ export default function WeeklyPlan() {
     }
   };
 
+  // Remove a meal from the plan
   const removeMealFromPlan = (day: string, mealType: string) => {
     setMealPlan((prev) => ({
       ...prev,
@@ -117,6 +177,14 @@ export default function WeeklyPlan() {
     };
   };
 
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -130,6 +198,15 @@ export default function WeeklyPlan() {
           Browse Recipes
         </Link>
       </div>
+
+      {error && (
+        <div
+          className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6"
+          role="alert"
+        >
+          <p>{error}</p>
+        </div>
+      )}
 
       <div className="flex overflow-x-auto pb-2 mb-6 hideScrollbar">
         <div className="flex space-x-2">
@@ -236,7 +313,7 @@ export default function WeeklyPlan() {
               day={activeDay}
               mealType={mealType}
               meal={mealPlan[activeDay][mealType]}
-              meals={sampleMeals}
+              meals={meals}
               onAddMeal={addMealToPlan}
               onRemoveMeal={removeMealFromPlan}
             />

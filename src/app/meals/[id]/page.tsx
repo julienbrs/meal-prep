@@ -1,25 +1,105 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { sampleMeals } from "../../../data/meals";
 import {
   calculateRecipeNutrition,
   calculateRecipeCost,
 } from "@/utils/nutritionCalculator";
 import { getFoodItemById } from "@/utils/foodItemFetcher";
+import { loadMeals } from "@/services/dataservice";
+import { Meal } from "@/types/meal";
 
 export default function MealDetails() {
   const params = useParams();
   const id = params.id as string;
 
-  const meal = sampleMeals.find((m) => m.id === id);
+  const [meal, setMeal] = useState<Meal | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [foodItemNames, setFoodItemNames] = useState<Record<string, string>>(
+    {}
+  );
+
+  useEffect(() => {
+    async function fetchMeal() {
+      setLoading(true);
+      try {
+        const meals = await loadMeals();
+        const foundMeal = meals.find((m) => m.id === id);
+        setMeal(foundMeal || null);
+      } catch (err) {
+        console.error("Error loading meal:", err);
+        setError("Failed to load meal details. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchMeal();
+  }, [id]);
+
+  // Load food item names in a separate useEffect
+  useEffect(() => {
+    if (!meal) return;
+
+    async function loadFoodItems() {
+      const names: Record<string, string> = {};
+      if (!meal) return;
+
+      for (const ingredient of meal.ingredients) {
+        try {
+          const foodItem = await getFoodItemById(ingredient.foodItemId);
+          if (foodItem) {
+            names[ingredient.foodItemId] = foodItem.name;
+          }
+        } catch (err) {
+          console.error(
+            `Error loading food item ${ingredient.foodItemId}:`,
+            err
+          );
+        }
+      }
+
+      setFoodItemNames(names);
+    }
+
+    loadFoodItems();
+  }, [meal]);
 
   const nutrition =
     meal?.calculatedNutrition ||
     (meal ? calculateRecipeNutrition(meal.ingredients) : null);
   const cost =
     meal?.totalCost || (meal ? calculateRecipeCost(meal.ingredients) : null);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div
+          className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6"
+          role="alert"
+        >
+          <p>{error}</p>
+        </div>
+        <Link
+          href="/"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+        >
+          Back to Recipes
+        </Link>
+      </div>
+    );
+  }
 
   if (!meal) {
     return (
@@ -202,7 +282,7 @@ export default function MealDetails() {
                       <span className="font-medium">
                         {ingredient.amount} {ingredient.unit}
                       </span>{" "}
-                      {getFoodItemById(ingredient.foodItemId)?.name}
+                      {foodItemNames[ingredient.foodItemId] || "Loading..."}
                     </span>
                   </li>
                 ))}

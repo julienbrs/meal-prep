@@ -1,24 +1,34 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { sampleMeals } from "../data/meals";
 import MealCard from "../components/MealCard";
 import Link from "next/link";
 import { Meal } from "../types/meal";
+import { loadMeals } from "@/services/dataservice";
 
 export default function Home() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
-  const [meals, ] = useState<Meal[]>(sampleMeals);
+  const [meals, setMeals] = useState<Meal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+    async function fetchMeals() {
+      setIsLoading(true);
+      try {
+        const data = await loadMeals();
+        setMeals(data);
+        setError(null);
+      } catch (err) {
+        console.error("Failed to load meals:", err);
+        setError("Failed to load meals. Please try again later.");
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-    return () => clearTimeout(timer);
+    fetchMeals();
   }, []);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,6 +84,15 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {error && (
+        <div
+          className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6"
+          role="alert"
+        >
+          <p>{error}</p>
+        </div>
+      )}
 
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-2xl font-bold text-gray-800 flex items-center">
@@ -256,7 +275,9 @@ export default function Home() {
               </svg>
             </div>
             <h3 className="font-semibold text-emerald-800">Dinner</h3>
-            <p className="text-sm text-emerald-600 mt-1">Evening satisfaction</p>
+            <p className="text-sm text-emerald-600 mt-1">
+              Evening satisfaction
+            </p>
           </Link>
 
           <Link
@@ -309,9 +330,7 @@ export default function Home() {
             </p>
           </div>
           <div className="bg-white bg-opacity-60 rounded-lg p-4 border border-green-200">
-            <h3 className="font-semibold text-green-800 mb-2">
-              Mix and Match
-            </h3>
+            <h3 className="font-semibold text-green-800 mb-2">Mix and Match</h3>
             <p className="text-green-700">
               Create versatile meal components that can be used in multiple
               dishes throughout the week to add variety without extra effort.

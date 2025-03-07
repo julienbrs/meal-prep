@@ -1,0 +1,103 @@
+[
+  {
+    "id": "1",
+    "name": "Avocado Toast with Egg",
+    "description": "A nutritious breakfast with whole grain toast, avocado, and a perfectly poached egg.",
+    "category": "breakfast",
+    "preparationTime": 15,
+    "image": "/images/avocado-toast.png",
+    "ingredients": [
+      { "foodItemId": "grain-1", "amount": 2, "unit": "slice" },
+      { "foodItemId": "veg-1", "amount": 1, "unit": "piece" },
+      { "foodItemId": "protein-3", "amount": 2, "unit": "piece" },
+      { "foodItemId": "spice-1", "amount": 1, "unit": "g" },
+      { "foodItemId": "spice-2", "amount": 1, "unit": "g" }
+    ],
+    "instructions": [
+      "Toast the bread until golden and firm.",
+      "While the bread is toasting, mash the avocado in a small bowl and season with salt and pepper.",
+      "Poach the eggs by bringing a pot of water to a simmer, adding a splash of vinegar, and cracking the eggs into the water. Cook for 3-4 minutes.",
+      "Spread the mashed avocado on the toasted bread.",
+      "Top with the poached eggs, a sprinkle of salt, pepper, and red pepper flakes."
+    ],
+    "calculatedNutrition": {
+      "calories": 650,
+      "protein": 28.6,
+      "carbs": 53.1,
+      "fat": 40.6,
+      "fiber": 13.7,
+      "sugar": 9.5
+    },
+    "totalCost": 3.4
+  },
+  {
+    "id": "2",
+    "name": "Grilled Chicken Salad",
+    "description": "A light, protein-packed salad with grilled chicken, mixed greens, and a tangy vinaigrette.",
+    "category": "lunch",
+    "preparationTime": 25,
+    "image": "/images/chicken-salad.jpg",
+    "ingredients": [
+      { "foodItemId": "protein-1", "amount": 150, "unit": "g" },
+      { "foodItemId": "veg-3", "amount": 200, "unit": "g" },
+      { "foodItemId": "fruit-1", "amount": 100, "unit": "g" },
+      { "foodItemId": "veg-4", "amount": 100, "unit": "g" },
+      { "foodItemId": "fat-1", "amount": 15, "unit": "ml" },
+      { "foodItemId": "cond-1", "amount": 10, "unit": "ml" },
+      { "foodItemId": "spice-1", "amount": 1, "unit": "g" },
+      { "foodItemId": "spice-2", "amount": 1, "unit": "g" }
+    ],
+    "instructions": [
+      "Season the chicken breast with salt and pepper.",
+      "Grill the chicken for 6-7 minutes per side until cooked through.",
+      "Wash and chop the mixed greens, halve the cherry tomatoes, and dice the cucumber.",
+      "In a small bowl, whisk together olive oil, balsamic vinegar, salt, and pepper to make the dressing.",
+      "Combine the greens, tomatoes, and cucumber in a large bowl.",
+      "Slice the grilled chicken and place on top of the salad.",
+      "Drizzle with the dressing just before serving."
+    ],
+    "calculatedNutrition": {
+      "calories": 415,
+      "protein": 50.4,
+      "carbs": 14.1,
+      "fat": 20.1,
+      "fiber": 4.6,
+      "sugar": 7.9
+    },
+    "totalCost": 3.92
+  },
+  {
+    "id": "3",
+    "name": "Salmon with Roasted Vegetables",
+    "description": "Oven-baked salmon fillet with a medley of seasonal roasted vegetables.",
+    "category": "dinner",
+    "preparationTime": 40,
+    "image": "/images/salmon-vegetables.jpg",
+    "ingredients": [
+      { "foodItemId": "protein-2", "amount": 180, "unit": "g" },
+      { "foodItemId": "veg-2", "amount": 150, "unit": "g" },
+      { "foodItemId": "veg-5", "amount": 100, "unit": "g" },
+      { "foodItemId": "fat-1", "amount": 30, "unit": "ml" },
+      { "foodItemId": "spice-1", "amount": 2, "unit": "g" },
+      { "foodItemId": "spice-2", "amount": 1, "unit": "g" }
+    ],
+    "instructions": [
+      "Preheat the oven to 400°F (200°C).",
+      "Chop all vegetables into bite-sized pieces.",
+      "Toss vegetables with 1 tbsp olive oil, half the salt and pepper, and dried herbs.",
+      "Spread vegetables on a baking sheet and roast for 15 minutes.",
+      "Season salmon with remaining salt, pepper, and 1 tbsp olive oil.",
+      "Place salmon on the baking sheet with the partially roasted vegetables.",
+      "Bake for an additional 12-15 minutes until salmon is cooked through and vegetables are tender."
+    ],
+    "calculatedNutrition": {
+      "calories": 663,
+      "protein": 41.6,
+      "carbs": 12.5,
+      "fat": 49.3,
+      "fiber": 5.1,
+      "sugar": 5.3
+    },
+    "totalCost": 6.66
+  }
+]

@@ -4,9 +4,14 @@ import { FoodItem } from "@/types/ingredient";
 interface FoodItemsTableProps {
   items: FoodItem[];
   onEdit: (item: FoodItem) => void;
+  onDelete: (id: string) => void;
 }
 
-const FoodItemsTable: React.FC<FoodItemsTableProps> = ({ items, onEdit }) => {
+const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
+  items,
+  onEdit,
+  onDelete,
+}) => {
   return (
     <div className="overflow-x-auto rounded-lg shadow">
       <table className="w-full border-collapse bg-white">
@@ -114,20 +119,40 @@ const FoodItemsTable: React.FC<FoodItemsTableProps> = ({ items, onEdit }) => {
                   <span className="text-xs text-gray-400">g</span>
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-right">
-                  <button
-                    onClick={() => onEdit(item)}
-                    className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-3.5 w-3.5 mr-1"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      onClick={() => onEdit(item)}
+                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                     >
-                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                    </svg>
-                    Edit
-                  </button>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-3.5 w-3.5 mr-1"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => onDelete(item.id)}
+                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-3.5 w-3.5 mr-1"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))
