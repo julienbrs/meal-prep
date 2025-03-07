@@ -42,8 +42,8 @@ export default function CreateRecipe() {
     async function fetchFoodItems() {
       setLoading(true);
       try {
-        const items = await loadFoodItems();
         await preloadFoodItems();
+        const items = await loadFoodItems();
         setFoodItems(items);
         setError(null);
       } catch (err) {
@@ -56,32 +56,11 @@ export default function CreateRecipe() {
     fetchFoodItems();
   }, []);
 
-  const handleAutoExtract = async () => {
-    if (!autoInput.trim()) return;
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch("/api/extract-recipe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: autoInput }),
-      });
-
-      const data = await response.json();
-      if (data.success) {
-        setRecipe(data.recipe);
-        setIsAutoMode(false);
-      } else {
-        setError("Failed to extract recipe. Please try again.");
-      }
-    } catch (err) {
-      console.error("Error extracting recipe:", err);
-      setError("An error occurred while extracting the recipe.");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (recipe.ingredients?.length && foodItems.length) {
+      const updatedNutrition = calculateRecipeNutrition(recipe.ingredients);
     }
-  };
+  }, [recipe.ingredients, foodItems]);
 
   const handleRecipeChange = (
     e: React.ChangeEvent<
@@ -174,7 +153,6 @@ export default function CreateRecipe() {
     : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("click");
     e.preventDefault();
 
     if (
@@ -183,8 +161,6 @@ export default function CreateRecipe() {
       recipe.ingredients?.length === 0 ||
       recipe.instructions?.some((i) => !i)
     ) {
-      console.log("recipe:", recipe);
-      console.log("error");
       setError(
         "Please fill in all required fields and add at least one ingredient."
       );
@@ -270,24 +246,20 @@ export default function CreateRecipe() {
       {isAutoMode && (
         <AutoExtractModal
           onClose={() => setIsAutoMode(false)}
-          onExtractSuccess={(data) => {
-            console.log("Extracted Data:", data);
-
-            // mapping foodItemId (name) to the actual food item ID from the db
-            const mappedIngredients = data.ingredients.map(
+          onExtractSuccess={(data) => {const mappedIngredients = data.ingredients.map(
               (ingredient: { foodItemId: string; amount: any; unit: any }) => {
                 const matchedFood = foodItems.find(
                   (item) =>
                     item.name.toLowerCase() ===
                     ingredient.foodItemId.toLowerCase()
                 );
-                console.log("matchedFOod:", matchedFood);
 
                 return matchedFood
                   ? {
                       foodItemId: matchedFood.id,
                       amount: ingredient.amount,
                       unit: matchedFood.units,
+                      nutritionPer100g: matchedFood.nutritionPer100g,
                     }
                   : {
                       foodItemId: "unknown",

@@ -20,7 +20,6 @@ export async function getFoodItemById(
   return items.find((item) => item.id === id);
 }
 
-// A synchronous version for when items are already loaded
 export function getFoodItemByIdSync(id: string): FoodItem | undefined {
   if (!foodItemsCache) {
     throw new Error("Food items not loaded. Call ensureFoodItemsLoaded first.");
@@ -28,7 +27,6 @@ export function getFoodItemByIdSync(id: string): FoodItem | undefined {
   return foodItemsCache.find((item) => item.id === id);
 }
 
-// Search food items by a query string
 export async function searchFoodItems(query: string): Promise<FoodItem[]> {
   const items = await ensureFoodItemsLoaded();
   const lowerCaseQuery = query.toLowerCase();

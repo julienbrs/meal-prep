@@ -81,28 +81,39 @@ export function calculateRecipeNutrition(
     const foodItem = getFoodItemByIdSync(ingredient.foodItemId);
     if (!foodItem) return;
 
-    let amountInGrams = ingredient.amount;
+    console.log("Processing ingredient:", ingredient);
+
+    let amountInGrams = Number(ingredient.amount);
+    if (isNaN(amountInGrams)) {
+      console.error(
+        `Invalid amount for ${ingredient.foodItemId}:`,
+        ingredient.amount
+      );
+      amountInGrams = 0;
+    }
+
     if (ingredient.unit !== "g") {
+
       if (foodItem.units === "piece" && ingredient.unit === "piece") {
         switch (foodItem.id) {
           case "protein-3": // Eggs
-            amountInGrams = ingredient.amount * 50; // Average egg is 50g
+            amountInGrams = ingredient.amount * 50;
             break;
           case "veg-1": // Avocado
-            amountInGrams = ingredient.amount * 170; // Average avocado is 170g
+            amountInGrams = ingredient.amount * 170;
             break;
           case "grain-1": // Bread slice
-            amountInGrams = ingredient.amount * 30; // Average bread slice is 30g
+            amountInGrams = ingredient.amount * 30;
             break;
           default:
-            amountInGrams = ingredient.amount * 100; // Default conversion
+            amountInGrams = ingredient.amount * 100;
         }
       } else if (ingredient.unit === "ml") {
-        amountInGrams = ingredient.amount; // Assume 1ml = 1g for simplicity
+        amountInGrams = ingredient.amount;
       }
     }
 
-    const ratio = amountInGrams / 100; // nutritionPer100g is based on 100g
+    const ratio = amountInGrams / 100;
     nutrition.calories += foodItem.nutritionPer100g.calories * ratio;
     nutrition.protein += foodItem.nutritionPer100g.protein * ratio;
     nutrition.carbs += foodItem.nutritionPer100g.carbs * ratio;
@@ -167,6 +178,11 @@ export function calculateRecipeCost(ingredients: RecipeIngredient[]): number {
   ingredients.forEach((ingredient) => {
     const foodItem = getFoodItemByIdSync(ingredient.foodItemId);
     if (!foodItem) return;
+
+    if (!foodItem.nutritionPer100g) {
+      console.error(`Missing nutrition data for: ${foodItem.name}`);
+      return;
+    }
 
     let amount = ingredient.amount;
     if (ingredient.unit !== foodItem.units) {
