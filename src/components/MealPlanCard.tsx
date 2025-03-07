@@ -1,4 +1,3 @@
-// src/components/MealPlanCard.tsx
 import React, { useState } from "react";
 import { Meal } from "../types/meal";
 import {

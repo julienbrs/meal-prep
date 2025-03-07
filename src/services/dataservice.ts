@@ -4,24 +4,31 @@ import {
   calculateRecipeNutrition,
   calculateRecipeCost,
 } from "@/utils/nutritionCalculator";
+import { loadJsonData, saveJsonData } from "@/utils/jsonLoader";
 
-// Cache for the data
+export interface MealPlanDay {
+  [key: string]: Meal | null;
+}
+
+export interface MealPlanState {
+  [key: string]: MealPlanDay;
+}
+
+export interface MealPlans {
+  [key: string]: MealPlanState;
+}
+
 let foodItemsCache: FoodItem[] | null = null;
 let mealsCache: Meal[] | null = null;
+let mealPlansCache: MealPlans | null = null;
 
-// Function to load food items
 export async function loadFoodItems(): Promise<FoodItem[]> {
   if (foodItemsCache) {
     return foodItemsCache;
   }
 
   try {
-    const response = await fetch("/data/foodItems.json");
-    if (!response.ok) {
-      throw new Error(`Failed to load food items: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await loadJsonData<FoodItem[]>("foodItems");
     foodItemsCache = data;
     return data;
   } catch (error) {
@@ -33,42 +40,26 @@ export async function loadFoodItems(): Promise<FoodItem[]> {
 // Function to save food items
 export async function saveFoodItems(items: FoodItem[]): Promise<boolean> {
   try {
-    const response = await fetch("/api/food-items", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(items),
-    });
+    const success = await saveJsonData("foodItems", items);
 
-    if (!response.ok) {
-      console.log("response saveFoodItems:", response);
-      throw new Error(`Failed to save food items: ${response.status}`);
+    if (success) {
+      foodItemsCache = items;
     }
 
-    // Update cache
-    foodItemsCache = items;
-    return true;
+    return success;
   } catch (error) {
     console.error("Error saving food items:", error);
     return false;
   }
 }
 
-// Function to load meals
 export async function loadMeals(): Promise<Meal[]> {
   if (mealsCache) {
     return mealsCache;
   }
 
   try {
-    const response = await fetch("/data/meals.json");
-    if (!response.ok) {
-      console.log("response loadmeals:", response);
-      throw new Error(`Failed to load meals: ${response.status}`);
-    }
-
-    const data = await response.json();
+    const data = await loadJsonData<Meal[]>("meals");
     mealsCache = data;
     return data;
   } catch (error) {
@@ -77,39 +68,109 @@ export async function loadMeals(): Promise<Meal[]> {
   }
 }
 
-// Function to save meals
 export async function saveMeals(meals: Meal[]): Promise<boolean> {
   try {
-    const response = await fetch("/api/meals", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(meals),
-    });
+    const success = await saveJsonData("meals", meals);
 
-    if (!response.ok) {
-      throw new Error(`Failed to save meals: ${response.status}`);
+    if (success) {
+      mealsCache = meals;
     }
 
-    // Update cache
-    mealsCache = meals;
-    return true;
+    return success;
   } catch (error) {
     console.error("Error saving meals:", error);
     return false;
   }
 }
 
-// Function to add a new food item
+export async function loadMealPlans(): Promise<MealPlans> {
+  if (mealPlansCache) {
+    return mealPlansCache;
+  }
+
+  try {
+    const data = await loadJsonData<MealPlans>("mealPlans");
+    mealPlansCache = data;
+    return data;
+  } catch (error) {
+    console.error("Error loading meal plans:", error);
+    return { default: {} };
+  }
+}
+
+export async function saveMealPlans(mealPlans: MealPlans): Promise<boolean> {
+  try {
+    const success = await saveJsonData("mealPlans", mealPlans);
+
+    if (success) {
+      mealPlansCache = mealPlans;
+    }
+
+    return success;
+  } catch (error) {
+    console.error("Error saving meal plans:", error);
+    return false;
+  }
+}
+
+export async function loadMealPlan(
+  id: string = "default"
+): Promise<MealPlanState> {
+  const mealPlans = await loadMealPlans();
+  return mealPlans[id] || {};
+}
+
+// Function to save a specific meal plan
+export async function saveMealPlan(
+  mealPlan: MealPlanState,
+  id: string = "default"
+): Promise<boolean> {
+  try {
+    const mealPlans = await loadMealPlans();
+    mealPlans[id] = mealPlan;
+    return saveMealPlans(mealPlans);
+  } catch (error) {
+    console.error("Error saving meal plan:", error);
+    return false;
+  }
+}
+
+export async function hydrateMealPlan(
+  mealPlan: MealPlanState
+): Promise<MealPlanState> {
+  try {
+    const meals = await loadMeals();
+    const hydratedPlan: MealPlanState = {};
+
+    Object.keys(mealPlan).forEach((day) => {
+      hydratedPlan[day] = {};
+
+      Object.keys(mealPlan[day]).forEach((mealType) => {
+        const mealData = mealPlan[day][mealType];
+
+        if (mealData && typeof mealData === "object" && "id" in mealData) {
+          // Find the corresponding meal in our loaded meals
+          const meal = meals.find((m) => m.id === mealData.id);
+          hydratedPlan[day][mealType] = meal || null;
+        } else {
+          hydratedPlan[day][mealType] = null;
+        }
+      });
+    });
+
+    return hydratedPlan;
+  } catch (error) {
+    console.error("Error hydrating meal plan:", error);
+    return mealPlan;
+  }
+}
+
 export async function addFoodItem(item: FoodItem): Promise<boolean> {
   const items = await loadFoodItems();
 
-  // Ensure the ID is unique
   if (!item.id) {
     item.id = generateId();
   } else if (items.some((i) => i.id === item.id)) {
-    // If ID already exists, generate a new one
     item.id = generateId();
   }
 
@@ -117,7 +178,6 @@ export async function addFoodItem(item: FoodItem): Promise<boolean> {
   return saveFoodItems(updatedItems);
 }
 
-// Function to update an existing food item
 export async function updateFoodItem(item: FoodItem): Promise<boolean> {
   const items = await loadFoodItems();
   const index = items.findIndex((i) => i.id === item.id);
@@ -136,25 +196,21 @@ export async function deleteFoodItem(id: string): Promise<boolean> {
   const filteredItems = items.filter((i) => i.id !== id);
 
   if (filteredItems.length === items.length) {
-    return false; // No item was found with the provided ID
+    return false;
   }
 
   return saveFoodItems(filteredItems);
 }
 
-// Function to add a new meal
 export async function addMeal(meal: Meal): Promise<boolean> {
   const meals = await loadMeals();
 
-  // Ensure the ID is unique
   if (!meal.id) {
     meal.id = generateId();
   } else if (meals.some((m) => m.id === meal.id)) {
-    // If ID already exists, generate a new one
     meal.id = generateId();
   }
 
-  // Calculate nutrition and cost if not provided
   if (!meal.calculatedNutrition) {
     meal.calculatedNutrition = calculateRecipeNutrition(meal.ingredients);
   }
@@ -167,7 +223,6 @@ export async function addMeal(meal: Meal): Promise<boolean> {
   return saveMeals(updatedMeals);
 }
 
-// Function to update an existing meal
 export async function updateMeal(meal: Meal): Promise<boolean> {
   const meals = await loadMeals();
   const index = meals.findIndex((m) => m.id === meal.id);
@@ -176,7 +231,6 @@ export async function updateMeal(meal: Meal): Promise<boolean> {
     return false;
   }
 
-  // Recalculate nutrition and cost
   meal.calculatedNutrition = calculateRecipeNutrition(meal.ingredients);
   meal.totalCost = calculateRecipeCost(meal.ingredients);
 
@@ -184,25 +238,37 @@ export async function updateMeal(meal: Meal): Promise<boolean> {
   return saveMeals(meals);
 }
 
-// Function to delete a meal
 export async function deleteMeal(id: string): Promise<boolean> {
   const meals = await loadMeals();
   const filteredMeals = meals.filter((m) => m.id !== id);
 
   if (filteredMeals.length === meals.length) {
-    return false; // No meal was found with the provided ID
+    return false;
   }
 
   return saveMeals(filteredMeals);
 }
 
-// Helper function to generate a unique ID
+export function createEmptyMealPlan(
+  daysOfWeek: string[],
+  mealTypes: string[]
+): MealPlanState {
+  const plan: MealPlanState = {};
+  daysOfWeek.forEach((day) => {
+    plan[day] = {};
+    mealTypes.forEach((mealType) => {
+      plan[day][mealType] = null;
+    });
+  });
+  return plan;
+}
+
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
-// Clear cache (useful for testing or when you want to force a refresh)
 export function clearCache(): void {
   foodItemsCache = null;
   mealsCache = null;
+  mealPlansCache = null;
 }

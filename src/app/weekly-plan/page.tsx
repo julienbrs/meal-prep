@@ -8,15 +8,15 @@ import {
   calculateRecipeCost,
   calculateRecipeNutrition,
 } from "@/utils/nutritionCalculator";
-import { loadMeals } from "@/services/dataservice";
-
-interface MealPlanDay {
-  [key: string]: Meal | null;
-}
-
-interface MealPlanState {
-  [key: string]: MealPlanDay;
-}
+import {
+  loadMeals,
+  loadMealPlan,
+  saveMealPlan,
+  hydrateMealPlan,
+  createEmptyMealPlan,
+  MealPlanState,
+  MealPlanDay,
+} from "@/services/dataservice";
 
 export default function WeeklyPlan() {
   const daysOfWeek = [
@@ -30,68 +30,37 @@ export default function WeeklyPlan() {
   ];
   const mealTypes = ["Breakfast", "Lunch", "Dinner"];
 
-  const getEmptyPlan = (): MealPlanState => {
-    const plan: MealPlanState = {};
-    daysOfWeek.forEach((day) => {
-      plan[day] = {
-        Breakfast: null,
-        Lunch: null,
-        Dinner: null,
-      };
-    });
-    return plan;
-  };
-
   const [meals, setMeals] = useState<Meal[]>([]);
-  const [mealPlan, setMealPlan] = useState<MealPlanState>(getEmptyPlan());
+  const [mealPlan, setMealPlan] = useState<MealPlanState>(
+    createEmptyMealPlan(daysOfWeek, mealTypes)
+  );
   const [activeDay, setActiveDay] = useState<string>(daysOfWeek[0]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [savingStatus, setSavingStatus] = useState<string | null>(null);
 
-  // Load meals and saved meal plan
   useEffect(() => {
     async function initialize() {
       setLoading(true);
 
       try {
-        // Load meals
         const mealsData = await loadMeals();
         setMeals(mealsData);
 
-        // Load saved meal plan from localStorage
-        const savedPlan = localStorage.getItem("mealPlan");
-        if (savedPlan) {
-          try {
-            const parsedPlan = JSON.parse(savedPlan);
+        let mealPlanData: MealPlanState;
 
-            // If we already have meals loaded, hydrate the plan with actual meal objects
-            const hydratedPlan: MealPlanState = {};
+        try {
+          mealPlanData = await loadMealPlan();
 
-            // For each day in the saved plan
-            Object.keys(parsedPlan).forEach((day) => {
-              hydratedPlan[day] = {};
-
-              // For each meal type in that day
-              Object.keys(parsedPlan[day]).forEach((mealType) => {
-                const mealData = parsedPlan[day][mealType];
-
-                if (mealData) {
-                  // Find the corresponding meal in our loaded meals
-                  const meal = mealsData.find((m) => m.id === mealData.id);
-                  hydratedPlan[day][mealType] = meal || null;
-                } else {
-                  hydratedPlan[day][mealType] = null;
-                }
-              });
-            });
-
-            setMealPlan(hydratedPlan);
-          } catch (err) {
-            console.error("Error parsing saved meal plan:", err);
-            setMealPlan(getEmptyPlan());
+          if (Object.keys(mealPlanData).length === 0) {
+            mealPlanData = createEmptyMealPlan(daysOfWeek, mealTypes);
           }
-        } else {
-          setMealPlan(getEmptyPlan());
+
+          const hydratedPlan = await hydrateMealPlan(mealPlanData);
+          setMealPlan(hydratedPlan);
+        } catch (err) {
+          console.error("Error loading meal plan:", err);
+          setMealPlan(createEmptyMealPlan(daysOfWeek, mealTypes));
         }
 
         // Set active day to current day of the week
@@ -104,7 +73,7 @@ export default function WeeklyPlan() {
         setError(null);
       } catch (err) {
         console.error("Failed to initialize weekly plan:", err);
-        setError("Failed to load meals. Please try again later.");
+        setError("Failed to load data. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -113,40 +82,78 @@ export default function WeeklyPlan() {
     initialize();
   }, []);
 
-  // Save meal plan to localStorage whenever it changes
   useEffect(() => {
-    if (Object.keys(mealPlan).length > 0) {
-      localStorage.setItem("mealPlan", JSON.stringify(mealPlan));
-    }
-  }, [mealPlan]);
+    if (loading) return;
 
-  // Add a meal to the plan
+    if (Object.keys(mealPlan).length > 0) {
+      const saveData = async () => {
+        setSavingStatus("Saving...");
+        try {
+          const success = await saveMealPlan(mealPlan);
+          if (success) {
+            setSavingStatus("Saved");
+            setTimeout(() => {
+              setSavingStatus(null);
+            }, 2000);
+          } else {
+            setSavingStatus("Save failed");
+          }
+        } catch (err) {
+          console.error("Error saving meal plan:", err);
+          setSavingStatus("Save failed");
+        }
+      };
+
+      const timeoutId = setTimeout(() => {
+        saveData();
+      }, 1000);
+
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [mealPlan, loading]);
+
   const addMealToPlan = (day: string, mealType: string, mealId: string) => {
     const meal = meals.find((m) => m.id === mealId);
     if (meal) {
-      setMealPlan((prev) => ({
-        ...prev,
-        [day]: {
-          ...prev[day],
-          [mealType]: meal,
-        },
-      }));
+      setMealPlan((prev) => {
+        const newPlan = {
+          ...prev,
+          [day]: {
+            ...prev[day],
+            [mealType]: meal,
+          },
+        };
+        return newPlan;
+      });
     }
   };
 
-  // Remove a meal from the plan
   const removeMealFromPlan = (day: string, mealType: string) => {
-    setMealPlan((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [mealType]: null,
-      },
-    }));
+    setMealPlan((prev) => {
+      const newPlan = {
+        ...prev,
+        [day]: {
+          ...prev[day],
+          [mealType]: null,
+        },
+      };
+      return newPlan;
+    });
   };
 
-  // Calculate day's nutrition and cost
   const calculateDayTotals = (day: string) => {
+    if (!mealPlan || !mealPlan[day]) {
+      return {
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        cost: 0,
+      };
+    }
+
     let dayCalories = 0;
     let dayProtein = 0;
     let dayCarbs = 0;
@@ -191,12 +198,27 @@ export default function WeeklyPlan() {
         <h1 className="text-3xl font-bold text-gray-800">
           My Weekly Meal Plan
         </h1>
-        <Link
-          href="/"
-          className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md"
-        >
-          Browse Recipes
-        </Link>
+        <div className="flex items-center space-x-4">
+          {savingStatus && (
+            <span
+              className={`text-sm ${
+                savingStatus === "Saved"
+                  ? "text-green-600"
+                  : savingStatus === "Saving..."
+                  ? "text-gray-500"
+                  : "text-red-600"
+              }`}
+            >
+              {savingStatus}
+            </span>
+          )}
+          <Link
+            href="/"
+            className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white px-4 py-2 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-md"
+          >
+            Browse Recipes
+          </Link>
+        </div>
       </div>
 
       {error && (
@@ -213,9 +235,17 @@ export default function WeeklyPlan() {
           {daysOfWeek.map((day) => {
             const isActive = day === activeDay;
             const dayTotals = calculateDayTotals(day);
-            const dayOfMonth =
-              new Date().getDate() -
-              (new Date().getDay() - daysOfWeek.indexOf(day) - 1);
+
+            const now = new Date();
+            const today = now.getDay();
+            const currentDayIdx = daysOfWeek.indexOf(day);
+            const todayIdx = today === 0 ? 6 : today - 1;
+            let diff = currentDayIdx - todayIdx;
+            if (diff < 0) diff += 7;
+
+            const targetDate = new Date(now);
+            targetDate.setDate(now.getDate() + diff);
+            const dayOfMonth = targetDate.getDate();
 
             return (
               <button
@@ -312,7 +342,7 @@ export default function WeeklyPlan() {
               key={`${activeDay}-${mealType}`}
               day={activeDay}
               mealType={mealType}
-              meal={mealPlan[activeDay][mealType]}
+              meal={mealPlan[activeDay]?.[mealType] || null}
               meals={meals}
               onAddMeal={addMealToPlan}
               onRemoveMeal={removeMealFromPlan}
