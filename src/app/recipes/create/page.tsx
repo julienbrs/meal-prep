@@ -289,7 +289,6 @@ export default function CreateRecipe() {
                 instructions: data.steps || [],
                 category: data.category || "dinner",
               });
-
             }, 1500);
           }}
         />
@@ -298,10 +297,6 @@ export default function CreateRecipe() {
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
         <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
           <h1 className="text-2xl font-bold text-white">Create New Recipe</h1>
-
-          <button onClick={() => console.log("recipe:", recipe.ingredients)}>
-            Test
-          </button>
           <button
             onClick={async () => {
               console.log("Manually refreshing food items...");

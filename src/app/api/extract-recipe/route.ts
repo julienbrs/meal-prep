@@ -18,16 +18,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // ✅ Load food items to prioritize existing names
     let foodItems: FoodItem[] = await loadFoodItems();
     const foodNames = foodItems.map((item) => item.name.toLowerCase());
 
+    // ✅ Step 1: Extract structured data **and** description in one call
     const extractionPrompt = `
       Extract structured data for the following recipe:
       - Convert all ingredient names to English.
-      - Return structured JSON with: name, amount, unit, and steps.
+      - Provide structured JSON with: name, amount, unit, steps, category, and a short description.
+      - The description should be **one concise sentence** summarizing the dish, without listing ingredients.
 
       Recipe:
       "${recipeText}"
+
+      Return ONLY JSON in this format (no text, no explanations):
+
+      {
+        "name": "Recipe Name",
+        "description": "A delicious and creamy pasta dish with a hint of garlic.",
+        "category": "dinner",
+        "ingredients": [
+          { "name": "ingredient 1", "amount": 100, "unit": "g" },
+          { "name": "ingredient 2", "amount": 2, "unit": "tbsp" }
+        ],
+        "steps": ["Step 1", "Step 2", "Step 3"]
+      }
     `;
 
     const extractionResponse = await openai.chat.completions.create({
@@ -37,7 +53,7 @@ export async function POST(req: NextRequest) {
     });
 
     let responseText = extractionResponse.choices[0]?.message?.content || "{}";
-    responseText = responseText.replace(/^```json\s*|```$/g, ""); // Remove Markdown JSON formatting
+    responseText = responseText.replace(/^```json\s*|```$/g, ""); // Clean JSON formatting
 
     let extractedData;
     try {
@@ -58,29 +74,21 @@ export async function POST(req: NextRequest) {
       : [];
 
     extractedData.ingredients = extractedData.ingredients.map(
-      (ing: { name: any; amount: any; unit: any }) => ({
+      (ing: { name: string; amount: any; unit: any }) => ({
         name: ing?.name || "Unknown Ingredient",
         amount: ing?.amount ?? "To taste",
         unit: ing?.unit ?? "",
       })
     );
 
-    if (extractedData.ingredients.length === 0) {
-      console.warn(
-        "⚠️ No ingredients extracted. AI may have returned incomplete data."
-      );
-    }
+    let aiGeneratedIngredients: FoodItem[] = [];
 
     const missingIngredients = extractedData.ingredients.filter(
       (ing: { name: string }) => !foodNames.includes(ing.name?.toLowerCase())
     );
 
     if (missingIngredients.length > 0) {
-      const missingNames = missingIngredients
-        .map((ing: { name: any }) => ing.name)
-        .filter(Boolean)
-        .join(", ");
-
+      const missingNames = missingIngredients.map((ing: { name: any; }) => ing.name).join(", ");
       console.log("🔍 Missing Ingredients:", missingNames);
 
       const aiCompletion = await openai.chat.completions.create({
@@ -111,9 +119,7 @@ export async function POST(req: NextRequest) {
 
       let aiResponseText = aiCompletion.choices[0]?.message?.content || "[]";
       aiResponseText = aiResponseText.replace(/^```json\s*|```$/g, "");
-      console.log("🔹 AI Response for Missing Ingredients:", aiResponseText);
 
-      let aiGeneratedIngredients = [];
       try {
         aiGeneratedIngredients = JSON.parse(aiResponseText);
         if (!Array.isArray(aiGeneratedIngredients)) {
@@ -126,6 +132,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      // ✅ Add missing ingredients to database
       for (const aiIng of aiGeneratedIngredients) {
         const newFoodItem: FoodItem = {
           id: aiIng.name.toLowerCase().replace(/\s+/g, "-"),
@@ -139,42 +146,38 @@ export async function POST(req: NextRequest) {
         await addFoodItem(newFoodItem);
       }
 
+      // 🔄 Refresh food items in memory
       clearFoodItemsCache();
       await preloadFoodItems();
       foodItems = await loadFoodItems();
-
-      extractedData.ingredients = extractedData.ingredients.map(
-        (ing: { name: string }) => {
-          const found = foodItems.find(
-            (item) => item.name.toLowerCase() === ing.name.toLowerCase()
-          );
-
-          if (found) {
-            return { ...ing, foodItemId: found.id };
-          }
-
-          const aiGeneratedItem = aiGeneratedIngredients.find(
-            (aiIng: { name: string }) =>
-              aiIng.name.toLowerCase() === ing.name.toLowerCase()
-          );
-
-          return aiGeneratedItem
-            ? {
-                ...ing,
-                foodItemId: aiGeneratedItem.name
-                  .toLowerCase()
-                  .replace(/\s+/g, "-"),
-                nutritionPer100g: aiGeneratedItem.nutritionPer100g,
-                price: aiGeneratedItem.price,
-                priceUnit: aiGeneratedItem.priceUnit,
-              }
-            : {
-                ...ing,
-                foodItemId: ing.name.toLowerCase().replace(/\s+/g, "-"),
-              };
-        }
-      );
     }
+
+    extractedData.ingredients = extractedData.ingredients.map((ing: { name: string; }) => {
+      const found = foodItems.find(
+        (item) => item.name.toLowerCase() === ing.name.toLowerCase()
+      );
+
+      if (found) {
+        return { ...ing, foodItemId: found.id };
+      }
+
+      const aiGeneratedItem = aiGeneratedIngredients.find(
+        (aiIng) => aiIng.name.toLowerCase() === ing.name.toLowerCase()
+      );
+
+      return aiGeneratedItem
+        ? {
+            ...ing,
+            foodItemId: aiGeneratedItem.name.toLowerCase().replace(/\s+/g, "-"),
+            nutritionPer100g: aiGeneratedItem.nutritionPer100g,
+            price: aiGeneratedItem.price,
+            priceUnit: aiGeneratedItem.priceUnit,
+          }
+        : {
+            ...ing,
+            foodItemId: ing.name.toLowerCase().replace(/\s+/g, "-"),
+          };
+    });
 
     return NextResponse.json({ success: true, data: extractedData });
   } catch (error) {
