@@ -82,10 +82,16 @@ export function calculateRecipeNutrition(
     const foodItem = foodItems.find(
       (item) => item.id === ingredient.foodItemId
     );
+
     if (!foodItem) return;
 
     let amountInGrams = Number(ingredient.amount);
+
     if (isNaN(amountInGrams)) {
+      if (String(ingredient.amount).toLowerCase() === "to taste") {
+        return;
+      }
+
       console.warn(
         `Invalid amount for ${ingredient.foodItemId}:`,
         ingredient.amount
