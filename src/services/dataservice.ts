@@ -28,7 +28,7 @@ export async function loadFoodItems(): Promise<FoodItem[]> {
   }
 
   try {
-    const data = await loadJsonData<FoodItem[]>("foodItems");
+    const data = await loadJsonData<FoodItem[]>("food-items");
     foodItemsCache = data;
     return data;
   } catch (error) {
@@ -40,7 +40,7 @@ export async function loadFoodItems(): Promise<FoodItem[]> {
 // Function to save food items
 export async function saveFoodItems(items: FoodItem[]): Promise<boolean> {
   try {
-    const success = await saveJsonData("foodItems", items);
+    const success = await saveJsonData("food-items", items);
 
     if (success) {
       foodItemsCache = items;
