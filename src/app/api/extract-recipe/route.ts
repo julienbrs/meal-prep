@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { loadFoodItems } from "@/services/dataservice";
+import { FoodItem } from "@/types/ingredient";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,8 +10,6 @@ const openai = new OpenAI({
 export async function POST(req: NextRequest) {
   try {
     const { recipeText } = await req.json();
-    console.log("recipetext:", recipeText)
-
     if (!recipeText) {
       return NextResponse.json(
         { error: "Missing recipe text" },
@@ -17,18 +17,36 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const foodItems: FoodItem[] = await loadFoodItems();
+    const foodNames = foodItems.map((item) => item.name).join(", ");
+
     const prompt = `
-      Analyze the following recipe and extract the following details in valid JSON format:
-      - name: (recipe name)
-      - category: (one of: breakfast, lunch, dinner, snack)
-      - preparationTime: (duration in minutes)
-      - ingredients: (array of objects { name, amount, unit })
-      - instructions: (array of step-by-step instructions)
-
-      Recipe:
+      Analyze the following recipe and extract structured data in **English**, ensuring the ingredients match the provided list of food items.
+      
+      **Available Food Items:**
+      ${foodNames}
+      
+      **Extracted JSON format:**
+      {
+        "name": "Recipe Name",
+        "category": "breakfast | lunch | dinner | snack",
+        "preparationTime": "time in minutes",
+        "ingredients": [
+          {
+            "foodItemId": "matching ID from database",
+            "amount": "amount in correct unit",
+            "unit": "correct unit from database"
+          }
+        ],
+        "instructions": ["Step 1", "Step 2", ...]
+      }
+      
+      **Recipe to Process:**
       "${recipeText}"
-
-      Return only a **valid JSON response** without any additional text.
+      
+      Make sure all ingredients strictly match the given food items.
+      
+      **Return only valid JSON.**
     `;
 
     const response = await openai.chat.completions.create({
@@ -37,7 +55,7 @@ export async function POST(req: NextRequest) {
         {
           role: "system",
           content:
-            "You are a culinary assistant specialized in extracting structured recipe data.",
+            "You are an expert recipe assistant that maps ingredients to a known database.",
         },
         { role: "user", content: prompt },
       ],
@@ -47,7 +65,6 @@ export async function POST(req: NextRequest) {
     const extractedData = JSON.parse(
       response.choices[0].message.content || "{}"
     );
-    console.log("exctractedData:", extractedData);
 
     return NextResponse.json({ success: true, data: extractedData });
   } catch (error) {

@@ -272,7 +272,35 @@ export default function CreateRecipe() {
           onClose={() => setIsAutoMode(false)}
           onExtractSuccess={(data) => {
             console.log("Extracted Data:", data);
-            setRecipe(data); // Auto-fill the form
+
+            // mapping foodItemId (name) to the actual food item ID from the db
+            const mappedIngredients = data.ingredients.map(
+              (ingredient: { foodItemId: string; amount: any; unit: any }) => {
+                const matchedFood = foodItems.find(
+                  (item) =>
+                    item.name.toLowerCase() ===
+                    ingredient.foodItemId.toLowerCase()
+                );
+                console.log("matchedFOod:", matchedFood);
+
+                return matchedFood
+                  ? {
+                      foodItemId: matchedFood.id,
+                      amount: ingredient.amount,
+                      unit: matchedFood.units,
+                    }
+                  : {
+                      foodItemId: "unknown",
+                      amount: ingredient.amount,
+                      unit: ingredient.unit,
+                    };
+              }
+            );
+
+            setRecipe({
+              ...data,
+              ingredients: mappedIngredients,
+            });
           }}
         />
       )}

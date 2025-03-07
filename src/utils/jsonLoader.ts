@@ -1,13 +1,20 @@
+"use server";
+
+import fs from "fs";
+import path from "path";
+
 export async function loadJsonData<T>(filename: string): Promise<T> {
   try {
-    console.log("filename path:", `/api/${filename}`);
-    const response = await fetch(`/api/${filename}`);
-    if (!response.ok) {
-      throw new Error(`Failed to load ${filename}: ${response.status}`);
-    }
-    return await response.json();
+    const filePath = path.join(
+      process.cwd(),
+      "public",
+      "data",
+      `${filename}.json`
+    );
+    const fileContents = fs.readFileSync(filePath, "utf-8");
+    return JSON.parse(fileContents) as T;
   } catch (error) {
-    console.error(`Error loading ${filename}:`, error);
+    console.error(`Error loading JSON file: ${filename}`, error);
     throw error;
   }
 }

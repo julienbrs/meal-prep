@@ -23,14 +23,8 @@ let mealsCache: Meal[] | null = null;
 let mealPlansCache: MealPlans | null = null;
 
 export async function loadFoodItems(): Promise<FoodItem[]> {
-  if (foodItemsCache) {
-    return foodItemsCache;
-  }
-
   try {
-    const data = await loadJsonData<FoodItem[]>("food-items");
-    foodItemsCache = data;
-    return data;
+    return await loadJsonData<FoodItem[]>("foodItems");
   } catch (error) {
     console.error("Error loading food items:", error);
     return [];
