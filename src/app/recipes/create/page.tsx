@@ -254,32 +254,40 @@ export default function CreateRecipe() {
 
             const mappedIngredients: RecipeIngredient[] = data.ingredients.map(
               (ingredient: any) => {
-                const matchedFood = updatedFoodItems.find(
-                  (item) => item.id === ingredient.foodItemId
+                let matchedFood = updatedFoodItems.find(
+                  (item) =>
+                    item.name.toLowerCase() === ingredient.name.toLowerCase()
                 );
 
-                return matchedFood
-                  ? {
-                      foodItemId: matchedFood.id,
-                      amount: ingredient.amount,
-                      unit: matchedFood.units,
-                      nutritionPer100g: matchedFood.nutritionPer100g,
-                      price: matchedFood.price,
-                      priceUnit: matchedFood.priceUnit,
-                    }
-                  : {
-                      foodItemId: ingredient.foodItemId,
-                      amount: ingredient.amount,
-                      unit: ingredient.unit,
-                      nutritionPer100g: ingredient.nutritionPer100g || {
-                        calories: 0,
-                        protein: 0,
-                        carbs: 0,
-                        fat: 0,
-                      },
-                      price: ingredient.price || 0,
-                      priceUnit: ingredient.priceUnit || "per 100g",
-                    };
+                if (!matchedFood) {
+                  console.warn(
+                    `⚠️ Ingredient "${ingredient.name}" not found in DB, assigning AI-generated fallback ID.`
+                  );
+                  matchedFood = {
+                    id: ingredient.name.toLowerCase().replace(/\s+/g, "-"),
+                    name: ingredient.name,
+                    units: ingredient.unit || "g",
+                    nutritionPer100g: ingredient.nutritionPer100g || {
+                      calories: 0,
+                      protein: 0,
+                      carbs: 0,
+                      fat: 0,
+                    },
+                    price: ingredient.price || 0,
+                    priceUnit: ingredient.priceUnit || "per 100g",
+                    category: "dinner" //todo
+                  };
+                }
+
+                return {
+                  foodItemId: matchedFood.id,
+                  name: matchedFood.name,
+                  amount: ingredient.amount,
+                  unit: matchedFood.units,
+                  nutritionPer100g: matchedFood.nutritionPer100g,
+                  price: matchedFood.price,
+                  priceUnit: matchedFood.priceUnit,
+                };
               }
             );
 
@@ -287,6 +295,7 @@ export default function CreateRecipe() {
               ...data,
               ingredients: mappedIngredients,
               instructions: data.steps || [], // Because backend is writing steps, so just a quickfix
+              category: data.category || "dinner",
             });
           }}
         />
@@ -295,6 +304,10 @@ export default function CreateRecipe() {
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
         <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
           <h1 className="text-2xl font-bold text-white">Create New Recipe</h1>
+
+          <button onClick={() => console.log("recipe:", recipe.ingredients)}>
+            Test
+          </button>
         </div>
 
         {error && (
@@ -572,6 +585,7 @@ export default function CreateRecipe() {
                       </th>
                     </tr>
                   </thead>
+
                   <tbody className="bg-white divide-y divide-gray-200">
                     {recipe.ingredients.map((ingredient, index) => (
                       <tr

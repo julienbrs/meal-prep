@@ -40,6 +40,8 @@ export async function POST(req: NextRequest) {
     responseText = responseText.replace(/^```json\s*|```$/g, "");
     const extractedData = JSON.parse(responseText);
 
+    extractedData.category = extractedData.category || "dinner";
+
     extractedData.ingredients = extractedData.ingredients.map((ing: any) => ({
       name: ing.name || "Unknown Ingredient",
       amount: ing.amount ?? "To taste",
@@ -52,7 +54,7 @@ export async function POST(req: NextRequest) {
 
     const missingNames = missingIngredients
       .map((ing: any) => ing.name)
-      .filter((name: any) => !!name)
+      .filter(Boolean)
       .join(", ");
 
     if (missingNames.trim().length > 0) {
@@ -107,12 +109,14 @@ export async function POST(req: NextRequest) {
             priceUnit: aiIng.priceUnit,
           };
           await addFoodItem(newFoodItem);
-          clearFoodItemsCache(); // Ensure stale cache is removed
-          await preloadFoodItems(); // Reload the updated list
         }
 
+        // ✅ Refresh food items after AI additions
+        clearFoodItemsCache();
+        await preloadFoodItems();
         foodItems = await loadFoodItems();
 
+        // ✅ Assign correct foodItemId and ensure all ingredients have valid IDs
         extractedData.ingredients = extractedData.ingredients.map(
           (ing: any) => {
             const found = foodItems.find(
@@ -120,10 +124,9 @@ export async function POST(req: NextRequest) {
             );
 
             if (found) {
-              return { ...ing, foodItemId: found.id }; // ✅ Assign valid ID
+              return { ...ing, foodItemId: found.id };
             }
 
-            // If AI-generated, ensure it has a valid foodItemId
             const aiGeneratedItem = aiGeneratedIngredients.find(
               (aiIng: any) =>
                 aiIng.name.toLowerCase() === ing.name.toLowerCase()
@@ -134,13 +137,15 @@ export async function POST(req: NextRequest) {
                   ...ing,
                   foodItemId: aiGeneratedItem.name
                     .toLowerCase()
-                    .replace(/\s+/g, "-"), // ✅ Assign foodItemId from AI
+                    .replace(/\s+/g, "-"),
                   nutritionPer100g: aiGeneratedItem.nutritionPer100g,
                   price: aiGeneratedItem.price,
                   priceUnit: aiGeneratedItem.priceUnit,
-                  aiGenerated: true,
                 }
-              : ing;
+              : {
+                  ...ing,
+                  foodItemId: ing.name.toLowerCase().replace(/\s+/g, "-"),
+                };
           }
         );
       } catch (jsonError) {
