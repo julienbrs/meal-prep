@@ -246,8 +246,16 @@ export default function CreateRecipe() {
       {isAutoMode && (
         <AutoExtractModal
           onClose={() => setIsAutoMode(false)}
-          onExtractSuccess={(data) => {const mappedIngredients = data.ingredients.map(
-              (ingredient: { foodItemId: string; amount: any; unit: any }) => {
+          onExtractSuccess={(data) => {
+            const mappedIngredients: RecipeIngredient[] = data.ingredients.map(
+              (ingredient: {
+                foodItemId: string;
+                amount: any;
+                unit: any;
+                nutritionPer100g: any;
+                price: any;
+                priceUnit: any;
+              }) => {
                 const matchedFood = foodItems.find(
                   (item) =>
                     item.name.toLowerCase() ===
@@ -259,12 +267,24 @@ export default function CreateRecipe() {
                       foodItemId: matchedFood.id,
                       amount: ingredient.amount,
                       unit: matchedFood.units,
-                      nutritionPer100g: matchedFood.nutritionPer100g,
+                      nutritionPer100g: matchedFood.nutritionPer100g, // ✅ Nutrition info from DB
+                      price: matchedFood.price,
+                      priceUnit: matchedFood.priceUnit,
+                      aiGenerated: false,
                     }
                   : {
-                      foodItemId: "unknown",
+                      foodItemId: ingredient.foodItemId,
                       amount: ingredient.amount,
                       unit: ingredient.unit,
+                      nutritionPer100g: ingredient.nutritionPer100g || {
+                        calories: 0,
+                        protein: 0,
+                        carbs: 0,
+                        fat: 0,
+                      },
+                      price: ingredient.price || 0,
+                      priceUnit: ingredient.priceUnit || "per 100g",
+                      aiGenerated: true, // ✅ Mark as AI-generated
                     };
               }
             );
@@ -559,9 +579,30 @@ export default function CreateRecipe() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {recipe.ingredients.map((ingredient, index) => (
-                      <tr key={index}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <tr
+                        key={index}
+                        className={ingredient.aiGenerated ? "bg-yellow-50" : ""}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 relative">
                           {getFoodItemName(ingredient.foodItemId)}
+
+                          {/* Tooltip for AI-generated ingredients */}
+                          {ingredient.aiGenerated && (
+                            <span className="ml-2 text-yellow-600 cursor-pointer relative group">
+                              (AI)
+                              <div className="absolute hidden group-hover:block bg-white border shadow-lg p-2 rounded-md text-xs text-gray-700 w-64 z-10">
+                                AI-generated ingredient.
+                                <br />
+                                <strong>Estimated Price:</strong>{" "}
+                                {ingredient.price?.toFixed(2)}{" "}
+                                {ingredient.priceUnit} <br />
+                                <strong>Nutrition (per 100g):</strong>
+                                {ingredient.nutritionPer100g
+                                  ? JSON.stringify(ingredient.nutritionPer100g)
+                                  : "Unknown"}
+                              </div>
+                            </span>
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {ingredient.amount} {ingredient.unit}
@@ -587,7 +628,6 @@ export default function CreateRecipe() {
             )}
           </div>
 
-          {/* Instructions Section */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4 flex items-center text-gray-800">
               <svg
@@ -667,7 +707,6 @@ export default function CreateRecipe() {
             </div>
           </div>
 
-          {/* Nutrition Preview */}
           {nutritionPreview && (
             <div className="mb-8 bg-gray-50 p-4 rounded-lg">
               <h2 className="text-lg font-semibold mb-3 flex items-center text-gray-800">

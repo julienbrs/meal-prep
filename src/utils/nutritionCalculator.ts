@@ -81,8 +81,6 @@ export function calculateRecipeNutrition(
     const foodItem = getFoodItemByIdSync(ingredient.foodItemId);
     if (!foodItem) return;
 
-    console.log("Processing ingredient:", ingredient);
-
     let amountInGrams = Number(ingredient.amount);
     if (isNaN(amountInGrams)) {
       console.error(
