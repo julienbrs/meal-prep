@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
-import { loadFoodItems } from "@/services/dataservice";
+import { loadFoodItems, addFoodItem } from "@/services/dataservice";
 import { FoodItem } from "@/types/ingredient";
+import { clearFoodItemsCache, preloadFoodItems } from "@/utils/foodItemFetcher";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const foodItems: FoodItem[] = await loadFoodItems();
+    let foodItems: FoodItem[] = await loadFoodItems();
     const foodNames = foodItems.map((item) => item.name.toLowerCase());
 
     const extractionPrompt = `
@@ -36,9 +37,7 @@ export async function POST(req: NextRequest) {
     });
 
     let responseText = extractionResponse.choices[0].message.content || "{}";
-
     responseText = responseText.replace(/^```json\s*|```$/g, "");
-
     const extractedData = JSON.parse(responseText);
 
     extractedData.ingredients = extractedData.ingredients.map((ing: any) => ({
@@ -57,9 +56,7 @@ export async function POST(req: NextRequest) {
       .join(", ");
 
     if (missingNames.trim().length > 0) {
-      const missingNames = missingIngredients
-        .map((ing: any) => ing.name)
-        .join(", ");
+      console.log("Requesting AI for missing ingredients:", missingNames);
 
       const aiCompletion = await openai.chat.completions.create({
         model: "gpt-4-turbo",
@@ -99,24 +96,48 @@ export async function POST(req: NextRequest) {
           throw new Error("AI response is not a valid JSON array.");
         }
 
+        for (const aiIng of aiGeneratedIngredients) {
+          const newFoodItem: FoodItem = {
+            id: aiIng.name.toLowerCase().replace(/\s+/g, "-"),
+            name: aiIng.name,
+            category: "misc",
+            units: "g",
+            nutritionPer100g: aiIng.nutritionPer100g,
+            price: aiIng.price,
+            priceUnit: aiIng.priceUnit,
+          };
+          await addFoodItem(newFoodItem);
+          clearFoodItemsCache(); // Ensure stale cache is removed
+          await preloadFoodItems(); // Reload the updated list
+        }
+
+        foodItems = await loadFoodItems();
+
         extractedData.ingredients = extractedData.ingredients.map(
           (ing: any) => {
             const found = foodItems.find(
               (item) => item.name.toLowerCase() === ing.name.toLowerCase()
             );
-            if (found) return { ...ing, foodItemId: found.id };
 
-            const aiData = aiGeneratedIngredients.find(
+            if (found) {
+              return { ...ing, foodItemId: found.id }; // ✅ Assign valid ID
+            }
+
+            // If AI-generated, ensure it has a valid foodItemId
+            const aiGeneratedItem = aiGeneratedIngredients.find(
               (aiIng: any) =>
                 aiIng.name.toLowerCase() === ing.name.toLowerCase()
             );
-            return aiData
+
+            return aiGeneratedItem
               ? {
                   ...ing,
-                  foodItemId: aiData.name,
-                  nutritionPer100g: aiData.nutritionPer100g,
-                  price: aiData.price,
-                  priceUnit: aiData.priceUnit,
+                  foodItemId: aiGeneratedItem.name
+                    .toLowerCase()
+                    .replace(/\s+/g, "-"), // ✅ Assign foodItemId from AI
+                  nutritionPer100g: aiGeneratedItem.nutritionPer100g,
+                  price: aiGeneratedItem.price,
+                  priceUnit: aiGeneratedItem.priceUnit,
                   aiGenerated: true,
                 }
               : ing;

@@ -154,7 +154,6 @@ export default function CreateRecipe() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (
       !recipe.name ||
       !recipe.category ||
@@ -246,20 +245,17 @@ export default function CreateRecipe() {
       {isAutoMode && (
         <AutoExtractModal
           onClose={() => setIsAutoMode(false)}
-          onExtractSuccess={(data) => {
+          onExtractSuccess={async (data) => {
+            console.log("Extracted Data:", data);
+
+            await preloadFoodItems();
+            const updatedFoodItems = await loadFoodItems();
+            setFoodItems(updatedFoodItems);
+
             const mappedIngredients: RecipeIngredient[] = data.ingredients.map(
-              (ingredient: {
-                foodItemId: string;
-                amount: any;
-                unit: any;
-                nutritionPer100g: any;
-                price: any;
-                priceUnit: any;
-              }) => {
-                const matchedFood = foodItems.find(
-                  (item) =>
-                    item.name.toLowerCase() ===
-                    ingredient.foodItemId.toLowerCase()
+              (ingredient: any) => {
+                const matchedFood = updatedFoodItems.find(
+                  (item) => item.id === ingredient.foodItemId
                 );
 
                 return matchedFood
@@ -267,10 +263,9 @@ export default function CreateRecipe() {
                       foodItemId: matchedFood.id,
                       amount: ingredient.amount,
                       unit: matchedFood.units,
-                      nutritionPer100g: matchedFood.nutritionPer100g, // ✅ Nutrition info from DB
+                      nutritionPer100g: matchedFood.nutritionPer100g,
                       price: matchedFood.price,
                       priceUnit: matchedFood.priceUnit,
-                      aiGenerated: false,
                     }
                   : {
                       foodItemId: ingredient.foodItemId,
@@ -284,7 +279,6 @@ export default function CreateRecipe() {
                       },
                       price: ingredient.price || 0,
                       priceUnit: ingredient.priceUnit || "per 100g",
-                      aiGenerated: true, // ✅ Mark as AI-generated
                     };
               }
             );
@@ -292,6 +286,7 @@ export default function CreateRecipe() {
             setRecipe({
               ...data,
               ingredients: mappedIngredients,
+              instructions: data.steps || [], // Because backend is writing steps, so just a quickfix
             });
           }}
         />
@@ -586,7 +581,6 @@ export default function CreateRecipe() {
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 relative">
                           {getFoodItemName(ingredient.foodItemId)}
 
-                          {/* Tooltip for AI-generated ingredients */}
                           {ingredient.aiGenerated && (
                             <span className="ml-2 text-yellow-600 cursor-pointer relative group">
                               (AI)

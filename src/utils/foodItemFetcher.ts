@@ -22,7 +22,11 @@ export async function getFoodItemById(
 
 export function getFoodItemByIdSync(id: string): FoodItem | undefined {
   if (!foodItemsCache) {
-    throw new Error("Food items not loaded. Call ensureFoodItemsLoaded first.");
+    console.warn("⚠️ Food items cache empty, forcing reload...");
+    
+    throw new Error(
+      "Food items not loaded. Try refreshing or waiting a moment."
+    );
   }
   return foodItemsCache.find((item) => item.id === id);
 }

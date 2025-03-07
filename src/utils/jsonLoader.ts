@@ -24,22 +24,17 @@ export async function saveJsonData<T>(
   data: T
 ): Promise<boolean> {
   try {
-    const response = await fetch(`/api/${filename}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to save ${filename}: ${response.status}`);
-    }
-    console.log("response:", response);
-
+    const filePath = path.join(
+      process.cwd(),
+      "public",
+      "data",
+      `${filename}.json`
+    );
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8"); // ✅ Write directly to file
+    console.log(`✅ Successfully saved ${filename}.json`);
     return true;
   } catch (error) {
-    console.error(`Error saving ${filename}:`, error);
+    console.error(`❌ Error saving ${filename}:`, error);
     return false;
   }
 }

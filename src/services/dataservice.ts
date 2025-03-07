@@ -5,6 +5,7 @@ import {
   calculateRecipeCost,
 } from "@/utils/nutritionCalculator";
 import { loadJsonData, saveJsonData } from "@/utils/jsonLoader";
+import { clearFoodItemsCache, preloadFoodItems } from "@/utils/foodItemFetcher";
 
 export interface MealPlanDay {
   [key: string]: Meal | null;
@@ -31,13 +32,13 @@ export async function loadFoodItems(): Promise<FoodItem[]> {
   }
 }
 
-// Function to save food items
 export async function saveFoodItems(items: FoodItem[]): Promise<boolean> {
   try {
-    const success = await saveJsonData("food-items", items);
+    const success = await saveJsonData("foodItems", items);
 
     if (success) {
-      foodItemsCache = items;
+      clearFoodItemsCache();
+      await preloadFoodItems();
     }
 
     return success;
@@ -160,7 +161,7 @@ export async function hydrateMealPlan(
 }
 
 export async function addFoodItem(item: FoodItem): Promise<boolean> {
-  const items = await loadFoodItems();
+  let items = await loadFoodItems(); // ✅ Ensure we have the latest data
 
   if (!item.id) {
     item.id = generateId();
@@ -169,7 +170,14 @@ export async function addFoodItem(item: FoodItem): Promise<boolean> {
   }
 
   const updatedItems = [...items, item];
-  return saveFoodItems(updatedItems);
+  const success = await saveFoodItems(updatedItems);
+
+  if (success) {
+    clearFoodItemsCache()
+    await preloadFoodItems();
+  }
+
+  return success;
 }
 
 export async function updateFoodItem(item: FoodItem): Promise<boolean> {
