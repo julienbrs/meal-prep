@@ -10,6 +10,7 @@ import {
 import { getFoodItemById } from "@/utils/foodItemFetcher";
 import { loadMeals } from "@/services/dataservice";
 import { Meal } from "@/types/meal";
+import { useFoodItems } from "@/context/FoodItemsContext";
 
 export default function MealDetails() {
   const params = useParams();
@@ -21,6 +22,7 @@ export default function MealDetails() {
   const [foodItemNames, setFoodItemNames] = useState<Record<string, string>>(
     {}
   );
+  const { foodItems } = useFoodItems();
 
   useEffect(() => {
     async function fetchMeal() {
@@ -42,37 +44,27 @@ export default function MealDetails() {
 
   // Load food item names in a separate useEffect
   useEffect(() => {
-    if (!meal) return;
+    if (!meal || foodItems.length === 0) return;
 
-    async function loadFoodItems() {
-      const names: Record<string, string> = {};
-      if (!meal) return;
-
-      for (const ingredient of meal.ingredients) {
-        try {
-          const foodItem = await getFoodItemById(ingredient.foodItemId);
-          if (foodItem) {
-            names[ingredient.foodItemId] = foodItem.name;
-          }
-        } catch (err) {
-          console.error(
-            `Error loading food item ${ingredient.foodItemId}:`,
-            err
-          );
-        }
+    const names: Record<string, string> = {};
+    meal.ingredients.forEach((ingredient) => {
+      const foodItem = foodItems.find(
+        (item) => item.id === ingredient.foodItemId
+      );
+      if (foodItem) {
+        names[ingredient.foodItemId] = foodItem.name;
       }
+    });
 
-      setFoodItemNames(names);
-    }
-
-    loadFoodItems();
-  }, [meal]);
+    setFoodItemNames(names);
+  }, [meal, foodItems]);
 
   const nutrition =
     meal?.calculatedNutrition ||
-    (meal ? calculateRecipeNutrition(meal.ingredients) : null);
+    (meal ? calculateRecipeNutrition(meal.ingredients, foodItems) : null);
   const cost =
-    meal?.totalCost || (meal ? calculateRecipeCost(meal.ingredients) : null);
+    meal?.totalCost ||
+    (meal ? calculateRecipeCost(meal.ingredients, foodItems) : null);
 
   if (loading) {
     return (

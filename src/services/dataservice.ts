@@ -6,6 +6,7 @@ import {
 } from "@/utils/nutritionCalculator";
 import { loadJsonData, saveJsonData } from "@/utils/jsonLoader";
 import { clearFoodItemsCache, preloadFoodItems } from "@/utils/foodItemFetcher";
+import { useFoodItems } from "@/context/FoodItemsContext";
 
 export interface MealPlanDay {
   [key: string]: Meal | null;
@@ -134,6 +135,7 @@ export async function hydrateMealPlan(
   mealPlan: MealPlanState
 ): Promise<MealPlanState> {
   try {
+    await preloadFoodItems();
     const meals = await loadMeals();
     const hydratedPlan: MealPlanState = {};
 
@@ -173,7 +175,7 @@ export async function addFoodItem(item: FoodItem): Promise<boolean> {
   const success = await saveFoodItems(updatedItems);
 
   if (success) {
-    clearFoodItemsCache()
+    clearFoodItemsCache();
     await preloadFoodItems();
   }
 
@@ -204,7 +206,10 @@ export async function deleteFoodItem(id: string): Promise<boolean> {
   return saveFoodItems(filteredItems);
 }
 
-export async function addMeal(meal: Meal): Promise<boolean> {
+export async function addMeal(
+  meal: Meal,
+  foodItems: FoodItem[]
+): Promise<boolean> {
   const meals = await loadMeals();
 
   if (!meal.id) {
@@ -214,11 +219,14 @@ export async function addMeal(meal: Meal): Promise<boolean> {
   }
 
   if (!meal.calculatedNutrition) {
-    meal.calculatedNutrition = calculateRecipeNutrition(meal.ingredients);
+    meal.calculatedNutrition = calculateRecipeNutrition(
+      meal.ingredients,
+      foodItems
+    );
   }
 
   if (!meal.totalCost) {
-    meal.totalCost = calculateRecipeCost(meal.ingredients);
+    meal.totalCost = calculateRecipeCost(meal.ingredients, foodItems);
   }
 
   const updatedMeals = [...meals, meal];
@@ -227,14 +235,19 @@ export async function addMeal(meal: Meal): Promise<boolean> {
 
 export async function updateMeal(meal: Meal): Promise<boolean> {
   const meals = await loadMeals();
+  const { foodItems } = useFoodItems();
+
   const index = meals.findIndex((m) => m.id === meal.id);
 
   if (index === -1) {
     return false;
   }
 
-  meal.calculatedNutrition = calculateRecipeNutrition(meal.ingredients);
-  meal.totalCost = calculateRecipeCost(meal.ingredients);
+  meal.calculatedNutrition = calculateRecipeNutrition(
+    meal.ingredients,
+    foodItems
+  );
+  meal.totalCost = calculateRecipeCost(meal.ingredients, foodItems);
 
   meals[index] = meal;
   return saveMeals(meals);

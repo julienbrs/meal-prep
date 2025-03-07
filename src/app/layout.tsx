@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Link from "next/link";
 import Image from "next/image";
+import { FoodItemsProvider } from "@/context/FoodItemsContext";
 
 export const metadata: Metadata = {
-  title: "Meal Planner | Plan Your Week with Delicious Recipes",
+  title: "EasyMeal | Plan Your Week with Delicious Recipes",
   description:
     "Plan your weekly meals with ease and discover delicious recipes with nutritional information",
 };
@@ -17,19 +18,18 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className="h-full">
+      <FoodItemsProvider>
         <div className="min-h-screen flex flex-col bg-green-50">
           <header className="bg-gradient-to-r from-lime-400 to-green-500 text-white shadow-lg">
             <div className="container mx-auto px-4 py-4">
               <div className="flex flex-col md:flex-row justify-between items-center">
                 <div className="flex items-center space-x-3 mb-4 md:mb-0">
                   <Image
-                    src="/images/cute_avocado.png"
-                    alt="Avocat Logo"
-                    width={40}
-                    height={40}
+                    src="/images/easymeal-logo.svg"
+                    alt="EasyMeal Logo"
+                    width={150}
+                    height={30}
                   />
-
-                  <h1 className="text-2xl font-bold">Tasty Planner</h1>
                 </div>
                 <nav className="flex space-x-6">
                   <Link
@@ -83,14 +83,11 @@ export default function RootLayout({
                 <div>
                   <div className="flex items-center space-x-3 mb-4 md:mb-0">
                     <Image
-                      src="/images/cute_avocado.png"
-                      alt="Avocat Logo"
-                      width={40}
-                      height={40}
+                      src="/images/easymeal-logo.svg"
+                      alt="EasyMeal Logo"
+                      width={150}
+                      height={30}
                     />
-                    <h3 className="text-xl font-semibold text-green-300">
-                      Tasty Planner
-                    </h3>
                   </div>
                   <p className="text-gray-300 mb-4">
                     Plan your meals, eat better, feel better. A simple way to
@@ -194,13 +191,14 @@ export default function RootLayout({
               </div>
               <div className="border-t border-slate-700 mt-8 pt-6 text-center text-gray-400">
                 <p>
-                  &copy; {new Date().getFullYear()} Tasty Planner. All rights
+                  &copy; {new Date().getFullYear()} EasyMeal. All rights
                   reserved.
                 </p>
               </div>
             </div>
           </footer>
         </div>
+        </FoodItemsProvider>
       </body>
     </html>
   );

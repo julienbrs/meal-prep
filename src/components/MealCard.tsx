@@ -5,15 +5,19 @@ import {
   calculateRecipeNutrition,
   calculateRecipeCost,
 } from "@/utils/nutritionCalculator";
+import { useFoodItems } from "@/context/FoodItemsContext";
 
 interface MealCardProps {
   meal: Meal;
 }
 
 export default function MealCard({ meal }: MealCardProps) {
+  const { foodItems } = useFoodItems();
+
   const nutrition =
-    meal.calculatedNutrition || calculateRecipeNutrition(meal.ingredients);
-  const cost = meal.totalCost || calculateRecipeCost(meal.ingredients);
+    meal.calculatedNutrition || calculateRecipeNutrition(meal.ingredients, foodItems);
+  const cost = meal.totalCost || calculateRecipeCost(meal.ingredients, foodItems);
+
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">

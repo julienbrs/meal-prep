@@ -11,15 +11,15 @@ import {
 } from "@/utils/nutritionCalculator";
 import { preloadFoodItems } from "@/utils/foodItemFetcher";
 import AutoExtractModal from "@/components/create-recipe/AutoExtractModal";
+import { useFoodItems } from "@/context/FoodItemsContext";
 
 export default function CreateRecipe() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isAutoMode, setIsAutoMode] = useState(false);
-  const [autoInput, setAutoInput] = useState("");
+  const { foodItems, reloadFoodItems } = useFoodItems();
 
   const [recipe, setRecipe] = useState<Partial<Meal>>({
     name: "",
@@ -37,30 +37,6 @@ export default function CreateRecipe() {
       unit: "g",
     }
   );
-
-  useEffect(() => {
-    async function fetchFoodItems() {
-      setLoading(true);
-      try {
-        await preloadFoodItems();
-        const items = await loadFoodItems();
-        setFoodItems(items);
-        setError(null);
-      } catch (err) {
-        console.error("Failed to load food items:", err);
-        setError("Failed to load food items. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchFoodItems();
-  }, []);
-
-  useEffect(() => {
-    if (recipe.ingredients?.length && foodItems.length) {
-      const updatedNutrition = calculateRecipeNutrition(recipe.ingredients);
-    }
-  }, [recipe.ingredients, foodItems]);
 
   const handleRecipeChange = (
     e: React.ChangeEvent<
@@ -145,15 +121,19 @@ export default function CreateRecipe() {
   };
 
   const nutritionPreview = recipe.ingredients?.length
-    ? calculateRecipeNutrition(recipe.ingredients as RecipeIngredient[])
+    ? calculateRecipeNutrition(
+        recipe.ingredients as RecipeIngredient[],
+        foodItems
+      )
     : null;
 
   const costPreview = recipe.ingredients?.length
-    ? calculateRecipeCost(recipe.ingredients as RecipeIngredient[])
+    ? calculateRecipeCost(recipe.ingredients as RecipeIngredient[], foodItems)
     : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (
       !recipe.name ||
       !recipe.category ||
@@ -181,9 +161,12 @@ export default function CreateRecipe() {
         totalCost: costPreview,
       };
 
-      const success = await addMeal(newRecipe);
+      const success = await addMeal(newRecipe, foodItems);
 
       if (success) {
+        console.log("✅ New meal added. Refreshing food items...");
+        await reloadFoodItems();
+
         setSuccessMessage("Recipe created successfully!");
         setRecipe({
           name: "",
@@ -209,7 +192,14 @@ export default function CreateRecipe() {
   };
 
   const getFoodItemName = (id: string) => {
-    return foodItems.find((item) => item.id === id)?.name || "Unknown item";
+    const result =
+      foodItems.find((item) => item.id === id)?.name || "Unknown item";
+
+    if (result === "Unknown item") {
+      console.warn(`⚠️ Could not find food item for ID: ${id}`);
+    }
+
+    return result;
   };
 
   return (
@@ -250,53 +240,57 @@ export default function CreateRecipe() {
 
             await preloadFoodItems();
             const updatedFoodItems = await loadFoodItems();
-            setFoodItems(updatedFoodItems);
 
-            const mappedIngredients: RecipeIngredient[] = data.ingredients.map(
-              (ingredient: any) => {
-                let matchedFood = updatedFoodItems.find(
-                  (item) =>
-                    item.name.toLowerCase() === ingredient.name.toLowerCase()
-                );
+            setTimeout(async () => {
+              const latestFoodItems = await loadFoodItems();
 
-                if (!matchedFood) {
-                  console.warn(
-                    `⚠️ Ingredient "${ingredient.name}" not found in DB, assigning AI-generated fallback ID.`
+              const mappedIngredients: RecipeIngredient[] =
+                data.ingredients.map((ingredient: any) => {
+                  let matchedFood = latestFoodItems.find(
+                    (item) => item.id === ingredient.foodItemId
                   );
-                  matchedFood = {
-                    id: ingredient.name.toLowerCase().replace(/\s+/g, "-"),
-                    name: ingredient.name,
-                    units: ingredient.unit || "g",
-                    nutritionPer100g: ingredient.nutritionPer100g || {
-                      calories: 0,
-                      protein: 0,
-                      carbs: 0,
-                      fat: 0,
-                    },
-                    price: ingredient.price || 0,
-                    priceUnit: ingredient.priceUnit || "per 100g",
-                    category: "dinner" //todo
+
+                  if (!matchedFood) {
+                    console.warn(
+                      `⚠️ Ingredient "${ingredient.name}" not found in DB, using fallback ID.`
+                    );
+
+                    matchedFood = {
+                      id: ingredient.name.toLowerCase().replace(/\s+/g, "-"),
+                      name: ingredient.name,
+                      units: ingredient.unit || "g",
+                      nutritionPer100g: ingredient.nutritionPer100g || {
+                        calories: 0,
+                        protein: 0,
+                        carbs: 0,
+                        fat: 0,
+                      },
+                      price: ingredient.price || 0,
+                      priceUnit: ingredient.priceUnit || "per 100g",
+                      category: "dinner",
+                    };
+                  }
+
+                  return {
+                    foodItemId: matchedFood.id,
+                    name: matchedFood.name,
+                    amount: ingredient.amount,
+                    unit: matchedFood.units,
+                    nutritionPer100g: matchedFood.nutritionPer100g,
+                    price: matchedFood.price,
+                    priceUnit: matchedFood.priceUnit,
                   };
-                }
+                });
 
-                return {
-                  foodItemId: matchedFood.id,
-                  name: matchedFood.name,
-                  amount: ingredient.amount,
-                  unit: matchedFood.units,
-                  nutritionPer100g: matchedFood.nutritionPer100g,
-                  price: matchedFood.price,
-                  priceUnit: matchedFood.priceUnit,
-                };
-              }
-            );
+              // ✅ Set the updated recipe AFTER foodItems have been refreshed
+              setRecipe({
+                ...data,
+                ingredients: mappedIngredients,
+                instructions: data.steps || [],
+                category: data.category || "dinner",
+              });
 
-            setRecipe({
-              ...data,
-              ingredients: mappedIngredients,
-              instructions: data.steps || [], // Because backend is writing steps, so just a quickfix
-              category: data.category || "dinner",
-            });
+            }, 1500);
           }}
         />
       )}
@@ -307,6 +301,15 @@ export default function CreateRecipe() {
 
           <button onClick={() => console.log("recipe:", recipe.ingredients)}>
             Test
+          </button>
+          <button
+            onClick={async () => {
+              console.log("Manually refreshing food items...");
+              await reloadFoodItems();
+            }}
+            className="bg-white text-emerald-600 hover:text-emerald-700 px-4 py-2 rounded-lg shadow"
+          >
+            Refresh
           </button>
         </div>
 

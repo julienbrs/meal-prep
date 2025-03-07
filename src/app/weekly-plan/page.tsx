@@ -17,6 +17,7 @@ import {
   MealPlanState,
   MealPlanDay,
 } from "@/services/dataservice";
+import { useFoodItems } from "@/context/FoodItemsContext";
 
 export default function WeeklyPlan() {
   const daysOfWeek = [
@@ -38,6 +39,7 @@ export default function WeeklyPlan() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [savingStatus, setSavingStatus] = useState<string | null>(null);
+  const { foodItems } = useFoodItems();
 
   useEffect(() => {
     async function initialize() {
@@ -164,8 +166,9 @@ export default function WeeklyPlan() {
       if (meal) {
         const nutrition =
           meal.calculatedNutrition ||
-          calculateRecipeNutrition(meal.ingredients);
-        const cost = meal.totalCost || calculateRecipeCost(meal.ingredients);
+          calculateRecipeNutrition(meal.ingredients, foodItems);
+        const cost =
+          meal.totalCost || calculateRecipeCost(meal.ingredients, foodItems);
 
         dayCalories += nutrition.calories;
         dayProtein += nutrition.protein;

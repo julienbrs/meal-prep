@@ -4,6 +4,7 @@ import {
   calculateRecipeNutrition,
   calculateRecipeCost,
 } from "@/utils/nutritionCalculator";
+import { useFoodItems } from "@/context/FoodItemsContext";
 
 interface MealPlanCardProps {
   day: string;
@@ -24,11 +25,15 @@ export default function MealPlanCard({
 }: MealPlanCardProps) {
   const [isSelecting, setIsSelecting] = useState(false);
 
+  const { foodItems } = useFoodItems(); // ✅ Get food items from context
+
   const nutrition =
     meal?.calculatedNutrition ||
-    (meal ? calculateRecipeNutrition(meal.ingredients) : null);
+    (meal ? calculateRecipeNutrition(meal.ingredients, foodItems) : null);
+
   const cost =
-    meal?.totalCost || (meal ? calculateRecipeCost(meal.ingredients) : null);
+    meal?.totalCost ||
+    (meal ? calculateRecipeCost(meal.ingredients, foodItems) : null);
 
   const getBgColor = () => {
     switch (mealType) {

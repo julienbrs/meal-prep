@@ -1,5 +1,5 @@
 import { RecipeIngredient } from "@/types/meal";
-import { NutritionInfo } from "@/types/ingredient";
+import { FoodItem, NutritionInfo } from "@/types/ingredient";
 import { getFoodItemById, getFoodItemByIdSync } from "./foodItemFetcher";
 
 // Calculate nutrition for a recipe - async version
@@ -66,7 +66,8 @@ export async function calculateRecipeNutritionAsync(
 
 // Calculate nutrition for a recipe - sync version (for when food items are already loaded)
 export function calculateRecipeNutrition(
-  ingredients: RecipeIngredient[]
+  ingredients: RecipeIngredient[],
+  foodItems: FoodItem[]
 ): NutritionInfo {
   const nutrition: NutritionInfo = {
     calories: 0,
@@ -78,12 +79,14 @@ export function calculateRecipeNutrition(
   };
 
   ingredients.forEach((ingredient) => {
-    const foodItem = getFoodItemByIdSync(ingredient.foodItemId);
+    const foodItem = foodItems.find(
+      (item) => item.id === ingredient.foodItemId
+    );
     if (!foodItem) return;
 
     let amountInGrams = Number(ingredient.amount);
     if (isNaN(amountInGrams)) {
-      console.error(
+      console.warn(
         `Invalid amount for ${ingredient.foodItemId}:`,
         ingredient.amount
       );
@@ -91,7 +94,6 @@ export function calculateRecipeNutrition(
     }
 
     if (ingredient.unit !== "g") {
-
       if (foodItem.units === "piece" && ingredient.unit === "piece") {
         switch (foodItem.id) {
           case "protein-3": // Eggs
@@ -170,11 +172,16 @@ export async function calculateRecipeCostAsync(
 }
 
 // Calculate cost for a recipe - sync version
-export function calculateRecipeCost(ingredients: RecipeIngredient[]): number {
+export function calculateRecipeCost(
+  ingredients: RecipeIngredient[],
+  foodItems: FoodItem[]
+): number {
   let totalCost = 0;
 
   ingredients.forEach((ingredient) => {
-    const foodItem = getFoodItemByIdSync(ingredient.foodItemId);
+    const foodItem = foodItems.find(
+      (item) => item.id === ingredient.foodItemId
+    );
     if (!foodItem) return;
 
     if (!foodItem.nutritionPer100g) {
