@@ -10,13 +10,16 @@ import {
   calculateRecipeCost,
 } from "@/utils/nutritionCalculator";
 import { preloadFoodItems } from "@/utils/foodItemFetcher";
+import AutoExtractModal from "@/components/create-recipe/AutoExtractModal";
 
 export default function CreateRecipe() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [isAutoMode, setIsAutoMode] = useState(false);
+  const [autoInput, setAutoInput] = useState("");
 
   const [recipe, setRecipe] = useState<Partial<Meal>>({
     name: "",
@@ -52,6 +55,33 @@ export default function CreateRecipe() {
     }
     fetchFoodItems();
   }, []);
+
+  const handleAutoExtract = async () => {
+    if (!autoInput.trim()) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/extract-recipe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: autoInput }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setRecipe(data.recipe);
+        setIsAutoMode(false);
+      } else {
+        setError("Failed to extract recipe. Please try again.");
+      }
+    } catch (err) {
+      console.error("Error extracting recipe:", err);
+      setError("An error occurred while extracting the recipe.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleRecipeChange = (
     e: React.ChangeEvent<
@@ -207,10 +237,6 @@ export default function CreateRecipe() {
     return foodItems.find((item) => item.id === id)?.name || "Unknown item";
   };
 
-  const getFoodItemUnit = (id: string) => {
-    return foodItems.find((item) => item.id === id)?.units || "g";
-  };
-
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8 flex items-center justify-between">
@@ -232,7 +258,24 @@ export default function CreateRecipe() {
           </svg>
           Back to Recipes
         </Link>
+
+        <button
+          onClick={() => setIsAutoMode(true)}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600"
+        >
+          Mode Automatique
+        </button>
       </div>
+
+      {isAutoMode && (
+        <AutoExtractModal
+          onClose={() => setIsAutoMode(false)}
+          onExtractSuccess={(data) => {
+            console.log("Extracted Data:", data);
+            setRecipe(data); // Auto-fill the form
+          }}
+        />
+      )}
 
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
         <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
