@@ -3,26 +3,24 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Meal, RecipeIngredient } from "@/types/meal";
-import { FoodItem } from "@/types/ingredient";
 import { loadFoodItems, addMeal } from "@/services/dataservice";
 import {
   calculateRecipeNutrition,
   calculateRecipeCost,
 } from "@/utils/nutritionCalculator";
 import { preloadFoodItems } from "@/utils/foodItemFetcher";
-import AutoExtractModal from "@/components/create-recipe/AutoExtractModal";
 import { useFoodItems } from "@/context/FoodItemsContext";
 import BasicInformation from "@/components/create-recipe/BasicInformation";
 import IngredientsSection from "@/components/create-recipe/IngredientsSection";
 import InstructionsSection from "@/components/create-recipe/InstructionsSection";
 import NutritionPreview from "@/components/create-recipe/NutritionPreview";
+import AutoExtractSection from "@/components/create-recipe/AutoExtractSection";
 
 export default function CreateRecipe() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isAutoMode, setIsAutoMode] = useState(false);
   const { foodItems, reloadFoodItems } = useFoodItems();
 
   const [recipe, setRecipe] = useState<Partial<Meal>>({
@@ -177,7 +175,12 @@ export default function CreateRecipe() {
         id: "",
         name: recipe.name as string,
         description: recipe.description || "",
-        category: recipe.category as "breakfast" | "lunch" | "dinner" | "snack" | "appetizer",
+        category: recipe.category as
+          | "breakfast"
+          | "lunch"
+          | "dinner"
+          | "snack"
+          | "appetizer",
         preparationTime: recipe.preparationTime as number,
         ingredients: recipe.ingredients as RecipeIngredient[],
         instructions: recipe.instructions as string[],
@@ -303,35 +306,19 @@ export default function CreateRecipe() {
         </Link>
 
         <button
-          onClick={() => setIsAutoMode(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600"
+          onClick={async () => {
+            console.log("Manually refreshing food items...");
+            await reloadFoodItems();
+          }}
+          className="bg-white text-emerald-600 hover:text-emerald-700 px-4 py-2 rounded-lg shadow"
         >
-          Mode Automatique
+          Refresh
         </button>
       </div>
 
-      {isAutoMode && (
-        <AutoExtractModal
-          onClose={() => setIsAutoMode(false)}
-          onExtractSuccess={handleAutoExtractSuccess}
-        />
-      )}
-
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
           <h1 className="text-2xl font-bold text-white">Create New Recipe</h1>
-          <button
-            onClick={async () => {
-              console.log("Manually refreshing food items...");
-              console.log("foodItems:", foodItems);
-              console.log("ingredients:", recipe.ingredients);
-              console.log("recipe:", recipe);
-              await reloadFoodItems();
-            }}
-            className="bg-white text-emerald-600 hover:text-emerald-700 px-4 py-2 rounded-lg shadow"
-          >
-            Refresh
-          </button>
         </div>
 
         {error && (
@@ -381,6 +368,9 @@ export default function CreateRecipe() {
         )}
 
         <form onSubmit={handleSubmit} className="p-6">
+          {/* Auto Extract Section */}
+          <AutoExtractSection onExtractSuccess={handleAutoExtractSuccess} />
+
           {/* Basic Information */}
           <BasicInformation
             recipe={recipe}
@@ -397,14 +387,6 @@ export default function CreateRecipe() {
             handleIngredientChange={handleIngredientChange}
             getFoodItemName={getFoodItemName}
           />
-
-          {/* Adjusting the amounts inline (if needed) */}
-          {/* 
-            If you want the user to edit the amount inline for each row, 
-            you would pass a method down that updates `recipe.ingredients[index].amount`.
-            The example code above is read-only on the table row. 
-            So, if you want an inline edit, you'd move that logic into the child as well.
-          */}
 
           {/* Instructions Section */}
           <InstructionsSection

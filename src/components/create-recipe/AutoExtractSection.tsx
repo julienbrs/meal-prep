@@ -2,11 +2,9 @@
 import React, { useState } from "react";
 import CreateFoodItemModal from "./CreateFoodItemModal";
 
-export default function AutoExtractModal({
-  onClose,
+export default function AutoExtractSection({
   onExtractSuccess,
 }: {
-  onClose: () => void;
   onExtractSuccess: (data: any) => void;
 }) {
   const [recipeText, setRecipeText] = useState("");
@@ -20,10 +18,8 @@ export default function AutoExtractModal({
       setError("Please paste a recipe.");
       return;
     }
-
     setLoading(true);
     setError(null);
-
     try {
       const response = await fetch("/api/extract-recipe", {
         method: "POST",
@@ -39,7 +35,7 @@ export default function AutoExtractModal({
           setIsFoodItemModalOpen(true);
         } else {
           onExtractSuccess(result.data);
-          onClose();
+          setRecipeText(""); // Clear the input after successful extraction
         }
       } else {
         setError("Failed to extract recipe. Try again.");
@@ -53,45 +49,39 @@ export default function AutoExtractModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative">
-        <button
-          onClick={onClose}
-          className="absolute top-3 right-3 text-gray-600 hover:text-gray-900"
-        >
-          &times;
-        </button>
-        <h2 className="text-xl font-semibold mb-2">Paste a recipe here</h2>
+    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6 rounded-lg">
+      <h2 className="text-lg font-semibold mb-2 text-blue-700">
+        Auto Extract Recipe
+      </h2>
+      <div className="flex flex-col md:flex-row gap-3">
         <textarea
           value={recipeText}
           onChange={(e) => setRecipeText(e.target.value)}
-          className="w-full p-2 border rounded-md"
-          rows={6}
+          className="flex-grow p-2 border rounded-md"
+          rows={3}
           placeholder="Copy paste a recipe here..."
         ></textarea>
-
-        {error && <p className="text-red-500 mt-2">{error}</p>}
-
-        <div className="mt-4 flex justify-end">
-          <button
-            onClick={handleExtract}
-            className="bg-green-500 text-white px-4 py-2 rounded-lg shadow hover:bg-green-600"
-            disabled={loading}
-          >
-            {loading ? "Extracting..." : "Extract"}
-          </button>
-        </div>
+        <button
+          onClick={handleExtract}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 md:self-end"
+          disabled={loading}
+        >
+          {loading ? "Extracting..." : "Extract"}
+        </button>
       </div>
+      {error && <p className="text-red-500 mt-2">{error}</p>}
 
       {isFoodItemModalOpen && (
-        <CreateFoodItemModal
-          missingIngredients={missingIngredients}
-          onClose={() => setIsFoodItemModalOpen(false)}
-          onComplete={() => {
-            setIsFoodItemModalOpen(false);
-            handleExtract();
-          }}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <CreateFoodItemModal
+            missingIngredients={missingIngredients}
+            onClose={() => setIsFoodItemModalOpen(false)}
+            onComplete={() => {
+              setIsFoodItemModalOpen(false);
+              handleExtract();
+            }}
+          />
+        </div>
       )}
     </div>
   );
