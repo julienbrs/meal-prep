@@ -36,7 +36,7 @@ export default function AutoExtractModal({
       if (result.success) {
         if (result.missingIngredients.length > 0) {
           setMissingIngredients(result.missingIngredients);
-          setIsFoodItemModalOpen(true); // 🔴 Show popup to create missing food items
+          setIsFoodItemModalOpen(true);
         } else {
           onExtractSuccess(result.data);
           onClose();
@@ -89,7 +89,7 @@ export default function AutoExtractModal({
           onClose={() => setIsFoodItemModalOpen(false)}
           onComplete={() => {
             setIsFoodItemModalOpen(false);
-            handleExtract(); // 🔄 Re-extract the recipe after adding ingredients
+            handleExtract();
           }}
         />
       )}

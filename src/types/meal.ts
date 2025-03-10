@@ -4,7 +4,7 @@ export interface Meal {
   id: string;
   name: string;
   description: string;
-  category: "breakfast" | "lunch" | "dinner" | "snack";
+  category: "breakfast" | "lunch" | "dinner" | "snack" | "appetizer";
   preparationTime: number; // in minutes
   image?: string;
   ingredients: RecipeIngredient[];

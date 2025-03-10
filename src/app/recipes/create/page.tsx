@@ -177,7 +177,7 @@ export default function CreateRecipe() {
         id: "",
         name: recipe.name as string,
         description: recipe.description || "",
-        category: recipe.category as "breakfast" | "lunch" | "dinner" | "snack",
+        category: recipe.category as "breakfast" | "lunch" | "dinner" | "snack" | "appetizer",
         preparationTime: recipe.preparationTime as number,
         ingredients: recipe.ingredients as RecipeIngredient[],
         instructions: recipe.instructions as string[],
@@ -264,13 +264,13 @@ export default function CreateRecipe() {
           nutritionPer100g: matchedFood.nutritionPer100g,
           price: matchedFood.price,
           priceUnit: matchedFood.priceUnit,
-          aiGenerated: true, // So we can highlight it in the UI if needed
         };
       }
     );
-
     setRecipe((prev) => ({
       ...prev,
+      name: data.name,
+      description: data.description,
       ingredients: mappedIngredients,
       instructions: data.steps || [],
       category: data.category || "dinner",
