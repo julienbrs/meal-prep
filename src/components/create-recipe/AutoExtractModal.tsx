@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import CreateFoodItemModal from "./CreateFoodItemModal";
 
 export default function AutoExtractModal({
   onClose,
@@ -11,6 +12,8 @@ export default function AutoExtractModal({
   const [recipeText, setRecipeText] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [missingIngredients, setMissingIngredients] = useState<any[]>([]);
+  const [isFoodItemModalOpen, setIsFoodItemModalOpen] = useState(false);
 
   const handleExtract = async () => {
     if (!recipeText.trim()) {
@@ -31,8 +34,13 @@ export default function AutoExtractModal({
       const result = await response.json();
 
       if (result.success) {
-        onExtractSuccess(result.data); // Pass extracted data to parent
-        onClose(); // Close modal after success
+        if (result.missingIngredients.length > 0) {
+          setMissingIngredients(result.missingIngredients);
+          setIsFoodItemModalOpen(true); // 🔴 Show popup to create missing food items
+        } else {
+          onExtractSuccess(result.data);
+          onClose();
+        }
       } else {
         setError("Failed to extract recipe. Try again.");
       }
@@ -74,6 +82,17 @@ export default function AutoExtractModal({
           </button>
         </div>
       </div>
+
+      {isFoodItemModalOpen && (
+        <CreateFoodItemModal
+          missingIngredients={missingIngredients}
+          onClose={() => setIsFoodItemModalOpen(false)}
+          onComplete={() => {
+            setIsFoodItemModalOpen(false);
+            handleExtract(); // 🔄 Re-extract the recipe after adding ingredients
+          }}
+        />
+      )}
     </div>
   );
 }
