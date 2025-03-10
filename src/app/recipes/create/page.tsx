@@ -15,12 +15,14 @@ import IngredientsSection from "@/components/create-recipe/IngredientsSection";
 import InstructionsSection from "@/components/create-recipe/InstructionsSection";
 import NutritionPreview from "@/components/create-recipe/NutritionPreview";
 import AutoExtractSection from "@/components/create-recipe/AutoExtractSection";
+import ImageUpload from "@/components/ImageUpload";
 
 export default function CreateRecipe() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const { foodItems, reloadFoodItems } = useFoodItems();
 
   const [recipe, setRecipe] = useState<Partial<Meal>>({
@@ -30,6 +32,7 @@ export default function CreateRecipe() {
     preparationTime: 30,
     ingredients: [],
     instructions: [""],
+    image: "",
   });
 
   const [newIngredient, setNewIngredient] = useState<Partial<RecipeIngredient>>(
@@ -53,6 +56,25 @@ export default function CreateRecipe() {
       ...prev,
       [name]: name === "preparationTime" ? parseInt(value) || 0 : value,
     }));
+  };
+
+  const handleImageChange = (file: File | null) => {
+    setImageFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setRecipe((prev) => ({
+          ...prev,
+          image: reader.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setRecipe((prev) => ({
+        ...prev,
+        image: "",
+      }));
+    }
   };
 
   const handleIngredientChange = (
@@ -171,6 +193,10 @@ export default function CreateRecipe() {
     try {
       setLoading(true);
 
+      // Here you would typically handle image upload to your server or storage
+      // and get back a URL to store in the recipe
+      // For now, we'll just use the data URL that's stored in recipe.image
+
       const newRecipe: Meal = {
         id: "",
         name: recipe.name as string,
@@ -186,6 +212,7 @@ export default function CreateRecipe() {
         instructions: recipe.instructions as string[],
         calculatedNutrition: nutritionPreview || undefined,
         totalCost: costPreview,
+        image: recipe.image || "",
       };
 
       const success = await addMeal(newRecipe, foodItems);
@@ -202,7 +229,9 @@ export default function CreateRecipe() {
           preparationTime: 30,
           ingredients: [],
           instructions: [""],
+          image: "",
         });
+        setImageFile(null);
 
         setTimeout(() => {
           router.push("/");
@@ -259,17 +288,20 @@ export default function CreateRecipe() {
           };
         }
 
+       const unit = ingredient.unit || matchedFood.units || "g";
+
         return {
           foodItemId: matchedFood.id,
           name: matchedFood.name,
           amount: ingredient.amount,
-          unit: matchedFood.units,
+          unit: unit,
           nutritionPer100g: matchedFood.nutritionPer100g,
           price: matchedFood.price,
           priceUnit: matchedFood.priceUnit,
         };
       }
     );
+
     setRecipe((prev) => ({
       ...prev,
       name: data.name,
@@ -370,6 +402,18 @@ export default function CreateRecipe() {
         <form onSubmit={handleSubmit} className="p-6">
           {/* Auto Extract Section */}
           <AutoExtractSection onExtractSuccess={handleAutoExtractSuccess} />
+
+          {/* Image Upload */}
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-3 text-gray-700">
+              Recipe Image
+            </h2>
+            <ImageUpload
+              onImageChange={handleImageChange}
+              initialImage={recipe.image as string}
+              className="mt-2"
+            />
+          </div>
 
           {/* Basic Information */}
           <BasicInformation
