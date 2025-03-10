@@ -1,6 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { addFoodItem } from "@/services/dataservice";
+import { UnitType } from "@/types/ingredient";
 
 export default function CreateFoodItemModal({
   missingIngredients,
@@ -12,23 +13,41 @@ export default function CreateFoodItemModal({
   onComplete: () => void;
 }) {
   const [foodItems, setFoodItems] = useState(
-    missingIngredients.map((ing) => ({
-      id: ing.name.toLowerCase().replace(/\s+/g, "-"),
-      name: ing.name,
-      category: "misc",
-      units: "g",
-      price: 0,
-      priceUnit: "per 100g",
-      nutritionPer100g: {
-        calories: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        fiber: 0,
-        sugar: 0,
-      },
-    }))
+    missingIngredients.map((ing) => {
+      const unit =
+        ing.unit &&
+        ["g", "ml", "piece", "tbsp", "tsp", "cup"].includes(ing.unit)
+          ? (ing.unit as UnitType)
+          : "g";
+
+      return {
+        id: ing.name.toLowerCase().replace(/\s+/g, "-"),
+        name: ing.name,
+        category: "misc", // Default to misc, user will select proper category
+        units: unit,
+        price: 0,
+        priceUnit: unit === "piece" ? "per piece" : "per 100g",
+        nutritionPer100g: {
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+          fiber: 0,
+          sugar: 0,
+        },
+      };
+    })
   );
+
+  useEffect(() => {
+    foodItems.forEach((item, index) => {
+      if (item.units === "piece" && item.priceUnit !== "per piece") {
+        handleChange(index, "priceUnit", "per piece");
+      } else if (item.units !== "piece" && item.priceUnit === "per piece") {
+        handleChange(index, "priceUnit", "per 100g");
+      }
+    });
+  }, [foodItems.map((item) => item.units).join(",")]);
 
   const handleChange = (index: number, field: string, value: any) => {
     setFoodItems((prevItems) =>
@@ -59,6 +78,13 @@ export default function CreateFoodItemModal({
       await addFoodItem(item);
     }
     onComplete();
+  };
+
+  const getNutritionLabel = (index: number): string => {
+    const item = foodItems[index];
+    return item.units === "piece"
+      ? "Nutrition (per piece)"
+      : "Nutrition (per 100g)";
   };
 
   return (
@@ -193,7 +219,9 @@ export default function CreateFoodItemModal({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Price per 100g ($)
+                    {item.units === "piece"
+                      ? "Price per piece ($)"
+                      : "Price per 100g ($)"}
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -230,7 +258,7 @@ export default function CreateFoodItemModal({
                       d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
                     />
                   </svg>
-                  Nutrition (per 100g)
+                  {getNutritionLabel(index)}
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
                   {[
@@ -247,7 +275,11 @@ export default function CreateFoodItemModal({
                       </label>
                       <input
                         type="number"
-                        value={item.nutritionPer100g[nutrient.name as keyof typeof item.nutritionPer100g]}
+                        value={
+                          item.nutritionPer100g[
+                            nutrient.name as keyof typeof item.nutritionPer100g
+                          ]
+                        }
                         onChange={(e) =>
                           handleNutritionChange(
                             index,

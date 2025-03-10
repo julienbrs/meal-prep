@@ -52,10 +52,25 @@ export async function POST(req: NextRequest) {
 
     let foodItems: FoodItem[] = await loadFoodItems();
     const foodNames = foodItems.map((item) => item.name.toLowerCase());
+    const existingFoodItemsText = foodNames.join(", ");
 
     const extractionPrompt = `
     You are given a recipe in free text. Convert it to exactly one JSON object.
     It MUST have these top-level fields: "name", "description", "category", "ingredients", "steps".
+    
+    CATEGORY RULES:
+    The "category" field MUST be one of: "breakfast", "lunch", "dinner", "dessert", "snack", or "appetizer".
+    
+    UNIT HANDLING RULES:
+    - For ingredients measured by weight or volume, use standard units like "g", "ml", "tbsp", etc.
+    - For ingredients counted as discrete items (like eggs), use "piece" as the unit.
+
+    INGREDIENT MATCHING RULES:
+    The database already contains these food items, so try to match ingredients to these EXISTING items:
+    ${existingFoodItemsText}
+    
+    If the recipe mentions a food item that's similar to an existing one (e.g., "bunch of parsley" when "parsley" exists), 
+    use the existing item name and handle the quantity appropriately. Don't create new food items unnecessarily.
     
     Example format:
     {
@@ -64,7 +79,8 @@ export async function POST(req: NextRequest) {
       "category": "dinner",
       "ingredients": [
         { "name": "Fettuccine pasta", "amount": 200, "unit": "g" },
-        { "name": "Butter", "amount": 2, "unit": "tbsp" }
+        { "name": "Butter", "amount": 2, "unit": "tbsp" },
+        { "name": "Egg", "amount": 2, "unit": "piece" }
       ],
       "steps": [
         "Cook pasta as directed.",
@@ -72,7 +88,7 @@ export async function POST(req: NextRequest) {
       ]
     }
     
-    Convert the ingredient names to English if needed. Return JSON only, with no extra text:
+    Convert the text to English if needed. Return JSON only, with no extra text:
     
     Recipe:
     "${recipeText}"
@@ -80,7 +96,7 @@ export async function POST(req: NextRequest) {
 
     let extractedData;
     try {
-      extractedData = await callGeminiAPI(extractionPrompt); // ✅ Returns full object
+      extractedData = await callGeminiAPI(extractionPrompt);
     } catch (jsonError) {
       console.error("❌ Failed to parse Gemini response:", jsonError);
       return NextResponse.json(
@@ -104,18 +120,41 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    extractedData.category = extractedData.category || "dinner";
+    // Ensure category is one of the allowed values
+    const validCategories = [
+      "breakfast",
+      "lunch",
+      "dinner",
+      "dessert",
+      "snack",
+      "appetizer",
+    ];
+    extractedData.category = validCategories.includes(extractedData.category)
+      ? extractedData.category
+      : "dinner";
 
     extractedData.ingredients = extractedData.ingredients.map(
-      (ing: { name: string; amount: any; unit: any }) => ({
-        name: ing?.name || "Unknown Ingredient",
-        amount: ing?.amount ?? "To taste",
-        unit: ing?.unit ?? "",
-      })
+      (ing: { name: string; amount: any; unit: any }) => {
+        const ingredientName = ing?.name || "Unknown Ingredient";
+        const lowerName = ingredientName.toLowerCase();
+
+        const matchedFoodItem = foodItems.find(
+          (item) =>
+            lowerName.includes(item.name.toLowerCase()) ||
+            item.name.toLowerCase().includes(lowerName)
+        );
+
+        return {
+          name: matchedFoodItem ? matchedFoodItem.name : ingredientName,
+          amount: ing?.amount ?? "To taste",
+          unit: ing?.unit ?? "",
+        };
+      }
     );
 
     console.log("✅ Final Processed Data:", extractedData);
 
+    // Find ingredients that don't exactly match existing ones
     const missingIngredients = extractedData.ingredients.filter(
       (ing: { name: string }) => !foodNames.includes(ing.name?.toLowerCase())
     );

@@ -20,28 +20,21 @@ export async function calculateRecipeNutritionAsync(
     const foodItem = await getFoodItemById(ingredient.foodItemId);
     if (!foodItem) continue;
 
-    let amountInGrams = ingredient.amount;
-    if (ingredient.unit !== "g") {
-      if (foodItem.units === "piece" && ingredient.unit === "piece") {
-        switch (foodItem.id) {
-          case "protein-3": // Eggs
-            amountInGrams = ingredient.amount * 50; // Average egg is 50g
-            break;
-          case "veg-1": // Avocado
-            amountInGrams = ingredient.amount * 170; // Average avocado is 170g
-            break;
-          case "grain-1": // Bread slice
-            amountInGrams = ingredient.amount * 30; // Average bread slice is 30g
-            break;
-          default:
-            amountInGrams = ingredient.amount * 100; // Default conversion
+    let ratio = 1;
+
+    if (foodItem.units === "piece") {
+      ratio = ingredient.amount;
+    } else {
+      let amountInGrams = ingredient.amount;
+      if (ingredient.unit !== "g") {
+        if (ingredient.unit === "ml") {
+          amountInGrams = ingredient.amount;
         }
-      } else if (ingredient.unit === "ml") {
-        amountInGrams = ingredient.amount; // Assume 1ml = 1g for simplicity
       }
+
+      ratio = amountInGrams / 100;
     }
 
-    const ratio = amountInGrams / 100; // nutritionPer100g is based on 100g
     nutrition.calories += foodItem.nutritionPer100g.calories * ratio;
     nutrition.protein += foodItem.nutritionPer100g.protein * ratio;
     nutrition.carbs += foodItem.nutritionPer100g.carbs * ratio;
@@ -99,27 +92,20 @@ export function calculateRecipeNutrition(
       amountInGrams = 0;
     }
 
-    if (ingredient.unit !== "g") {
-      if (foodItem.units === "piece" && ingredient.unit === "piece") {
-        switch (foodItem.id) {
-          case "protein-3": // Eggs
-            amountInGrams = ingredient.amount * 50;
-            break;
-          case "veg-1": // Avocado
-            amountInGrams = ingredient.amount * 170;
-            break;
-          case "grain-1": // Bread slice
-            amountInGrams = ingredient.amount * 30;
-            break;
-          default:
-            amountInGrams = ingredient.amount * 100;
+    let ratio = 1;
+
+    if (foodItem.units === "piece") {
+      ratio = amountInGrams;
+    } else {
+      if (ingredient.unit !== "g") {
+        if (ingredient.unit === "ml") {
+          amountInGrams = ingredient.amount; 
         }
-      } else if (ingredient.unit === "ml") {
-        amountInGrams = ingredient.amount;
       }
+
+      ratio = amountInGrams / 100;
     }
 
-    const ratio = amountInGrams / 100;
     nutrition.calories += foodItem.nutritionPer100g.calories * ratio;
     nutrition.protein += foodItem.nutritionPer100g.protein * ratio;
     nutrition.carbs += foodItem.nutritionPer100g.carbs * ratio;
@@ -152,26 +138,29 @@ export async function calculateRecipeCostAsync(
     const foodItem = await getFoodItemById(ingredient.foodItemId);
     if (!foodItem) continue;
 
-    let amount = ingredient.amount;
-    if (ingredient.unit !== foodItem.units) {
-      if (foodItem.units === "piece" && ingredient.unit === "piece") {
-        amount = ingredient.amount;
-      } else if (
-        ingredient.unit === "ml" &&
-        foodItem.priceUnit.includes("ml")
-      ) {
-        amount = ingredient.amount;
+    let costMultiplier = 1;
+
+    if (foodItem.units === "piece") {
+      costMultiplier = ingredient.amount;
+    } else {
+      let amount = ingredient.amount;
+
+      if (ingredient.unit !== foodItem.units) {
+        if (ingredient.unit === "ml" && foodItem.priceUnit.includes("ml")) {
+          amount = ingredient.amount;
+        } else {
+          amount = ingredient.amount * (ingredient.unit === "g" ? 1 : 100);
+        }
+      }
+
+      if (foodItem.priceUnit.includes("100")) {
+        costMultiplier = amount / 100;
       } else {
-        amount = ingredient.amount * (ingredient.unit === "g" ? 1 : 100);
+        costMultiplier = amount;
       }
     }
 
-    const unitPrice = foodItem.price;
-    if (foodItem.priceUnit.includes("100")) {
-      totalCost += (amount / 100) * unitPrice;
-    } else {
-      totalCost += amount * unitPrice;
-    }
+    totalCost += foodItem.price * costMultiplier;
   }
 
   return Number(totalCost.toFixed(2));
@@ -195,26 +184,36 @@ export function calculateRecipeCost(
       return;
     }
 
-    let amount = ingredient.amount;
-    if (ingredient.unit !== foodItem.units) {
-      if (foodItem.units === "piece" && ingredient.unit === "piece") {
-        amount = ingredient.amount;
-      } else if (
-        ingredient.unit === "ml" &&
-        foodItem.priceUnit.includes("ml")
-      ) {
-        amount = ingredient.amount;
+    let costMultiplier = 1;
+
+    // Handle different price units
+    if (foodItem.units === "piece") {
+      // For piece units, price is per piece
+      costMultiplier = ingredient.amount;
+    } else {
+      // For weight-based pricing
+      let amount = ingredient.amount;
+
+      // Convert to the appropriate unit for cost calculation
+      if (ingredient.unit !== foodItem.units) {
+        if (ingredient.unit === "ml" && foodItem.priceUnit.includes("ml")) {
+          // Direct ml to ml conversion
+          amount = ingredient.amount;
+        } else {
+          // Convert to grams or the appropriate unit
+          amount = ingredient.amount * (ingredient.unit === "g" ? 1 : 100);
+        }
+      }
+
+      // Apply price calculation based on price unit
+      if (foodItem.priceUnit.includes("100")) {
+        costMultiplier = amount / 100;
       } else {
-        amount = ingredient.amount * (ingredient.unit === "g" ? 1 : 100);
+        costMultiplier = amount;
       }
     }
 
-    const unitPrice = foodItem.price;
-    if (foodItem.priceUnit.includes("100")) {
-      totalCost += (amount / 100) * unitPrice;
-    } else {
-      totalCost += amount * unitPrice;
-    }
+    totalCost += foodItem.price * costMultiplier;
   });
 
   return Number(totalCost.toFixed(2));
