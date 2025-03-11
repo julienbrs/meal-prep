@@ -24,7 +24,7 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body className="h-full">
         <FoodItemsProvider>
-          <div className="min-h-screen flex flex-col bg-green-50">
+          <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
             <header className="bg-white shadow-[0px_2px_20px_0px_rgba(0,0,0,0.12)] backdrop-blur-[40px]">
               <div className="container mx-auto px-4 py-4">
                 <div className="flex flex-col md:flex-row justify-between items-center">
@@ -92,9 +92,7 @@ export default function RootLayout({
                 </div>
               </div>
             </header>
-
             <main className="flex-grow">{children}</main>
-
             <footer className="bg-slate-800 text-white py-8 mt-auto">
               <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
