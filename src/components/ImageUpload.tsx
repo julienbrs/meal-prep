@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 interface ImageUploadProps {
   onImageChange: (file: File | null) => void;
@@ -14,6 +14,37 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const [imagePreview, setImagePreview] = useState<string | null>(
     initialImage || null
   );
+
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image") !== -1) {
+          e.preventDefault();
+          const file = items[i].getAsFile();
+          if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+              setImagePreview(reader.result as string);
+              onImageChange(file);
+            };
+            reader.readAsDataURL(file);
+            break;
+          }
+        }
+      }
+    };
+
+    // Add the paste event listener to the window
+    window.addEventListener("paste", handlePaste);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener("paste", handlePaste);
+    };
+  }, [onImageChange]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -84,11 +115,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           <div
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            className="h-32 w-32 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
+            className="h-32 w-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 text-gray-400"
+              className="h-8 w-8 text-gray-400 mb-2"
               viewBox="0 0 20 20"
               fill="currentColor"
             >
@@ -98,6 +129,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
                 clipRule="evenodd"
               />
             </svg>
+            <span className="text-xs text-gray-500 text-center">
+              Ctrl+V to paste
+            </span>
           </div>
         )}
       </div>
@@ -119,7 +153,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           />
         </label>
         <p className="mt-2 text-sm text-gray-500">
-          PNG, JPG, GIF up to 10MB. Drag & drop supported.
+          PNG, JPG, GIF up to 10MB. Drag & drop or Ctrl+V to paste supported.
         </p>
       </div>
     </div>
