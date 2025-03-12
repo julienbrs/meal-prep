@@ -29,16 +29,18 @@ export default function RootLayout({
               <div className="container mx-auto px-4 py-4">
                 <div className="flex flex-col md:flex-row justify-between items-center">
                   <div className="flex items-center space-x-3 mb-4 md:mb-0">
-                    <Image
-                      src="/images/easymeal-logo.svg"
-                      alt="EasyMeal Logo"
-                      width={150}
-                      height={30}
-                    />
+                    <Link href="/">
+                      <Image
+                        src="/images/easymeal-logo.svg"
+                        alt="EasyMeal Logo"
+                        width={150}
+                        height={30}
+                      />
+                    </Link>
                   </div>
                   <nav className="flex items-center gap-16">
                     <Link
-                      href="/"
+                      href="/recipes-list"
                       className="text-gray-800 font-inter text-base font-semibold leading-normal tracking-tighter flex items-center gap-2"
                     >
                       <svg
@@ -56,7 +58,7 @@ export default function RootLayout({
                       My recipes
                     </Link>
                     <Link
-                      href="/weekly-plan"
+                      href="/"
                       className="flex justify-center items-center gap-2 px-8 py-4 bg-[#F85B1D] rounded-lg text-white font-inter text-base font-semibold leading-normal tracking-[-0.5px] hover:opacity-90 transition-opacity duration-200"
                     >
                       Generate Meal Plan
