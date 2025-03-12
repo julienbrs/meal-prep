@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { Meal } from "../types/meal";
 import {
   calculateRecipeNutrition,
@@ -23,7 +23,6 @@ export default function MealPlanCard({
   onAddMeal,
   onRemoveMeal,
 }: MealPlanCardProps) {
-  const [isSelecting, setIsSelecting] = useState(false);
   const { foodItems } = useFoodItems();
 
   const nutrition =
@@ -31,40 +30,15 @@ export default function MealPlanCard({
     (meal ? calculateRecipeNutrition(meal.ingredients, foodItems) : null);
 
   return (
-    <>
-      {!meal && !isSelecting ? (
-        <div className="self-stretch flex-1 p-4 bg-neutral-50 flex flex-col justify-center items-center gap-5 min-h-[240px]">
-          <div
-            className="self-stretch inline-flex justify-center items-center gap-2 cursor-pointer"
-            onClick={() => setIsSelecting(true)}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="text-gray-700"
-            >
-              <path
-                d="M10 4V16M4 10H16"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-            <div className="text-center justify-center text-gray-700 text-lg font-normal font-['Inter']">
-              Add meal
-            </div>
-          </div>
-        </div>
-      ) : isSelecting ? (
-        <div className="self-stretch p-4 bg-neutral-50 min-h-[240px] flex flex-col justify-center">
+    <div className="self-stretch flex-1 p-4 bg-neutral-50 flex flex-col justify-start items-start gap-5 min-h-[240px]">
+      {!meal ? (
+        <div className="w-full h-full flex flex-col justify-center">
           <select
             className="w-full p-2 rounded-lg ring-1 ring-gray-300 focus:ring-2 focus:ring-orange-500"
             onChange={(e) => {
-              onAddMeal(day, mealType, e.target.value);
-              setIsSelecting(false);
+              if (e.target.value) {
+                onAddMeal(day, mealType, e.target.value);
+              }
             }}
             defaultValue=""
           >
@@ -77,15 +51,9 @@ export default function MealPlanCard({
               </option>
             ))}
           </select>
-          <button
-            onClick={() => setIsSelecting(false)}
-            className="mt-2 text-gray-500 hover:text-gray-700 text-sm px-3 py-1 rounded hover:bg-gray-100"
-          >
-            Cancel
-          </button>
         </div>
       ) : (
-        <div className="self-stretch p-4 bg-neutral-50 flex flex-col justify-start items-start gap-5">
+        <>
           <div className="self-stretch inline-flex justify-start items-start gap-2">
             <div className="flex-1 inline-flex flex-col justify-start items-start gap-2">
               <div className="self-stretch justify-center text-[#1f2a37] text-lg font-semibold font-['Inter']">
@@ -228,8 +196,8 @@ export default function MealPlanCard({
               </div>
             ))}
           </div>
-        </div>
+        </>
       )}
-    </>
+    </div>
   );
 }
