@@ -12,6 +12,29 @@ export default function CreateFoodItemModal({
   onClose: () => void;
   onComplete: () => void;
 }) {
+  const [isAutofilling, setIsAutofilling] = useState(false);
+
+  const handleAutoFill = async () => {
+    setIsAutofilling(true);
+    try {
+      const response = await fetch("/api/auto-fill-food-items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ foodItems }),
+      });
+
+      const result = await response.json();
+      if (result.success && Array.isArray(result.data)) {
+        setFoodItems(result.data);
+      } else {
+        console.error("Failed to auto-fill items:", result.error);
+      }
+    } catch (err) {
+      console.error("Error during auto-fill:", err);
+    } finally {
+      setIsAutofilling(false);
+    }
+  };
   const [foodItems, setFoodItems] = useState(
     missingIngredients.map((ing) => {
       const unit =
@@ -301,12 +324,41 @@ export default function CreateFoodItemModal({
 
         {/* Footer with action buttons */}
         <div className="bg-gray-50 px-6 py-4 rounded-b-lg border-t border-gray-200 sticky bottom-0 z-10 flex justify-between items-center">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
-          >
-            Cancel
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAutoFill}
+              className="px-4 py-2 text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg shadow-sm hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 transition-colors flex items-center gap-2"
+            >
+              {isAutofilling ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-700" />
+                  Auto-filling...
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className="w-5 h-5"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v9a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 12.5v-9zm9.5 2a.5.5 0 0 0-.5-.5h-7a.5.5 0 0 0-.5.5v5a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5v-5z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  Auto-fill Details
+                </>
+              )}
+            </button>
+          </div>
           <button
             onClick={handleSave}
             className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg shadow hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-105"

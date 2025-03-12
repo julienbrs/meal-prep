@@ -319,7 +319,7 @@ export default function CreateRecipe() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="mb-8 flex items-center justify-between">
         <Link
-          href="/"
+          href="/recipes-list"
           className="text-green-600 hover:text-green-800 flex items-center"
         >
           <svg
