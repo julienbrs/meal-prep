@@ -58,17 +58,13 @@ export default function CreateRecipe() {
     }));
   };
 
-  const handleImageChange = (file: File | null) => {
+  const handleImageChange = (file: File | null, path: string | null) => {
     setImageFile(file);
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setRecipe((prev) => ({
-          ...prev,
-          image: reader.result as string,
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (path) {
+      setRecipe((prev) => ({
+        ...prev,
+        image: path, // Store the path instead of base64
+      }));
     } else {
       setRecipe((prev) => ({
         ...prev,
@@ -288,7 +284,7 @@ export default function CreateRecipe() {
           };
         }
 
-       const unit = ingredient.unit || matchedFood.units || "g";
+        const unit = ingredient.unit || matchedFood.units || "g";
 
         return {
           foodItemId: matchedFood.id,

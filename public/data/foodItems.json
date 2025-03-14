@@ -1,10 +1,10 @@
 [
   {
-    "id": "salt",
-    "name": "Salt",
-    "category": "misc",
+    "id": "sel",
+    "name": "Sel",
+    "category": "Condiment",
     "units": "tsp",
-    "price": 0.3,
+    "price": 0.5,
     "priceUnit": "per 100g",
     "nutritionPer100g": {
       "calories": 0,
@@ -16,14 +16,14 @@
     }
   },
   {
-    "id": "black-pepper",
-    "name": "Black pepper",
-    "category": "misc",
+    "id": "poivre-noir",
+    "name": "Poivre noir",
+    "category": "Condiment",
     "units": "tsp",
-    "price": 1.5,
+    "price": 1,
     "priceUnit": "per 100g",
     "nutritionPer100g": {
-      "calories": 251,
+      "calories": 304,
       "protein": 10.4,
       "carbs": 64.8,
       "fat": 3.3,
@@ -32,9 +32,9 @@
     }
   },
   {
-    "id": "crème-fraîche",
+    "id": "creme-fraiche",
     "name": "Crème fraîche",
-    "category": "misc",
+    "category": "Dairy",
     "units": "tbsp",
     "price": 1.75,
     "priceUnit": "per 100g",
@@ -48,9 +48,9 @@
     }
   },
   {
-    "id": "bread",
-    "name": "Bread",
-    "category": "misc",
+    "id": "pain",
+    "name": "Pain",
+    "category": "Grain",
     "units": "piece",
     "price": 0.75,
     "priceUnit": "per piece",
@@ -64,9 +64,9 @@
     }
   },
   {
-    "id": "avocado",
-    "name": "Avocado",
-    "category": "misc",
+    "id": "avocat",
+    "name": "Avocat",
+    "category": "Fruit",
     "units": "piece",
     "price": 2,
     "priceUnit": "per piece",
@@ -80,9 +80,9 @@
     }
   },
   {
-    "id": "smoked-salmon",
-    "name": "Smoked salmon",
-    "category": "misc",
+    "id": "saumon-fume",
+    "name": "Saumon fumé",
+    "category": "Protein",
     "units": "g",
     "price": 7,
     "priceUnit": "per 100g",
@@ -96,9 +96,9 @@
     }
   },
   {
-    "id": "lime",
-    "name": "Lime",
-    "category": "misc",
+    "id": "citron-vert",
+    "name": "Citron vert",
+    "category": "Fruit",
     "units": "piece",
     "price": 0.5,
     "priceUnit": "per piece",
@@ -107,382 +107,14 @@
       "protein": 0.7,
       "carbs": 10.5,
       "fat": 0.2,
-      "fiber": 2.8,
-      "sugar": 1.7
-    }
-  },
-  {
-    "id": "fresh-cheese",
-    "name": "Fresh cheese",
-    "category": "misc",
-    "units": "piece",
-    "price": 3,
-    "priceUnit": "per piece",
-    "nutritionPer100g": {
-      "calories": 98,
-      "protein": 18,
-      "carbs": 3,
-      "fat": 1,
-      "fiber": 0,
-      "sugar": 3
-    }
-  },
-  {
-    "id": "chervil",
-    "name": "Chervil",
-    "category": "misc",
-    "units": "g",
-    "price": 6,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 237,
-      "protein": 23,
-      "carbs": 42,
-      "fat": 4,
-      "fiber": 0,
-      "sugar": 0
-    }
-  },
-  {
-    "id": "chives",
-    "name": "Chives",
-    "category": "misc",
-    "units": "tbsp",
-    "price": 4,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 30,
-      "protein": 3.3,
-      "carbs": 4.4,
-      "fat": 0.7,
-      "fiber": 2.5,
-      "sugar": 1.9
-    }
-  },
-  {
-    "id": "tarragon",
-    "name": "Tarragon",
-    "category": "misc",
-    "units": "tbsp",
-    "price": 5,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 295,
-      "protein": 22.8,
-      "carbs": 50.2,
-      "fat": 7.2,
-      "fiber": 7.4,
-      "sugar": 0
-    }
-  },
-  {
-    "id": "paprika",
-    "name": "Paprika",
-    "category": "misc",
-    "units": "tsp",
-    "price": 3,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 282,
-      "protein": 14.8,
-      "carbs": 53.9,
-      "fat": 12.9,
-      "fiber": 34.9,
-      "sugar": 10.3
-    }
-  },
-  {
-    "id": "smoked-bacon",
-    "name": "Smoked bacon",
-    "category": "misc",
-    "units": "g",
-    "price": 3.5,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 541,
-      "protein": 37,
-      "carbs": 0,
-      "fat": 41,
-      "fiber": 0,
-      "sugar": 0
-    }
-  },
-  {
-    "id": "spaghetti",
-    "name": "Spaghetti",
-    "category": "misc",
-    "units": "g",
-    "price": 0.5,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 158,
-      "protein": 5.8,
-      "carbs": 31,
-      "fat": 0.9,
-      "fiber": 1.8,
-      "sugar": 0.8
-    }
-  },
-  {
-    "id": "egg-yolk",
-    "name": "Egg yolk",
-    "category": "misc",
-    "units": "piece",
-    "price": 0.25,
-    "priceUnit": "per piece",
-    "nutritionPer100g": {
-      "calories": 322,
-      "protein": 16,
-      "carbs": 3.6,
-      "fat": 27,
-      "fiber": 0,
-      "sugar": 0.61
-    }
-  },
-  {
-    "id": "parmesan-cheese",
-    "name": "Parmesan cheese",
-    "category": "misc",
-    "units": "g",
-    "price": 5,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 431,
-      "protein": 38,
-      "carbs": 4.1,
-      "fat": 29,
-      "fiber": 0,
-      "sugar": 1
-    }
-  },
-  {
-    "id": "butter",
-    "name": "Butter",
-    "category": "misc",
-    "units": "g",
-    "price": 0.8,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 717,
-      "protein": 0.9,
-      "carbs": 0.1,
-      "fat": 81.1,
-      "fiber": 0,
-      "sugar": 0.1
-    }
-  },
-  {
-    "id": "red-wine",
-    "name": "Red wine",
-    "category": "misc",
-    "units": "g",
-    "price": 1.5,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 85,
-      "protein": 0.1,
-      "carbs": 2.6,
-      "fat": 0,
-      "fiber": 0,
-      "sugar": 0.6
-    }
-  },
-  {
-    "id": "carrot",
-    "name": "Carrot",
-    "category": "misc",
-    "units": "piece",
-    "price": 0.25,
-    "priceUnit": "per piece",
-    "nutritionPer100g": {
-      "calories": 41,
-      "protein": 0.9,
-      "carbs": 9.6,
-      "fat": 0.2,
-      "fiber": 2.8,
-      "sugar": 4.7
-    }
-  },
-  {
-    "id": "onion",
-    "name": "Onion",
-    "category": "misc",
-    "units": "piece",
-    "price": 0.4,
-    "priceUnit": "per piece",
-    "nutritionPer100g": {
-      "calories": 40,
-      "protein": 1.1,
-      "carbs": 9,
-      "fat": 0.1,
-      "fiber": 1.7,
-      "sugar": 4.2
-    }
-  },
-  {
-    "id": "beef",
-    "name": "Beef",
-    "category": "misc",
-    "units": "g",
-    "price": 3,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 250,
-      "protein": 26,
-      "carbs": 0,
-      "fat": 17,
-      "fiber": 0,
-      "sugar": 0
-    }
-  },
-  {
-    "id": "bouquet-garni",
-    "name": "Bouquet garni",
-    "category": "misc",
-    "units": "piece",
-    "price": 0.75,
-    "priceUnit": "per piece",
-    "nutritionPer100g": {
-      "calories": 20,
-      "protein": 1,
-      "carbs": 3,
-      "fat": 0,
-      "fiber": 1,
-      "sugar": 1
-    }
-  },
-  {
-    "id": "sugar",
-    "name": "sugar",
-    "category": "misc",
-    "units": "g",
-    "price": 0.6,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 400,
-      "protein": 0,
-      "carbs": 100,
-      "fat": 0,
-      "fiber": 0,
-      "sugar": 100
-    }
-  },
-  {
-    "id": "rum",
-    "name": "rum",
-    "category": "misc",
-    "units": "tbsp",
-    "price": 0.4,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 231,
-      "protein": 0,
-      "carbs": 0,
-      "fat": 0,
-      "fiber": 0,
-      "sugar": 0
-    }
-  },
-  {
-    "id": "vanilla-bean",
-    "name": "vanilla bean",
-    "category": "misc",
-    "units": "piece",
-    "price": 3,
-    "priceUnit": "per piece",
-    "nutritionPer100g": {
-      "calories": 288,
-      "protein": 5.27,
-      "carbs": 53.41,
-      "fat": 5.07,
-      "fiber": 0,
-      "sugar": 0
-    }
-  },
-  {
-    "id": "m85ac7x7d637n1p87ko",
-    "name": "sugar",
-    "category": "misc",
-    "units": "g",
-    "price": 0.6,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 400,
-      "protein": 0,
-      "carbs": 100,
-      "fat": 0,
-      "fiber": 0,
-      "sugar": 100
-    }
-  },
-  {
-    "id": "milk",
-    "name": "milk",
-    "category": "misc",
-    "units": "g",
-    "price": 0.15,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 42,
-      "protein": 3.4,
-      "carbs": 5,
-      "fat": 1,
-      "fiber": 0,
-      "sugar": 5
-    }
-  },
-  {
-    "id": "water",
-    "name": "water",
-    "category": "misc",
-    "units": "g",
-    "price": 0,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 0,
-      "protein": 0,
-      "carbs": 0,
-      "fat": 0,
-      "fiber": 0,
-      "sugar": 0
-    }
-  },
-  {
-    "id": "oil",
-    "name": "Oil",
-    "category": "misc",
-    "units": "tbsp",
-    "price": 0.25,
-    "priceUnit": "per 100g",
-    "nutritionPer100g": {
-      "calories": 884,
-      "protein": 0,
-      "carbs": 0,
-      "fat": 100,
-      "fiber": 0,
-      "sugar": 0
-    }
-  },
-  {
-    "id": "lettuce",
-    "name": "Lettuce",
-    "category": "misc",
-    "units": "piece",
-    "price": 1.5,
-    "priceUnit": "per piece",
-    "nutritionPer100g": {
-      "calories": 15,
-      "protein": 1.4,
-      "carbs": 2.9,
-      "fat": 0.2,
       "fiber": 1.4,
       "sugar": 0.8
     }
   },
   {
-    "id": "m85af61haeruz9v156",
-    "name": "Oil",
-    "category": "misc",
+    "id": "huile-2",
+    "name": "Huile",
+    "category": "Fat",
     "units": "g",
     "price": 0.25,
     "priceUnit": "per 100g",
@@ -496,9 +128,9 @@
     }
   },
   {
-    "id": "pork-shoulder",
-    "name": "Pork shoulder",
-    "category": "misc",
+    "id": "epaule-porc",
+    "name": "Épaule de porc",
+    "category": "Meat",
     "units": "g",
     "price": 1.5,
     "priceUnit": "per 100g",
@@ -512,9 +144,9 @@
     }
   },
   {
-    "id": "wheat-flour",
-    "name": "Wheat flour",
-    "category": "misc",
+    "id": "farine-ble",
+    "name": "Farine de blé",
+    "category": "Grain",
     "units": "g",
     "price": 0.3,
     "priceUnit": "per 100g",
@@ -530,7 +162,7 @@
   {
     "id": "mirin",
     "name": "Mirin",
-    "category": "misc",
+    "category": "Misc",
     "units": "g",
     "price": 1,
     "priceUnit": "per 100g",
@@ -544,9 +176,9 @@
     }
   },
   {
-    "id": "soy-sauce",
-    "name": "Soy sauce",
-    "category": "misc",
+    "id": "sauce-soja",
+    "name": "Sauce soja",
+    "category": "Condiment",
     "units": "g",
     "price": 0.4,
     "priceUnit": "per 100g",
@@ -560,9 +192,9 @@
     }
   },
   {
-    "id": "dashi-powder",
-    "name": "Dashi powder",
-    "category": "misc",
+    "id": "poudre-dashi",
+    "name": "Poudre de dashi",
+    "category": "Misc",
     "units": "g",
     "price": 2.5,
     "priceUnit": "per 100g",
@@ -576,9 +208,9 @@
     }
   },
   {
-    "id": "sushi-rice",
-    "name": "Sushi rice",
-    "category": "misc",
+    "id": "riz-sushi",
+    "name": "Riz à sushi",
+    "category": "Grain",
     "units": "g",
     "price": 0.5,
     "priceUnit": "per 100g",
@@ -589,6 +221,516 @@
       "fat": 0.2,
       "fiber": 0.4,
       "sugar": 0.1
+    }
+  },
+  {
+    "id": "tomate",
+    "name": "Tomate",
+    "category": "Vegetable",
+    "units": "g",
+    "price": 0.3,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 18,
+      "protein": 0.9,
+      "carbs": 3.9,
+      "fat": 0.2,
+      "fiber": 1.2,
+      "sugar": 2.6
+    }
+  },
+  {
+    "id": "jarret-veau",
+    "name": "Jarret de veau",
+    "category": "Meat",
+    "units": "piece",
+    "price": 8,
+    "priceUnit": "per piece",
+    "nutritionPer100g": {
+      "calories": 143,
+      "protein": 25.6,
+      "carbs": 0,
+      "fat": 4.5,
+      "fiber": 0,
+      "sugar": 0
+    }
+  },
+  {
+    "id": "ail",
+    "name": "Ail",
+    "category": "Vegetable",
+    "units": "g",
+    "price": 0.5,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 149,
+      "protein": 6.4,
+      "carbs": 33,
+      "fat": 0.5,
+      "fiber": 2.1,
+      "sugar": 1
+    }
+  },
+  {
+    "id": "vin-blanc",
+    "name": "Vin blanc",
+    "category": "Misc",
+    "units": "g",
+    "price": 1,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 82,
+      "protein": 0.1,
+      "carbs": 2.6,
+      "fat": 0,
+      "fiber": 0,
+      "sugar": 0.6
+    }
+  },
+  {
+    "id": "fromage-frais",
+    "name": "Fromage frais",
+    "category": "Dairy",
+    "units": "piece",
+    "price": 3,
+    "priceUnit": "per piece",
+    "nutritionPer100g": {
+      "calories": 98,
+      "protein": 18,
+      "carbs": 3,
+      "fat": 1,
+      "fiber": 0,
+      "sugar": 3
+    }
+  },
+  {
+    "id": "cerfeuil",
+    "name": "Cerfeuil",
+    "category": "Spice",
+    "units": "g",
+    "price": 6,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 237,
+      "protein": 23,
+      "carbs": 42,
+      "fat": 4,
+      "fiber": 0,
+      "sugar": 0
+    }
+  },
+  {
+    "id": "ciboulette",
+    "name": "Ciboulette",
+    "category": "Spice",
+    "units": "tbsp",
+    "price": 4,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 30,
+      "protein": 3.3,
+      "carbs": 4.4,
+      "fat": 0.7,
+      "fiber": 2.5,
+      "sugar": 1.9
+    }
+  },
+  {
+    "id": "estragon",
+    "name": "Estragon",
+    "category": "Spice",
+    "units": "tbsp",
+    "price": 5,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 295,
+      "protein": 22.8,
+      "carbs": 50.2,
+      "fat": 7.2,
+      "fiber": 7.4,
+      "sugar": 0
+    }
+  },
+  {
+    "id": "paprika",
+    "name": "Paprika",
+    "category": "Spice",
+    "units": "tsp",
+    "price": 3,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 282,
+      "protein": 14.8,
+      "carbs": 53.9,
+      "fat": 12.9,
+      "fiber": 34.9,
+      "sugar": 10.3
+    }
+  },
+  {
+    "id": "lard-fume",
+    "name": "Lard fumé",
+    "category": "Meat",
+    "units": "g",
+    "price": 3.5,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 541,
+      "protein": 37,
+      "carbs": 0,
+      "fat": 41,
+      "fiber": 0,
+      "sugar": 0
+    }
+  },
+  {
+    "id": "spaghetti",
+    "name": "Spaghetti",
+    "category": "Grain",
+    "units": "g",
+    "price": 0.5,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 158,
+      "protein": 5.8,
+      "carbs": 31,
+      "fat": 0.9,
+      "fiber": 1.8,
+      "sugar": 0.8
+    }
+  },
+  {
+    "id": "jaune-oeuf",
+    "name": "Jaune d'œuf",
+    "category": "Protein",
+    "units": "piece",
+    "price": 0.25,
+    "priceUnit": "per piece",
+    "nutritionPer100g": {
+      "calories": 322,
+      "protein": 16,
+      "carbs": 3.6,
+      "fat": 27,
+      "fiber": 0,
+      "sugar": 0.61
+    }
+  },
+  {
+    "id": "parmesan",
+    "name": "Parmesan",
+    "category": "Dairy",
+    "units": "g",
+    "price": 5,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 431,
+      "protein": 38,
+      "carbs": 4.1,
+      "fat": 29,
+      "fiber": 0,
+      "sugar": 1
+    }
+  },
+  {
+    "id": "beurre",
+    "name": "Beurre",
+    "category": "Fat",
+    "units": "g",
+    "price": 0.8,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 717,
+      "protein": 0.9,
+      "carbs": 0.1,
+      "fat": 81.1,
+      "fiber": 0,
+      "sugar": 0.1
+    }
+  },
+  {
+    "id": "vin-rouge",
+    "name": "Vin rouge",
+    "category": "Misc",
+    "units": "g",
+    "price": 1.5,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 85,
+      "protein": 0.1,
+      "carbs": 2.6,
+      "fat": 0,
+      "fiber": 0,
+      "sugar": 0.6
+    }
+  },
+  {
+    "id": "carotte",
+    "name": "Carotte",
+    "category": "Vegetable",
+    "units": "piece",
+    "price": 0.25,
+    "priceUnit": "per piece",
+    "nutritionPer100g": {
+      "calories": 41,
+      "protein": 0.9,
+      "carbs": 9.6,
+      "fat": 0.2,
+      "fiber": 2.8,
+      "sugar": 4.7
+    }
+  },
+  {
+    "id": "oignon",
+    "name": "Oignon",
+    "category": "Vegetable",
+    "units": "piece",
+    "price": 0.4,
+    "priceUnit": "per piece",
+    "nutritionPer100g": {
+      "calories": 40,
+      "protein": 1.1,
+      "carbs": 9,
+      "fat": 0.1,
+      "fiber": 1.7,
+      "sugar": 4.2
+    }
+  },
+  {
+    "id": "boeuf",
+    "name": "Bœuf",
+    "category": "Meat",
+    "units": "g",
+    "price": 3,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 250,
+      "protein": 26,
+      "carbs": 0,
+      "fat": 17,
+      "fiber": 0,
+      "sugar": 0
+    }
+  },
+  {
+    "id": "bouquet-garni",
+    "name": "Bouquet garni",
+    "category": "Spice",
+    "units": "piece",
+    "price": 0.75,
+    "priceUnit": "per piece",
+    "nutritionPer100g": {
+      "calories": 20,
+      "protein": 1,
+      "carbs": 3,
+      "fat": 0,
+      "fiber": 1,
+      "sugar": 1
+    }
+  },
+  {
+    "id": "sucre-poudre",
+    "name": "Sucre en poudre",
+    "category": "Misc",
+    "units": "g",
+    "price": 0.6,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 400,
+      "protein": 0,
+      "carbs": 100,
+      "fat": 0,
+      "fiber": 0,
+      "sugar": 100
+    }
+  },
+  {
+    "id": "rhum",
+    "name": "Rhum",
+    "category": "Misc",
+    "units": "tbsp",
+    "price": 0.4,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 231,
+      "protein": 0,
+      "carbs": 0,
+      "fat": 0,
+      "fiber": 0,
+      "sugar": 0
+    }
+  },
+  {
+    "id": "gousse-vanille",
+    "name": "Gousse de vanille",
+    "category": "Spice",
+    "units": "piece",
+    "price": 3,
+    "priceUnit": "per piece",
+    "nutritionPer100g": {
+      "calories": 288,
+      "protein": 5.27,
+      "carbs": 53.41,
+      "fat": 5.07,
+      "fiber": 0,
+      "sugar": 0
+    }
+  },
+  {
+    "id": "lait",
+    "name": "Lait",
+    "category": "Dairy",
+    "units": "g",
+    "price": 0.15,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 42,
+      "protein": 3.4,
+      "carbs": 5,
+      "fat": 1,
+      "fiber": 0,
+      "sugar": 5
+    }
+  },
+  {
+    "id": "eau",
+    "name": "Eau",
+    "category": "Misc",
+    "units": "g",
+    "price": 0,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 0,
+      "protein": 0,
+      "carbs": 0,
+      "fat": 0,
+      "fiber": 0,
+      "sugar": 0
+    }
+  },
+  {
+    "id": "huile",
+    "name": "Huile",
+    "category": "Fat",
+    "units": "tbsp",
+    "price": 0.25,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 884,
+      "protein": 0,
+      "carbs": 0,
+      "fat": 100,
+      "fiber": 0,
+      "sugar": 0
+    }
+  },
+  {
+    "id": "laitue",
+    "name": "Laitue",
+    "category": "Vegetable",
+    "units": "piece",
+    "price": 1.5,
+    "priceUnit": "per piece",
+    "nutritionPer100g": {
+      "calories": 15,
+      "protein": 1.4,
+      "carbs": 2.9,
+      "fat": 0.2
+    }
+  },
+  {
+    "id": "cerises",
+    "name": "Cerises",
+    "category": "fruit",
+    "units": "g",
+    "price": 3.5,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 63,
+      "protein": 1.1,
+      "carbs": 16,
+      "fat": 0.2,
+      "fiber": 2.1,
+      "sugar": 12.8
+    }
+  },
+  {
+    "id": "oeuf",
+    "name": "Oeuf",
+    "category": "protein",
+    "units": "piece",
+    "price": 0.4,
+    "priceUnit": "per piece",
+    "nutritionPer100g": {
+      "calories": 155,
+      "protein": 13,
+      "carbs": 1.1,
+      "fat": 11,
+      "fiber": 0,
+      "sugar": 1.1
+    }
+  },
+  {
+    "id": "pâte-brisée-sucrée",
+    "name": "pâte brisée sucrée",
+    "category": "misc",
+    "units": "piece",
+    "price": 2.5,
+    "priceUnit": "per piece",
+    "nutritionPer100g": {
+      "calories": 450,
+      "protein": 5,
+      "carbs": 45,
+      "fat": 28,
+      "fiber": 2,
+      "sugar": 15
+    }
+  },
+  {
+    "id": "crème-liquide",
+    "name": "crème liquide",
+    "category": "misc",
+    "units": "g",
+    "price": 0.75,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 207,
+      "protein": 3,
+      "carbs": 4,
+      "fat": 21,
+      "fiber": 0,
+      "sugar": 3
+    }
+  },
+  {
+    "id": "poudre-d’amandes",
+    "name": "poudre d’amandes",
+    "category": "misc",
+    "units": "g",
+    "price": 3,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 600,
+      "protein": 21,
+      "carbs": 22,
+      "fat": 54,
+      "fiber": 13,
+      "sugar": 4
+    }
+  },
+  {
+    "id": "sucre-vanillé",
+    "name": "Sucre Vanillé",
+    "category": "misc",
+    "units": "g",
+    "price": 1.5,
+    "priceUnit": "per 100g",
+    "nutritionPer100g": {
+      "calories": 400,
+      "protein": 0,
+      "carbs": 100,
+      "fat": 0,
+      "fiber": 0,
+      "sugar": 100
     }
   }
 ]

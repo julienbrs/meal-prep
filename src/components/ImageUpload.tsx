@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 interface ImageUploadProps {
-  onImageChange: (file: File | null) => void;
+  onImageChange: (file: File | null, path: string | null) => void;
   initialImage?: string;
   className?: string;
 }
@@ -15,6 +15,50 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     initialImage || null
   );
 
+  const saveImage = async (file: File) => {
+    try {
+      // Create a unique filename using timestamp and original name
+      const timestamp = new Date().getTime();
+      const fileName = `${timestamp}-${file.name
+        .toLowerCase()
+        .replace(/\s+/g, "-")}`;
+      const path = `/images/recipes/${fileName}`;
+
+      // Create FormData
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("path", path);
+
+      // Save the file to the public directory
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      return path;
+    } catch (error) {
+      console.error("Error saving image:", error);
+      return null;
+    }
+  };
+
+  const handleFileProcess = async (file: File) => {
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    // Save file and get path
+    const path = await saveImage(file);
+    onImageChange(file, path);
+  };
+
   useEffect(() => {
     const handlePaste = async (e: ClipboardEvent) => {
       const items = e.clipboardData?.items;
@@ -25,42 +69,29 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           e.preventDefault();
           const file = items[i].getAsFile();
           if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              setImagePreview(reader.result as string);
-              onImageChange(file);
-            };
-            reader.readAsDataURL(file);
+            await handleFileProcess(file);
             break;
           }
         }
       }
     };
 
-    // Add the paste event listener to the window
     window.addEventListener("paste", handlePaste);
-
-    // Cleanup
     return () => {
       window.removeEventListener("paste", handlePaste);
     };
-  }, [onImageChange]);
+  }, []);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        onImageChange(file);
-      };
-      reader.readAsDataURL(file);
+      await handleFileProcess(file);
     }
   };
 
   const handleRemoveImage = () => {
     setImagePreview(null);
-    onImageChange(null);
+    onImageChange(null, null);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -68,17 +99,12 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     e.stopPropagation();
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith("image/")) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        onImageChange(file);
-      };
-      reader.readAsDataURL(file);
+      await handleFileProcess(file);
     }
   };
 
