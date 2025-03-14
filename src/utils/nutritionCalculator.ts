@@ -2,61 +2,6 @@ import { RecipeIngredient } from "@/types/meal";
 import { FoodItem, NutritionInfo } from "@/types/ingredient";
 import { getFoodItemById, getFoodItemByIdSync } from "./foodItemFetcher";
 
-// Calculate nutrition for a recipe - async version
-export async function calculateRecipeNutritionAsync(
-  ingredients: RecipeIngredient[]
-): Promise<NutritionInfo> {
-  const nutrition: NutritionInfo = {
-    calories: 0,
-    protein: 0,
-    carbs: 0,
-    fat: 0,
-    fiber: 0,
-    sugar: 0,
-  };
-
-  // Process each ingredient
-  for (const ingredient of ingredients) {
-    const foodItem = await getFoodItemById(ingredient.foodItemId);
-    if (!foodItem) continue;
-
-    let ratio = 1;
-
-    if (foodItem.units === "piece") {
-      ratio = ingredient.amount;
-    } else {
-      let amountInGrams = ingredient.amount;
-      if (ingredient.unit !== "g") {
-        if (ingredient.unit === "ml") {
-          amountInGrams = ingredient.amount;
-        }
-      }
-
-      ratio = amountInGrams / 100;
-    }
-
-    nutrition.calories += foodItem.nutritionPer100g.calories * ratio;
-    nutrition.protein += foodItem.nutritionPer100g.protein * ratio;
-    nutrition.carbs += foodItem.nutritionPer100g.carbs * ratio;
-    nutrition.fat += foodItem.nutritionPer100g.fat * ratio;
-    if (foodItem.nutritionPer100g.fiber) {
-      nutrition.fiber! += foodItem.nutritionPer100g.fiber * ratio;
-    }
-    if (foodItem.nutritionPer100g.sugar) {
-      nutrition.sugar! += foodItem.nutritionPer100g.sugar * ratio;
-    }
-  }
-
-  return {
-    calories: Math.round(nutrition.calories),
-    protein: Number(nutrition.protein.toFixed(1)),
-    carbs: Number(nutrition.carbs.toFixed(1)),
-    fat: Number(nutrition.fat.toFixed(1)),
-    fiber: nutrition.fiber ? Number(nutrition.fiber.toFixed(1)) : undefined,
-    sugar: nutrition.sugar ? Number(nutrition.sugar.toFixed(1)) : undefined,
-  };
-}
-
 // Calculate nutrition for a recipe - sync version (for when food items are already loaded)
 export function calculateRecipeNutrition(
   ingredients: RecipeIngredient[],
@@ -71,41 +16,41 @@ export function calculateRecipeNutrition(
     sugar: 0,
   };
 
+  const UNIT_CONVERSIONS: { [key: string]: number } = {
+    cl: 10, // 1cl = 10ml
+    ml: 1, // 1ml ≈ 1g for water-based liquids
+    tsp: 5, // 1 tsp ≈ 5g
+    tbsp: 15, // 1 tbsp ≈ 15g
+  };
+
   ingredients.forEach((ingredient) => {
     const foodItem = foodItems.find(
       (item) => item.id === ingredient.foodItemId
     );
-
     if (!foodItem) return;
 
     let amountInGrams = Number(ingredient.amount);
-
     if (isNaN(amountInGrams)) {
-      if (String(ingredient.amount).toLowerCase() === "to taste") {
-        return;
-      }
-
+      if (String(ingredient.amount).toLowerCase() === "to taste") return;
       console.warn(
         `Invalid amount for ${ingredient.foodItemId}:`,
         ingredient.amount
       );
-      amountInGrams = 0;
+      return;
     }
 
-    let ratio = 1;
+    let ratio: number;
 
     if (foodItem.units === "piece") {
+      // For pieces, use amount directly as multiplier since nutrition is per piece
       ratio = amountInGrams;
     } else {
-      if (ingredient.unit !== "g") {
-        if (ingredient.unit === "ml") {
-          amountInGrams = ingredient.amount; 
-        }
+      // Convert to grams if needed based on unit
+      if (ingredient.unit && ingredient.unit in UNIT_CONVERSIONS) {
+        amountInGrams = amountInGrams * UNIT_CONVERSIONS[ingredient.unit];
       }
-
       ratio = amountInGrams / 100;
     }
-
     nutrition.calories += foodItem.nutritionPer100g.calories * ratio;
     nutrition.protein += foodItem.nutritionPer100g.protein * ratio;
     nutrition.carbs += foodItem.nutritionPer100g.carbs * ratio;
@@ -126,44 +71,6 @@ export function calculateRecipeNutrition(
     fiber: nutrition.fiber ? Number(nutrition.fiber.toFixed(1)) : undefined,
     sugar: nutrition.sugar ? Number(nutrition.sugar.toFixed(1)) : undefined,
   };
-}
-
-// Calculate cost for a recipe - async version
-export async function calculateRecipeCostAsync(
-  ingredients: RecipeIngredient[]
-): Promise<number> {
-  let totalCost = 0;
-
-  for (const ingredient of ingredients) {
-    const foodItem = await getFoodItemById(ingredient.foodItemId);
-    if (!foodItem) continue;
-
-    let costMultiplier = 1;
-
-    if (foodItem.units === "piece") {
-      costMultiplier = ingredient.amount;
-    } else {
-      let amount = ingredient.amount;
-
-      if (ingredient.unit !== foodItem.units) {
-        if (ingredient.unit === "ml" && foodItem.priceUnit.includes("ml")) {
-          amount = ingredient.amount;
-        } else {
-          amount = ingredient.amount * (ingredient.unit === "g" ? 1 : 100);
-        }
-      }
-
-      if (foodItem.priceUnit.includes("100")) {
-        costMultiplier = amount / 100;
-      } else {
-        costMultiplier = amount;
-      }
-    }
-
-    totalCost += foodItem.price * costMultiplier;
-  }
-
-  return Number(totalCost.toFixed(2));
 }
 
 // Calculate cost for a recipe - sync version

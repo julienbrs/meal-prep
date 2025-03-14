@@ -1,19 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   calculateRecipeNutrition,
   calculateRecipeCost,
 } from "@/utils/nutritionCalculator";
-import { getFoodItemById } from "@/utils/foodItemFetcher";
-import { loadMeals } from "@/services/dataservice";
+import { deleteMeal, loadMeals } from "@/services/dataservice";
 import { Meal } from "@/types/meal";
 import { useFoodItems } from "@/context/FoodItemsContext";
+import AlertDialog from "@/components/AlertDialog";
 
 export default function MealDetails() {
   const params = useParams();
+  const router = useRouter();
+  const { foodItems, reloadFoodItems } = useFoodItems();
+
   const id = params.id as string;
 
   const [meal, setMeal] = useState<Meal | null>(null);
@@ -22,7 +25,21 @@ export default function MealDetails() {
   const [foodItemNames, setFoodItemNames] = useState<Record<string, string>>(
     {}
   );
-  const { foodItems } = useFoodItems();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const handleDeleteMeal = async () => {
+    try {
+      setDeleteLoading(true);
+      await deleteMeal(id);
+      router.push("/");
+    } catch (err) {
+      console.error("Error deleting meal:", err);
+      setError("Failed to delete meal. Please try again later.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   useEffect(() => {
     async function fetchMeal() {
@@ -114,24 +131,56 @@ export default function MealDetails() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Link
-        href="/"
-        className="inline-block mb-6 text-emerald-500 hover:text-emerald-700 transition-colors duration-200 flex items-center"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="w-5 h-5 mr-1"
+      <div className="flex justify-between items-center mb-6">
+        <Link
+          href="/"
+          className="inline-block text-emerald-500 hover:text-emerald-700 transition-colors duration-200 flex items-center"
         >
-          <path
-            fillRule="evenodd"
-            d="M7.28 7.72a.75.75 0 0 1 0 1.06l-2.47 2.47H21a.75.75 0 0 1 0 1.5H4.81l2.47 2.47a.75.75 0 1 1-1.06 1.06l-3.75-3.75a.75.75 0 0 1 0-1.06l3.75-3.75a.75.75 0 0 1 1.06 0Z"
-            clipRule="evenodd"
-          />
-        </svg>
-        Back to All Recipes
-      </Link>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="w-5 h-5 mr-1"
+          >
+            <path
+              fillRule="evenodd"
+              d="M7.28 7.72a.75.75 0 0 1 0 1.06l-2.47 2.47H21a.75.75 0 0 1 0 1.5H4.81l2.47 2.47a.75.75 0 1 1-1.06 1.06l-3.75-3.75a.75.75 0 0 1 0-1.06l3.75-3.75a.75.75 0 0 1 1.06 0Z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Back to All Recipes
+        </Link>
+
+        <button
+          onClick={() => setIsDeleteDialogOpen(true)}
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="w-5 h-5 mr-2"
+          >
+            <path
+              fillRule="evenodd"
+              d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Delete Recipe
+        </button>
+      </div>
+
+      <AlertDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        onConfirm={handleDeleteMeal}
+        title="Delete Recipe"
+        description={`Are you sure you want to delete "${meal?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        loading={deleteLoading}
+      />
 
       <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
         <div className="md:flex">

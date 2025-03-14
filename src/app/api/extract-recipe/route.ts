@@ -68,9 +68,10 @@ export async function POST(req: NextRequest) {
     INGREDIENT MATCHING RULES:
     The database already contains these food items, so try to match ingredients to these EXISTING items:
     ${existingFoodItemsText}
+    However if there is already "Sucre" in the dabase, but in the recipe there is "Sucre vanillé", then add "Sucre Vanillé"
+     and not "Sucre" because it is not the same thing.
     
-    If the recipe mentions a food item that's similar to an existing one (e.g., "bunch of parsley" when "parsley" exists), 
-    use the existing item name and handle the quantity appropriately. Don't create new food items unnecessarily.
+    Put the name of the recipe, name of the ingredients, the description and the steps in french.
     
     Example format:
     {
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
       ]
     }
     
-    Convert the text to English if needed. Return JSON only, with no extra text:
+    Return JSON only, with no extra text:
     
     Recipe:
     "${recipeText}"
