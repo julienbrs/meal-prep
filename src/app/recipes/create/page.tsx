@@ -22,7 +22,7 @@ export default function CreateRecipe() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [_, setImageFile] = useState<File | null>(null);
   const { foodItems, reloadFoodItems } = useFoodItems();
 
   const [recipe, setRecipe] = useState<Partial<Meal>>({

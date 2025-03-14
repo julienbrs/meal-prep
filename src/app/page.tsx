@@ -15,7 +15,6 @@ import {
   hydrateMealPlan,
   createEmptyMealPlan,
   MealPlanState,
-  MealPlanDay,
 } from "@/services/dataservice";
 import { useFoodItems } from "@/context/FoodItemsContext";
 
@@ -38,7 +37,7 @@ export default function WeeklyPlan() {
   const [activeDay, setActiveDay] = useState<string>(daysOfWeek[0]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [savingStatus, setSavingStatus] = useState<string | null>(null);
+  const [_, setSavingStatus] = useState<string | null>(null);
   const { foodItems } = useFoodItems();
 
   useEffect(() => {

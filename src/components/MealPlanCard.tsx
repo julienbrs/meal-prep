@@ -2,7 +2,6 @@ import React from "react";
 import { Meal } from "../types/meal";
 import {
   calculateRecipeNutrition,
-  calculateRecipeCost,
 } from "@/utils/nutritionCalculator";
 import { useFoodItems } from "@/context/FoodItemsContext";
 

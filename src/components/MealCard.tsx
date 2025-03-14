@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Meal } from "../types/meal";
 import {
   calculateRecipeNutrition,
@@ -15,18 +16,24 @@ export default function MealCard({ meal }: MealCardProps) {
   const { foodItems } = useFoodItems();
 
   const nutrition =
-    meal.calculatedNutrition || calculateRecipeNutrition(meal.ingredients, foodItems);
-  const cost = meal.totalCost || calculateRecipeCost(meal.ingredients, foodItems);
-
+    meal.calculatedNutrition ||
+    calculateRecipeNutrition(meal.ingredients, foodItems);
+  const cost =
+    meal.totalCost || calculateRecipeCost(meal.ingredients, foodItems);
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
       <div className="h-48 bg-gray-200 relative overflow-hidden">
         {meal.image ? (
-          <img
+          <Image
             src={meal.image}
             alt={meal.name}
-            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+            width={400}
+            height={192}
+            className="object-cover transform group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            style={{ width: "100%", height: "100%" }}
+            priority
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-500 bg-gradient-to-r from-gray-100 to-gray-200">

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadFoodItems, addFoodItem } from "@/services/dataservice";
+import { loadFoodItems } from "@/services/dataservice";
 import { FoodItem } from "@/types/ingredient";
-import { clearFoodItemsCache, preloadFoodItems } from "@/utils/foodItemFetcher";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -50,7 +49,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let foodItems: FoodItem[] = await loadFoodItems();
+    const foodItems: FoodItem[] = await loadFoodItems();
     const foodNames = foodItems.map((item) => item.name.toLowerCase());
     const existingFoodItemsText = foodNames.join(", ");
 

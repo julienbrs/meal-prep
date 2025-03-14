@@ -65,9 +65,12 @@ export default function RootLayout({
                     </Link>
                     <Link href="/">
                       <div className="flex justify-start items-center gap-2">
-                        <img
-                          className="w-10 h-10 rounded-full"
+                        <Image
                           src="/avatar/avatar_c.png"
+                          alt="Avatar"
+                          width={40}
+                          height={40}
+                          className="rounded-full"
                         />
                         <div className="justify-center text-gray-600 text-sm font-semibold font-['Inter']">
                           Clarckie

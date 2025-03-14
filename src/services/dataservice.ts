@@ -20,7 +20,6 @@ export interface MealPlans {
   [key: string]: MealPlanState;
 }
 
-let foodItemsCache: FoodItem[] | null = null;
 let mealsCache: Meal[] | null = null;
 let mealPlansCache: MealPlans | null = null;
 
@@ -163,7 +162,7 @@ export async function hydrateMealPlan(
 }
 
 export async function addFoodItem(item: FoodItem): Promise<boolean> {
-  let items = await loadFoodItems(); // ✅ Ensure we have the latest data
+  const items = await loadFoodItems(); // ✅ Ensure we have the latest data
 
   if (!item.id) {
     item.id = generateId();
@@ -280,10 +279,4 @@ export function createEmptyMealPlan(
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
-}
-
-export function clearCache(): void {
-  foodItemsCache = null;
-  mealsCache = null;
-  mealPlansCache = null;
 }

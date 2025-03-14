@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React from "react";
 
 interface AlertDialogProps {
   isOpen: boolean;

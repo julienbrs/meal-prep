@@ -1,6 +1,5 @@
 import { RecipeIngredient } from "@/types/meal";
 import { FoodItem, NutritionInfo } from "@/types/ingredient";
-import { getFoodItemById, getFoodItemByIdSync } from "./foodItemFetcher";
 
 // Calculate nutrition for a recipe - sync version (for when food items are already loaded)
 export function calculateRecipeNutrition(

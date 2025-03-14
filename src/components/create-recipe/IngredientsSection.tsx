@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Meal, RecipeIngredient } from "@/types/meal";
+import { RecipeIngredient } from "@/types/meal";
 import { FoodItem } from "@/types/ingredient";
 
 interface IngredientsSectionProps {
