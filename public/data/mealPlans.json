@@ -16,9 +16,414 @@
       "Dinner": null
     },
     "Thursday": {
-      "Breakfast": null,
-      "Lunch": null,
-      "Dinner": null
+      "Breakfast": {
+        "id": "m89e9prrj56vmp4g0ea",
+        "name": "Tarte aux cerises",
+        "description": "Une recette simple et rapide de tarte aux cerises, idéale en pleine saison lorsque les cerises sont bien sucrées. Il est recommandé de retirer les noyaux des cerises avant de les utiliser dans la tarte.",
+        "category": "dessert",
+        "preparationTime": 30,
+        "ingredients": [
+          {
+            "foodItemId": "pâte-brisée-sucrée",
+            "name": "pâte brisée sucrée",
+            "amount": 1,
+            "unit": "piece",
+            "nutritionPer100g": {
+              "calories": 450,
+              "protein": 5,
+              "carbs": 45,
+              "fat": 28,
+              "fiber": 2,
+              "sugar": 15
+            },
+            "price": 2.5,
+            "priceUnit": "per piece"
+          },
+          {
+            "foodItemId": "cerises",
+            "name": "Cerises",
+            "amount": 500,
+            "unit": "g",
+            "nutritionPer100g": {
+              "calories": 63,
+              "protein": 1.1,
+              "carbs": 16,
+              "fat": 0.2,
+              "fiber": 2.1,
+              "sugar": 12.8
+            },
+            "price": 3.5,
+            "priceUnit": "per 100g"
+          },
+          {
+            "foodItemId": "oeuf",
+            "name": "Oeuf",
+            "amount": 3,
+            "unit": "piece",
+            "nutritionPer100g": {
+              "calories": 155,
+              "protein": 13,
+              "carbs": 1.1,
+              "fat": 11,
+              "fiber": 0,
+              "sugar": 1.1
+            },
+            "price": 0.4,
+            "priceUnit": "per piece"
+          },
+          {
+            "foodItemId": "crème-liquide",
+            "name": "crème liquide",
+            "amount": 20,
+            "unit": "cl",
+            "nutritionPer100g": {
+              "calories": 207,
+              "protein": 3,
+              "carbs": 4,
+              "fat": 21,
+              "fiber": 0,
+              "sugar": 3
+            },
+            "price": 0.75,
+            "priceUnit": "per 100g"
+          },
+          {
+            "foodItemId": "sucre-poudre",
+            "name": "Sucre en poudre",
+            "amount": 100,
+            "unit": "g",
+            "nutritionPer100g": {
+              "calories": 400,
+              "protein": 0,
+              "carbs": 100,
+              "fat": 0,
+              "fiber": 0,
+              "sugar": 100
+            },
+            "price": 0.6,
+            "priceUnit": "per 100g"
+          },
+          {
+            "foodItemId": "sucre-vanillé",
+            "name": "Sucre Vanillé",
+            "amount": 1,
+            "unit": "sachet",
+            "nutritionPer100g": {
+              "calories": 400,
+              "protein": 0,
+              "carbs": 100,
+              "fat": 0,
+              "fiber": 0,
+              "sugar": 100
+            },
+            "price": 1.5,
+            "priceUnit": "per 100g"
+          },
+          {
+            "foodItemId": "poudre-d’amandes",
+            "name": "poudre d’amandes",
+            "amount": 100,
+            "unit": "g",
+            "nutritionPer100g": {
+              "calories": 600,
+              "protein": 21,
+              "carbs": 22,
+              "fat": 54,
+              "fiber": 13,
+              "sugar": 4
+            },
+            "price": 3,
+            "priceUnit": "per 100g"
+          }
+        ],
+        "instructions": [
+          "Préchauffer votre four à 180°C (th.6). Laver les cerises et les dénoyautées. Mettre la pâte dans un moule à tarte, la piquer et saupoudrer le fond d'une cuillère à soupe de poudre d'amandes. Disposer les cerises dénoyautées sur le fond de pâte et enfourner durant 10 minutes.",
+          "Dans un récipient, battre les oeufs avec la crème, le sucre, le sucre vanillé et la poudre d'amande. Après les 10 minutes de cuisson, sortir la tarte du four et verser la préparation sur les fruits.",
+          "Enfourner à nouveau durant 20 à 25 minutes : c'est prêt! Vous pouvez saupoudrer la tarte de sucre glace si vous le souhaitez."
+        ],
+        "calculatedNutrition": {
+          "calories": 2648,
+          "protein": 76.5,
+          "carbs": 259.3,
+          "fat": 158,
+          "fiber": 25.5,
+          "sugar": 193.3
+        },
+        "totalCost": 41.3,
+        "image": "/images/recipes/1741994030779-image.png"
+      },
+      "Lunch": {
+        "id": "m89e9prrj56vmp4g0ea",
+        "name": "Tarte aux cerises",
+        "description": "Une recette simple et rapide de tarte aux cerises, idéale en pleine saison lorsque les cerises sont bien sucrées. Il est recommandé de retirer les noyaux des cerises avant de les utiliser dans la tarte.",
+        "category": "dessert",
+        "preparationTime": 30,
+        "ingredients": [
+          {
+            "foodItemId": "pâte-brisée-sucrée",
+            "name": "pâte brisée sucrée",
+            "amount": 1,
+            "unit": "piece",
+            "nutritionPer100g": {
+              "calories": 450,
+              "protein": 5,
+              "carbs": 45,
+              "fat": 28,
+              "fiber": 2,
+              "sugar": 15
+            },
+            "price": 2.5,
+            "priceUnit": "per piece"
+          },
+          {
+            "foodItemId": "cerises",
+            "name": "Cerises",
+            "amount": 500,
+            "unit": "g",
+            "nutritionPer100g": {
+              "calories": 63,
+              "protein": 1.1,
+              "carbs": 16,
+              "fat": 0.2,
+              "fiber": 2.1,
+              "sugar": 12.8
+            },
+            "price": 3.5,
+            "priceUnit": "per 100g"
+          },
+          {
+            "foodItemId": "oeuf",
+            "name": "Oeuf",
+            "amount": 3,
+            "unit": "piece",
+            "nutritionPer100g": {
+              "calories": 155,
+              "protein": 13,
+              "carbs": 1.1,
+              "fat": 11,
+              "fiber": 0,
+              "sugar": 1.1
+            },
+            "price": 0.4,
+            "priceUnit": "per piece"
+          },
+          {
+            "foodItemId": "crème-liquide",
+            "name": "crème liquide",
+            "amount": 20,
+            "unit": "cl",
+            "nutritionPer100g": {
+              "calories": 207,
+              "protein": 3,
+              "carbs": 4,
+              "fat": 21,
+              "fiber": 0,
+              "sugar": 3
+            },
+            "price": 0.75,
+            "priceUnit": "per 100g"
+          },
+          {
+            "foodItemId": "sucre-poudre",
+            "name": "Sucre en poudre",
+            "amount": 100,
+            "unit": "g",
+            "nutritionPer100g": {
+              "calories": 400,
+              "protein": 0,
+              "carbs": 100,
+              "fat": 0,
+              "fiber": 0,
+              "sugar": 100
+            },
+            "price": 0.6,
+            "priceUnit": "per 100g"
+          },
+          {
+            "foodItemId": "sucre-vanillé",
+            "name": "Sucre Vanillé",
+            "amount": 1,
+            "unit": "sachet",
+            "nutritionPer100g": {
+              "calories": 400,
+              "protein": 0,
+              "carbs": 100,
+              "fat": 0,
+              "fiber": 0,
+              "sugar": 100
+            },
+            "price": 1.5,
+            "priceUnit": "per 100g"
+          },
+          {
+            "foodItemId": "poudre-d’amandes",
+            "name": "poudre d’amandes",
+            "amount": 100,
+            "unit": "g",
+            "nutritionPer100g": {
+              "calories": 600,
+              "protein": 21,
+              "carbs": 22,
+              "fat": 54,
+              "fiber": 13,
+              "sugar": 4
+            },
+            "price": 3,
+            "priceUnit": "per 100g"
+          }
+        ],
+        "instructions": [
+          "Préchauffer votre four à 180°C (th.6). Laver les cerises et les dénoyautées. Mettre la pâte dans un moule à tarte, la piquer et saupoudrer le fond d'une cuillère à soupe de poudre d'amandes. Disposer les cerises dénoyautées sur le fond de pâte et enfourner durant 10 minutes.",
+          "Dans un récipient, battre les oeufs avec la crème, le sucre, le sucre vanillé et la poudre d'amande. Après les 10 minutes de cuisson, sortir la tarte du four et verser la préparation sur les fruits.",
+          "Enfourner à nouveau durant 20 à 25 minutes : c'est prêt! Vous pouvez saupoudrer la tarte de sucre glace si vous le souhaitez."
+        ],
+        "calculatedNutrition": {
+          "calories": 2648,
+          "protein": 76.5,
+          "carbs": 259.3,
+          "fat": 158,
+          "fiber": 25.5,
+          "sugar": 193.3
+        },
+        "totalCost": 41.3,
+        "image": "/images/recipes/1741994030779-image.png"
+      },
+      "Dinner": {
+        "id": "m89e9prrj56vmp4g0ea",
+        "name": "Tarte aux cerises",
+        "description": "Une recette simple et rapide de tarte aux cerises, idéale en pleine saison lorsque les cerises sont bien sucrées. Il est recommandé de retirer les noyaux des cerises avant de les utiliser dans la tarte.",
+        "category": "dessert",
+        "preparationTime": 30,
+        "ingredients": [
+          {
+            "foodItemId": "pâte-brisée-sucrée",
+            "name": "pâte brisée sucrée",
+            "amount": 1,
+            "unit": "piece",
+            "nutritionPer100g": {
+              "calories": 450,
+              "protein": 5,
+              "carbs": 45,
+              "fat": 28,
+              "fiber": 2,
+              "sugar": 15
+            },
+            "price": 2.5,
+            "priceUnit": "per piece"
+          },
+          {
+            "foodItemId": "cerises",
+            "name": "Cerises",
+            "amount": 500,
+            "unit": "g",
+            "nutritionPer100g": {
+              "calories": 63,
+              "protein": 1.1,
+              "carbs": 16,
+              "fat": 0.2,
+              "fiber": 2.1,
+              "sugar": 12.8
+            },
+            "price": 3.5,
+            "priceUnit": "per 100g"
+          },
+          {
+            "foodItemId": "oeuf",
+            "name": "Oeuf",
+            "amount": 3,
+            "unit": "piece",
+            "nutritionPer100g": {
+              "calories": 155,
+              "protein": 13,
+              "carbs": 1.1,
+              "fat": 11,
+              "fiber": 0,
+              "sugar": 1.1
+            },
+            "price": 0.4,
+            "priceUnit": "per piece"
+          },
+          {
+            "foodItemId": "crème-liquide",
+            "name": "crème liquide",
+            "amount": 20,
+            "unit": "cl",
+            "nutritionPer100g": {
+              "calories": 207,
+              "protein": 3,
+              "carbs": 4,
+              "fat": 21,
+              "fiber": 0,
+              "sugar": 3
+            },
+            "price": 0.75,
+            "priceUnit": "per 100g"
+          },
+          {
+            "foodItemId": "sucre-poudre",
+            "name": "Sucre en poudre",
+            "amount": 100,
+            "unit": "g",
+            "nutritionPer100g": {
+              "calories": 400,
+              "protein": 0,
+              "carbs": 100,
+              "fat": 0,
+              "fiber": 0,
+              "sugar": 100
+            },
+            "price": 0.6,
+            "priceUnit": "per 100g"
+          },
+          {
+            "foodItemId": "sucre-vanillé",
+            "name": "Sucre Vanillé",
+            "amount": 1,
+            "unit": "sachet",
+            "nutritionPer100g": {
+              "calories": 400,
+              "protein": 0,
+              "carbs": 100,
+              "fat": 0,
+              "fiber": 0,
+              "sugar": 100
+            },
+            "price": 1.5,
+            "priceUnit": "per 100g"
+          },
+          {
+            "foodItemId": "poudre-d’amandes",
+            "name": "poudre d’amandes",
+            "amount": 100,
+            "unit": "g",
+            "nutritionPer100g": {
+              "calories": 600,
+              "protein": 21,
+              "carbs": 22,
+              "fat": 54,
+              "fiber": 13,
+              "sugar": 4
+            },
+            "price": 3,
+            "priceUnit": "per 100g"
+          }
+        ],
+        "instructions": [
+          "Préchauffer votre four à 180°C (th.6). Laver les cerises et les dénoyautées. Mettre la pâte dans un moule à tarte, la piquer et saupoudrer le fond d'une cuillère à soupe de poudre d'amandes. Disposer les cerises dénoyautées sur le fond de pâte et enfourner durant 10 minutes.",
+          "Dans un récipient, battre les oeufs avec la crème, le sucre, le sucre vanillé et la poudre d'amande. Après les 10 minutes de cuisson, sortir la tarte du four et verser la préparation sur les fruits.",
+          "Enfourner à nouveau durant 20 à 25 minutes : c'est prêt! Vous pouvez saupoudrer la tarte de sucre glace si vous le souhaitez."
+        ],
+        "calculatedNutrition": {
+          "calories": 2648,
+          "protein": 76.5,
+          "carbs": 259.3,
+          "fat": 158,
+          "fiber": 25.5,
+          "sugar": 193.3
+        },
+        "totalCost": 41.3,
+        "image": "/images/recipes/1741994030779-image.png"
+      }
     },
     "Friday": {
       "Breakfast": null,

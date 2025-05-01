@@ -5,16 +5,18 @@ import path from "path";
 
 export async function loadJsonData<T>(filename: string): Promise<T> {
   try {
-    const filePath = path.join(
-      process.cwd(),
-      "public",
-      "data",
-      `${filename}.json`
-    );
-    const fileContents = fs.readFileSync(filePath, "utf-8");
-    return JSON.parse(fileContents) as T;
+    // Try to get data from an API route
+    const response = await fetch(`/api/${filename}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${filename} data`);
+    }
+    return (await response.json()) as T;
   } catch (error) {
     console.error(`Error loading JSON file: ${filename}`, error);
+    // Return a default empty value based on the filename
+    if (filename === "foodItems") return [] as unknown as T;
+    if (filename === "meals") return [] as unknown as T;
+    if (filename === "mealPlans") return { default: {} } as unknown as T;
     throw error;
   }
 }
@@ -24,15 +26,15 @@ export async function saveJsonData<T>(
   data: T
 ): Promise<boolean> {
   try {
-    const filePath = path.join(
-      process.cwd(),
-      "public",
-      "data",
-      `${filename}.json`
-    );
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8"); // ✅ Write directly to file
-    console.log(`✅ Successfully saved ${filename}.json`);
-    return true;
+    const response = await fetch(`/api/${filename}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    return response.ok;
   } catch (error) {
     console.error(`❌ Error saving ${filename}:`, error);
     return false;
