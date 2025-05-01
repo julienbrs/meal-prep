@@ -14,8 +14,6 @@ export async function POST(request: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
-    // Ensure directory exists
     const publicDir = path.join(process.cwd(), "public");
     const fullPath = path.join(publicDir, pathToSave);
     await writeFile(fullPath, buffer);

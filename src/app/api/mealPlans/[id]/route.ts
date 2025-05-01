@@ -2,21 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/lib/mongodb";
 import MealPlan from "@/models/MealPlan";
 
+// GET /api/mealPlans/[id]
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   await dbConnect();
-
   try {
-    const mealPlan = await MealPlan.findOne({ id: params.id });
-    if (!mealPlan) {
+    const plan = await MealPlan.findOne({ id });
+    if (!plan) {
       return NextResponse.json(
         { error: "Meal plan not found" },
         { status: 404 }
       );
     }
-    return NextResponse.json(mealPlan.planData);
+    return NextResponse.json(plan.planData);
   } catch (error) {
     console.error("Error getting meal plan:", error);
     return NextResponse.json(
@@ -26,31 +27,24 @@ export async function GET(
   }
 }
 
+// PUT /api/mealPlans/[id]
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   await dbConnect();
-
   try {
     const planData = await request.json();
-
-    // Try to update existing plan first
-    const updatedPlan = await MealPlan.findOneAndUpdate(
-      { id: params.id },
+    const updated = await MealPlan.findOneAndUpdate(
+      { id },
       { planData },
       { new: true }
     );
-
-    // If plan doesn't exist, create it
-    if (!updatedPlan) {
-      const newPlan = new MealPlan({
-        id: params.id,
-        planData,
-      });
-      await newPlan.save();
+    if (!updated) {
+      // create new if missing
+      await new MealPlan({ id, planData }).save();
     }
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error updating meal plan:", error);
@@ -61,22 +55,21 @@ export async function PUT(
   }
 }
 
+// DELETE /api/mealPlans/[id]
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   await dbConnect();
-
   try {
-    const result = await MealPlan.findOneAndDelete({ id: params.id });
-
+    const result = await MealPlan.findOneAndDelete({ id });
     if (!result) {
       return NextResponse.json(
         { error: "Meal plan not found" },
         { status: 404 }
       );
     }
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting meal plan:", error);

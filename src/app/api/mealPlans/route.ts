@@ -4,22 +4,16 @@ import MealPlan from "@/models/MealPlan";
 
 export async function GET() {
   await dbConnect();
-
   try {
     const mealPlans = await MealPlan.find({});
-
-    // Convert array to object with id as key
-    const mealPlansObj: Record<string, any> = {};
-    mealPlans.forEach((plan) => {
-      mealPlansObj[plan.id] = plan.planData;
+    const obj: Record<string, any> = {};
+    mealPlans.forEach((p) => {
+      obj[p.id] = p.planData;
     });
-
-    // If no plans exist, create a default empty one
-    if (Object.keys(mealPlansObj).length === 0) {
-      mealPlansObj.default = {};
+    if (Object.keys(obj).length === 0) {
+      obj.default = {};
     }
-
-    return NextResponse.json(mealPlansObj);
+    return NextResponse.json(obj);
   } catch (error) {
     console.error("Error reading meal plans:", error);
     return NextResponse.json(
@@ -31,24 +25,14 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   await dbConnect();
-
   try {
     const mealPlansData = await request.json();
-
-    // Delete all existing meal plans
     await MealPlan.deleteMany({});
-
-    // Create array of meal plan documents
-    const mealPlanDocuments = Object.entries(mealPlansData).map(
-      ([id, planData]) => ({
-        id,
-        planData,
-      })
-    );
-
-    // Insert new meal plans
-    await MealPlan.insertMany(mealPlanDocuments);
-
+    const docs = Object.entries(mealPlansData).map(([id, planData]) => ({
+      id,
+      planData,
+    }));
+    await MealPlan.insertMany(docs);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error saving meal plans:", error);

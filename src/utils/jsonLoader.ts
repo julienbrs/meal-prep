@@ -1,8 +1,5 @@
 "use server";
 
-import fs from "fs";
-import path from "path";
-
 export async function loadJsonData<T>(filename: string): Promise<T> {
   try {
     // Try to get data from an API route
