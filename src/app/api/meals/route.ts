@@ -1,17 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as fs from "fs/promises";
-import path from "path";
-import { Meal } from "@/types/meal";
-
-// Get the path to the data file
-const dataFilePath = path.join(process.cwd(), "public", "data", "meals.json");
+import dbConnect from "@/lib/mongodb";
+import Meal from "@/models/Meal";
 
 export async function GET() {
-  try {
-    const fileContent = await fs.readFile(dataFilePath, "utf-8");
-    const data = JSON.parse(fileContent);
+  await dbConnect();
 
-    return NextResponse.json(data);
+  try {
+    const meals = await Meal.find({});
+    return NextResponse.json(meals);
   } catch (error) {
     console.error("Error reading meals:", error);
     return NextResponse.json(
@@ -21,22 +17,24 @@ export async function GET() {
   }
 }
 
-// API route handler for POST requests
 export async function POST(request: NextRequest) {
+  await dbConnect();
+
   try {
-    const meals: Meal[] = await request.json();
+    const meal = await request.json();
 
-    const dataDir = path.join(process.cwd(), "public", "data");
-    await fs.mkdir(dataDir, { recursive: true });
+    // Generate ID if not provided
+    if (!meal.id) {
+      meal.id =
+        Date.now().toString(36) + Math.random().toString(36).substring(2);
+    }
 
-    await fs.writeFile(dataFilePath, JSON.stringify(meals, null, 2), "utf-8");
+    const newMeal = new Meal(meal);
+    await newMeal.save();
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, meal: newMeal });
   } catch (error) {
-    console.error("Error saving meals:", error);
-    return NextResponse.json(
-      { error: "Failed to save meals" },
-      { status: 500 }
-    );
+    console.error("Error saving meal:", error);
+    return NextResponse.json({ error: "Failed to save meal" }, { status: 500 });
   }
 }

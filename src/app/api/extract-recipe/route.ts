@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { loadFoodItems } from "@/services/dataservice";
-import { FoodItem } from "@/types/ingredient";
+import dbConnect from "@/lib/mongodb";
+import FoodItem from "@/models/FoodItem";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -40,6 +40,8 @@ async function callGeminiAPI(prompt: string) {
 }
 
 export async function POST(req: NextRequest) {
+  await dbConnect();
+
   try {
     const { recipeText } = await req.json();
     if (!recipeText) {
@@ -49,7 +51,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const foodItems: FoodItem[] = await loadFoodItems();
+    const foodItems = await FoodItem.find({});
     const foodNames = foodItems.map((item) => item.name.toLowerCase());
     const existingFoodItemsText = foodNames.join(", ");
 
@@ -144,9 +146,12 @@ export async function POST(req: NextRequest) {
             item.name.toLowerCase().includes(lowerName)
         );
 
+        // Convert "To taste" to 0
+        const amount = ing?.amount === "To taste" ? 0 : ing?.amount;
+
         return {
           name: matchedFoodItem ? matchedFoodItem.name : ingredientName,
-          amount: ing?.amount ?? "To taste",
+          amount: amount ?? 0,
           unit: ing?.unit ?? "",
         };
       }

@@ -10,6 +10,9 @@
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.5",
+    "dotenv": "^16.5.0",
+    "mongodb": "^6.16.0",
+    "mongoose": "^8.14.1",
     "next": "15.2.1",
     "openai": "^4.86.2",
     "react": "^19.0.0",

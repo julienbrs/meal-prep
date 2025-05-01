@@ -1,5 +1,3 @@
-// app/api/auto-fill-food-items/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -21,7 +19,6 @@ async function callGeminiAPI(prompt: string) {
   }
 
   const result = await response.json();
-  console.log("result:", result)
   let responseText = result?.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
 
   responseText = responseText.replace(/^```json\n/, "").replace(/\n```$/, "");
@@ -38,8 +35,6 @@ async function callGeminiAPI(prompt: string) {
 export async function POST(req: NextRequest) {
   try {
     const { foodItems } = await req.json();
-
-    console.log("food items:", foodItems)
 
     const prompt = `For each of these food items, provide realistic nutrition facts (per 100g or per piece as indicated) and estimated price. Return a JSON array with the same structure as the input but with filled values.
 

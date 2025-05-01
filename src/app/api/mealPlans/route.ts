@@ -1,34 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as fs from "fs/promises";
-import path from "path";
+import dbConnect from "@/lib/mongodb";
+import MealPlan from "@/models/MealPlan";
 
-const dataFilePath = path.join(
-  process.cwd(),
-  "public",
-  "data",
-  "mealPlans.json"
-);
-
-// API route handler for GET requests
 export async function GET() {
-  try {
-    try {
-      await fs.access(dataFilePath);
-    } catch {
-      const dataDir = path.join(process.cwd(), "public", "data");
-      await fs.mkdir(dataDir, { recursive: true });
+  await dbConnect();
 
-      await fs.writeFile(
-        dataFilePath,
-        JSON.stringify({ default: {} }, null, 2),
-        "utf-8"
-      );
+  try {
+    const mealPlans = await MealPlan.find({});
+
+    // Convert array to object with id as key
+    const mealPlansObj: Record<string, any> = {};
+    mealPlans.forEach((plan) => {
+      mealPlansObj[plan.id] = plan.planData;
+    });
+
+    // If no plans exist, create a default empty one
+    if (Object.keys(mealPlansObj).length === 0) {
+      mealPlansObj.default = {};
     }
 
-    const fileContent = await fs.readFile(dataFilePath, "utf-8");
-    const data = JSON.parse(fileContent);
-
-    return NextResponse.json(data);
+    return NextResponse.json(mealPlansObj);
   } catch (error) {
     console.error("Error reading meal plans:", error);
     return NextResponse.json(
@@ -38,19 +29,25 @@ export async function GET() {
   }
 }
 
-// API route handler for POST requests
 export async function POST(request: NextRequest) {
+  await dbConnect();
+
   try {
-    const mealPlans = await request.json();
+    const mealPlansData = await request.json();
 
-    const dataDir = path.join(process.cwd(), "public", "data");
-    await fs.mkdir(dataDir, { recursive: true });
+    // Delete all existing meal plans
+    await MealPlan.deleteMany({});
 
-    await fs.writeFile(
-      dataFilePath,
-      JSON.stringify(mealPlans, null, 2),
-      "utf-8"
+    // Create array of meal plan documents
+    const mealPlanDocuments = Object.entries(mealPlansData).map(
+      ([id, planData]) => ({
+        id,
+        planData,
+      })
     );
+
+    // Insert new meal plans
+    await MealPlan.insertMany(mealPlanDocuments);
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -4,9 +4,6 @@ import {
   calculateRecipeNutrition,
   calculateRecipeCost,
 } from "@/utils/nutritionCalculator";
-import { loadJsonData, saveJsonData } from "@/utils/jsonLoader";
-import { clearFoodItemsCache, preloadFoodItems } from "@/utils/foodItemFetcher";
-import { useFoodItems } from "@/context/FoodItemsContext";
 
 export interface MealPlanDay {
   [key: string]: Meal | null;
@@ -20,41 +17,137 @@ export interface MealPlans {
   [key: string]: MealPlanState;
 }
 
+// Client-side caches to minimize API calls
+let foodItemsCache: FoodItem[] | null = null;
 let mealsCache: Meal[] | null = null;
 let mealPlansCache: MealPlans | null = null;
 
+// Clear caches for food items
+export function clearFoodItemsCache(): void {
+  foodItemsCache = null;
+}
+
+// Clear caches for meals
+export function clearMealsCache(): void {
+  mealsCache = null;
+}
+
+// Clear caches for meal plans
+export function clearMealPlansCache(): void {
+  mealPlansCache = null;
+}
+
+// Helper function to fetch data from API
+async function fetchFromApi<T>(
+  endpoint: string,
+  options?: RequestInit
+): Promise<T> {
+  const baseUrl = window.location.origin;
+  const response = await fetch(`${baseUrl}/api/${endpoint}`, options);
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.statusText}`);
+  }
+
+  return (await response.json()) as T;
+}
+
+// Food Items API Functions
 export async function loadFoodItems(): Promise<FoodItem[]> {
+  if (foodItemsCache) {
+    return foodItemsCache;
+  }
+
   try {
-    return await loadJsonData<FoodItem[]>("foodItems");
+    const data = await fetchFromApi<FoodItem[]>("food-items");
+    foodItemsCache = data;
+    return data;
   } catch (error) {
     console.error("Error loading food items:", error);
     return [];
   }
 }
 
-export async function saveFoodItems(items: FoodItem[]): Promise<boolean> {
+export async function addFoodItem(item: FoodItem): Promise<boolean> {
   try {
-    const success = await saveJsonData("foodItems", items);
-
-    if (success) {
-      clearFoodItemsCache();
-      await preloadFoodItems();
+    if (!item.id) {
+      item.id = generateId();
     }
 
-    return success;
+    const response = await fetchFromApi<{ success: boolean; item: FoodItem }>(
+      "food-items",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(item),
+      }
+    );
+
+    if (response.success) {
+      clearFoodItemsCache();
+      return true;
+    }
+    return false;
   } catch (error) {
-    console.error("Error saving food items:", error);
+    console.error("Error adding food item:", error);
     return false;
   }
 }
 
+export async function updateFoodItem(item: FoodItem): Promise<boolean> {
+  try {
+    const response = await fetchFromApi<{ success: boolean }>(
+      `food-items/${item.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(item),
+      }
+    );
+
+    if (response.success) {
+      clearFoodItemsCache();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error updating food item:", error);
+    return false;
+  }
+}
+
+export async function deleteFoodItem(id: string): Promise<boolean> {
+  try {
+    const response = await fetchFromApi<{ success: boolean }>(
+      `food-items/${id}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (response.success) {
+      clearFoodItemsCache();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error deleting food item:", error);
+    return false;
+  }
+}
+
+// Meals API Functions
 export async function loadMeals(): Promise<Meal[]> {
   if (mealsCache) {
     return mealsCache;
   }
 
   try {
-    const data = await loadJsonData<Meal[]>("meals");
+    const data = await fetchFromApi<Meal[]>("meals");
     mealsCache = data;
     return data;
   } catch (error) {
@@ -63,28 +156,124 @@ export async function loadMeals(): Promise<Meal[]> {
   }
 }
 
-export async function saveMeals(meals: Meal[]): Promise<boolean> {
+export async function addMeal(
+  meal: Meal,
+  foodItems: FoodItem[]
+): Promise<boolean> {
   try {
-    const success = await saveJsonData("meals", meals);
-
-    if (success) {
-      mealsCache = meals;
+    if (!meal.id) {
+      meal.id = generateId();
     }
 
-    return success;
+    // Convert "To taste" to 0 for database compatibility
+    if (meal.ingredients) {
+      meal.ingredients = meal.ingredients.map((ingredient) => {
+        if (
+          typeof ingredient.amount === "string" &&
+          ingredient.amount === "To taste"
+        ) {
+          return {
+            ...ingredient,
+            amount: 0, // Set to 0 instead of keeping as string
+          };
+        }
+        return ingredient;
+      });
+    }
+
+    // Calculate nutrition and cost if not already provided
+    if (!meal.calculatedNutrition) {
+      meal.calculatedNutrition = calculateRecipeNutrition(
+        meal.ingredients,
+        foodItems
+      );
+    }
+
+    if (!meal.totalCost) {
+      meal.totalCost = calculateRecipeCost(meal.ingredients, foodItems);
+    }
+
+    const response = await fetchFromApi<{ success: boolean; meal: Meal }>(
+      "meals",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(meal),
+      }
+    );
+
+    if (response.success) {
+      clearMealsCache();
+      return true;
+    }
+    return false;
   } catch (error) {
-    console.error("Error saving meals:", error);
+    console.error("Error adding meal:", error);
     return false;
   }
 }
 
+export async function updateMeal(
+  meal: Meal,
+  foodItems: FoodItem[]
+): Promise<boolean> {
+  try {
+    // Recalculate nutrition and cost
+    meal.calculatedNutrition = calculateRecipeNutrition(
+      meal.ingredients,
+      foodItems
+    );
+    meal.totalCost = calculateRecipeCost(meal.ingredients, foodItems);
+
+    const response = await fetchFromApi<{ success: boolean }>(
+      `meals/${meal.id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(meal),
+      }
+    );
+
+    if (response.success) {
+      clearMealsCache();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error updating meal:", error);
+    return false;
+  }
+}
+
+export async function deleteMeal(id: string): Promise<boolean> {
+  try {
+    const response = await fetchFromApi<{ success: boolean }>(`meals/${id}`, {
+      method: "DELETE",
+    });
+
+    if (response.success) {
+      clearMealsCache();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error deleting meal:", error);
+    return false;
+  }
+}
+
+// Meal Plans API Functions
 export async function loadMealPlans(): Promise<MealPlans> {
   if (mealPlansCache) {
     return mealPlansCache;
   }
 
   try {
-    const data = await loadJsonData<MealPlans>("mealPlans");
+    const data = await fetchFromApi<MealPlans>("mealPlans");
     mealPlansCache = data;
     return data;
   } catch (error) {
@@ -93,37 +282,46 @@ export async function loadMealPlans(): Promise<MealPlans> {
   }
 }
 
-export async function saveMealPlans(mealPlans: MealPlans): Promise<boolean> {
-  try {
-    const success = await saveJsonData("mealPlans", mealPlans);
-
-    if (success) {
-      mealPlansCache = mealPlans;
-    }
-
-    return success;
-  } catch (error) {
-    console.error("Error saving meal plans:", error);
-    return false;
-  }
-}
-
 export async function loadMealPlan(
   id: string = "default"
 ): Promise<MealPlanState> {
-  const mealPlans = await loadMealPlans();
-  return mealPlans[id] || {};
+  try {
+    const response = await fetchFromApi<MealPlanState>(`mealPlans/${id}`);
+    return response;
+  } catch (error) {
+    console.error(`Error loading meal plan ${id}:`, error);
+
+    // If plan doesn't exist, try to get all plans and extract the one we want
+    try {
+      const allPlans = await loadMealPlans();
+      return allPlans[id] || {};
+    } catch {
+      return {};
+    }
+  }
 }
 
-// Function to save a specific meal plan
 export async function saveMealPlan(
   mealPlan: MealPlanState,
   id: string = "default"
 ): Promise<boolean> {
   try {
-    const mealPlans = await loadMealPlans();
-    mealPlans[id] = mealPlan;
-    return saveMealPlans(mealPlans);
+    const response = await fetchFromApi<{ success: boolean }>(
+      `mealPlans/${id}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(mealPlan),
+      }
+    );
+
+    if (response.success) {
+      clearMealPlansCache();
+      return true;
+    }
+    return false;
   } catch (error) {
     console.error("Error saving meal plan:", error);
     return false;
@@ -134,7 +332,6 @@ export async function hydrateMealPlan(
   mealPlan: MealPlanState
 ): Promise<MealPlanState> {
   try {
-    await preloadFoodItems();
     const meals = await loadMeals();
     const hydratedPlan: MealPlanState = {};
 
@@ -161,108 +358,6 @@ export async function hydrateMealPlan(
   }
 }
 
-export async function addFoodItem(item: FoodItem): Promise<boolean> {
-  const items = await loadFoodItems(); // ✅ Ensure we have the latest data
-
-  if (!item.id) {
-    item.id = generateId();
-  } else if (items.some((i) => i.id === item.id)) {
-    item.id = generateId();
-  }
-
-  const updatedItems = [...items, item];
-  const success = await saveFoodItems(updatedItems);
-
-  if (success) {
-    clearFoodItemsCache();
-    await preloadFoodItems();
-  }
-
-  return success;
-}
-
-export async function updateFoodItem(item: FoodItem): Promise<boolean> {
-  const items = await loadFoodItems();
-  const index = items.findIndex((i) => i.id === item.id);
-
-  if (index === -1) {
-    return false;
-  }
-
-  items[index] = item;
-  return saveFoodItems(items);
-}
-
-// Function to delete a food item
-export async function deleteFoodItem(id: string): Promise<boolean> {
-  const items = await loadFoodItems();
-  const filteredItems = items.filter((i) => i.id !== id);
-
-  if (filteredItems.length === items.length) {
-    return false;
-  }
-
-  return saveFoodItems(filteredItems);
-}
-
-export async function addMeal(
-  meal: Meal,
-  foodItems: FoodItem[]
-): Promise<boolean> {
-  const meals = await loadMeals();
-
-  if (!meal.id) {
-    meal.id = generateId();
-  } else if (meals.some((m) => m.id === meal.id)) {
-    meal.id = generateId();
-  }
-
-  if (!meal.calculatedNutrition) {
-    meal.calculatedNutrition = calculateRecipeNutrition(
-      meal.ingredients,
-      foodItems
-    );
-  }
-
-  if (!meal.totalCost) {
-    meal.totalCost = calculateRecipeCost(meal.ingredients, foodItems);
-  }
-
-  const updatedMeals = [...meals, meal];
-  return saveMeals(updatedMeals);
-}
-
-export async function updateMeal(meal: Meal): Promise<boolean> {
-  const meals = await loadMeals();
-  const { foodItems } = useFoodItems();
-
-  const index = meals.findIndex((m) => m.id === meal.id);
-
-  if (index === -1) {
-    return false;
-  }
-
-  meal.calculatedNutrition = calculateRecipeNutrition(
-    meal.ingredients,
-    foodItems
-  );
-  meal.totalCost = calculateRecipeCost(meal.ingredients, foodItems);
-
-  meals[index] = meal;
-  return saveMeals(meals);
-}
-
-export async function deleteMeal(id: string): Promise<boolean> {
-  const meals = await loadMeals();
-  const filteredMeals = meals.filter((m) => m.id !== id);
-
-  if (filteredMeals.length === meals.length) {
-    return false;
-  }
-
-  return saveMeals(filteredMeals);
-}
-
 export function createEmptyMealPlan(
   daysOfWeek: string[],
   mealTypes: string[]
@@ -277,6 +372,7 @@ export function createEmptyMealPlan(
   return plan;
 }
 
+// Helper function to generate unique IDs
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }

@@ -29,8 +29,11 @@ export function calculateRecipeNutrition(
     if (!foodItem) return;
 
     let amountInGrams = Number(ingredient.amount);
+
+    // Skip the calculation if amount is 0 (which was "To taste")
+    if (amountInGrams === 0) return;
+
     if (isNaN(amountInGrams)) {
-      if (String(ingredient.amount).toLowerCase() === "to taste") return;
       console.warn(
         `Invalid amount for ${ingredient.foodItemId}:`,
         ingredient.amount
@@ -89,6 +92,9 @@ export function calculateRecipeCost(
       console.error(`Missing nutrition data for: ${foodItem.name}`);
       return;
     }
+
+    // Skip if the amount is 0 (which was "To taste")
+    if (ingredient.amount === 0) return;
 
     let costMultiplier = 1;
 
