@@ -165,6 +165,10 @@ export async function addMeal(
       meal.id = generateId();
     }
 
+    if (!meal.createdBy) {
+      meal.createdBy = "clara";
+    }
+
     // Convert "To taste" to 0 for database compatibility
     if (meal.ingredients) {
       meal.ingredients = meal.ingredients.map((ingredient) => {

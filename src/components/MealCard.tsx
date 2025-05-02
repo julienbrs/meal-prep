@@ -7,6 +7,7 @@ import {
   calculateRecipeCost,
 } from "@/utils/nutritionCalculator";
 import { useFoodItems } from "@/context/FoodItemsContext";
+import { useUser } from "@/context/UserContext";
 
 interface MealCardProps {
   meal: Meal;
@@ -14,7 +15,8 @@ interface MealCardProps {
 
 export default function MealCard({ meal }: MealCardProps) {
   const { foodItems } = useFoodItems();
-
+  const { users } = useUser();
+  const creator = users.find(user => user.id === meal.createdBy) || users[0];
   const nutrition =
     meal.calculatedNutrition ||
     calculateRecipeNutrition(meal.ingredients, foodItems);
@@ -53,6 +55,16 @@ export default function MealCard({ meal }: MealCardProps) {
             {meal.category}
           </span>
         </div>
+      </div>
+      <div className="flex items-center mt-2">
+        <Image
+          src={creator.avatar}
+          alt={`Créé par ${creator.name}`}
+          width={20}
+          height={20}
+          className="rounded-full mr-2"
+        />
+        <span className="text-xs text-gray-500">Créé par {creator.name}</span>
       </div>
       <div className="p-5">
         <div className="mb-3">

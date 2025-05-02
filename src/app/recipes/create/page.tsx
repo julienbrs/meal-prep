@@ -16,6 +16,7 @@ import InstructionsSection from "@/components/create-recipe/InstructionsSection"
 import NutritionPreview from "@/components/create-recipe/NutritionPreview";
 import AutoExtractSection from "@/components/create-recipe/AutoExtractSection";
 import ImageUpload from "@/components/ImageUpload";
+import { useUser } from "@/context/UserContext";
 
 export default function CreateRecipe() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function CreateRecipe() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [_, setImageFile] = useState<File | null>(null);
+  const { currentUser } = useUser();
   const {
     foodItems,
     reloadFoodItems,
@@ -38,6 +40,7 @@ export default function CreateRecipe() {
     ingredients: [],
     instructions: [""],
     image: "",
+    createdBy: currentUser.id,
   });
 
   const [newIngredient, setNewIngredient] = useState<Partial<RecipeIngredient>>(

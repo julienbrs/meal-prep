@@ -5,13 +5,16 @@ import MealCard from "@/components/MealCard";
 import Link from "next/link";
 import { Meal } from "@/types/meal";
 import { loadMeals } from "@/services/dataservice";
+import { useUser } from "@/context/UserContext";
 
 export default function Home() {
+  const { users } = useUser();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [meals, setMeals] = useState<Meal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userFilter, setUserFilter] = useState("");
 
   useEffect(() => {
     async function fetchMeals() {
@@ -41,10 +44,15 @@ export default function Home() {
     setCategoryFilter(e.target.value);
   };
 
+  const handleUserChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setUserFilter(e.target.value);
+  };
+
   const filteredMeals = meals.filter((meal) => {
     return (
       meal.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (categoryFilter === "" || meal.category === categoryFilter)
+      (categoryFilter === "" || meal.category === categoryFilter) &&
+      (userFilter === "" || meal.createdBy === userFilter)
     );
   });
 
@@ -140,7 +148,7 @@ export default function Home() {
               </svg>
             </div>
           </div>
-          <div className="md:w-1/3">
+          <div className="md:w-1/4">
             <select
               className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               value={categoryFilter}
@@ -151,6 +159,20 @@ export default function Home() {
               <option value="lunch">Déjeuner</option>
               <option value="dinner">Dîner</option>
               <option value="snack">En-cas</option>
+            </select>
+          </div>
+          <div className="md:w-1/4">
+            <select
+              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              value={userFilter}
+              onChange={handleUserChange}
+            >
+              <option value="">Tous les Créateurs</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>

@@ -11,6 +11,7 @@ export interface Meal {
   instructions: string[];
   calculatedNutrition?: NutritionInfo;
   totalCost?: number;
+  createdBy?: string;
 }
 
 export interface RecipeIngredient {

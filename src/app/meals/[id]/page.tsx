@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   calculateRecipeNutrition,
   calculateRecipeCost,
@@ -10,12 +11,14 @@ import {
 import { deleteMeal, loadMeals } from "@/services/dataservice";
 import { Meal } from "@/types/meal";
 import { useFoodItems } from "@/context/FoodItemsContext";
+import { useUser } from "@/context/UserContext";
 import AlertDialog from "@/components/AlertDialog";
 
 export default function MealDetails() {
   const params = useParams();
   const router = useRouter();
-  const { foodItems, reloadFoodItems } = useFoodItems();
+  const { foodItems } = useFoodItems();
+  const { users } = useUser();
 
   const id = params.id as string;
 
@@ -212,6 +215,29 @@ export default function MealDetails() {
               {meal.name}
             </h1>
             <p className="text-gray-600 mb-4">{meal.description}</p>
+
+            {meal.createdBy && (
+              <div className="flex items-center mt-2 mb-4">
+                <Image
+                  src={
+                    users.find((u) => u.id === meal.createdBy)?.avatar ||
+                    users[0].avatar
+                  }
+                  alt={`Créé par ${
+                    users.find((u) => u.id === meal.createdBy)?.name ||
+                    "Inconnu"
+                  }`}
+                  width={24}
+                  height={24}
+                  className="rounded-full mr-2"
+                />
+                <span className="text-sm text-gray-600">
+                  Créé par{" "}
+                  {users.find((u) => u.id === meal.createdBy)?.name ||
+                    "Inconnu"}
+                </span>
+              </div>
+            )}
 
             <div className="flex justify-between items-center text-sm mb-4">
               <div className="flex items-center text-gray-700">

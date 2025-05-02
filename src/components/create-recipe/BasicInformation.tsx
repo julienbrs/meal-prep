@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Meal } from "@/types/meal";
+import { useUser } from "@/context/UserContext";
 
 interface BasicInformationProps {
   recipe: Partial<Meal>;
@@ -15,6 +16,7 @@ export default function BasicInformation({
   recipe,
   handleRecipeChange,
 }: BasicInformationProps) {
+  const { currentUser, users } = useUser();
   return (
     <div className="mb-8">
       <h2 className="text-xl font-semibold mb-4 flex items-center text-gray-800">
@@ -109,6 +111,27 @@ export default function BasicInformation({
             className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
             placeholder="Une brève description de votre recette..."
           />
+        </div>
+        <div>
+          <label
+            htmlFor="createdBy"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Créé par *
+          </label>
+          <select
+            id="createdBy"
+            name="createdBy"
+            value={recipe.createdBy || currentUser.id}
+            onChange={handleRecipeChange}
+            className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
+          >
+            {users.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
     </div>

@@ -42,6 +42,7 @@ const MealSchema = new mongoose.Schema(
     instructions: [String],
     calculatedNutrition: NutritionInfoSchema,
     totalCost: Number,
+    createdBy: { type: String, default: "clara" },
   },
   {
     timestamps: true,
