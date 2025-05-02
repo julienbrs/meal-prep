@@ -215,10 +215,20 @@ export default function CreateFoodItemModal({
                     <option value="dairy">Produit laitier</option>
                     <option value="protein">Protéine</option>
                     <option value="meat">Viande</option>
+                    <option value="fish">Poisson</option>
                     <option value="grain">Céréale</option>
+                    <option value="starch">Féculent</option>
+                    <option value="legume">Légumineuse</option>
                     <option value="spice">Épice</option>
+                    <option value="herb">Herbe aromatique</option>
                     <option value="condiment">Condiment</option>
+                    <option value="sauce">Sauce</option>
                     <option value="fat">Matière grasse</option>
+                    <option value="sweet">Sucre et douceurs</option>
+                    <option value="beverage">Boisson</option>
+                    <option value="nut">Fruit à coque</option>
+                    <option value="processed">Aliment transformé</option>
+                    <option value="baking">Ingrédient de pâtisserie</option>
                   </select>
                 </div>
               </div>

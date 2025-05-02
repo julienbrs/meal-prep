@@ -76,12 +76,22 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
     { value: "dairy", label: "Produit laitier" },
     { value: "protein", label: "Protéine" },
     { value: "meat", label: "Viande" },
+    { value: "fish", label: "Poisson" },
     { value: "grain", label: "Céréale" },
+    { value: "starch", label: "Féculent" },
+    { value: "legume", label: "Légumineuse" },
     { value: "spice", label: "Épice" },
+    { value: "herb", label: "Herbe aromatique" },
     { value: "condiment", label: "Condiment" },
+    { value: "sauce", label: "Sauce" },
     { value: "fat", label: "Matière grasse" },
+    { value: "sweet", label: "Sucre et douceurs" },
+    { value: "beverage", label: "Boisson" },
+    { value: "nut", label: "Fruit à coque" },
+    { value: "processed", label: "Aliment transformé" },
+    { value: "baking", label: "Ingrédient de pâtisserie" },
     { value: "misc", label: "Divers" },
-  ];
+  ]
 
   const units: { value: UnitType; label: string }[] = [
     { value: "g", label: "Grammes (g)" },
