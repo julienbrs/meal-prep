@@ -44,7 +44,7 @@ export default function InstructionsSection({
                 onChange={(e) => handleInstructionChange(index, e.target.value)}
                 rows={2}
                 className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
-                placeholder={`Step ${index + 1} instructions...`}
+                placeholder={`Instructions de l'étape ${index + 1}...`}
               />
             </div>
             <button
@@ -86,7 +86,7 @@ export default function InstructionsSection({
                 clipRule="evenodd"
               />
             </svg>
-            Add Step
+            Ajouter une Étape
           </button>
         </div>
       </div>

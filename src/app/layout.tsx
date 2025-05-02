@@ -12,7 +12,7 @@ import "@fontsource/inter/700.css"; // Bold
 export const metadata: Metadata = {
   title: "EasyMeals",
   description:
-    "Plan your weekly meals with ease and discover delicious recipes with nutritional information",
+    "Planifiez vos repas hebdomadaires facilement et découvrez des recettes délicieuses avec des informations nutritionnelles",
 };
 
 export default function RootLayout({
@@ -21,7 +21,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="fr" className="h-full">
       <body className="h-full">
         <FoodItemsProvider>
           <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
@@ -32,7 +32,7 @@ export default function RootLayout({
                     <Link href="/">
                       <Image
                         src="/images/easymeal-logo.svg"
-                        alt="EasyMeal Logo"
+                        alt="Logo EasyMeal"
                         width={150}
                         height={30}
                       />
@@ -55,13 +55,13 @@ export default function RootLayout({
                           fill="#1F2A37"
                         />
                       </svg>
-                      My recipes
+                      Mes recettes
                     </Link>
                     <Link
                       href="/"
                       className="flex justify-center items-center gap-2 px-8 py-4 bg-[#F85B1D] rounded-lg text-white font-inter text-base font-semibold leading-normal tracking-[-0.5px] hover:opacity-90 transition-opacity duration-200"
                     >
-                      Generate Meal Plan
+                      Générer Plan de Repas
                     </Link>
                     <Link href="/">
                       <div className="flex justify-start items-center gap-2">

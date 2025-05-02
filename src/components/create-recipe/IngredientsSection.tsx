@@ -39,13 +39,13 @@ export default function IngredientsSection({
             clipRule="evenodd"
           />
         </svg>
-        Ingredients
+        Ingrédients
       </h2>
 
-      {/* New Ingredient Form */}
+      {/* Formulaire pour Nouvel Ingrédient */}
       <div className="bg-gray-50 p-4 rounded-lg mb-4">
         <h3 className="text-md font-medium mb-3 text-gray-700">
-          Add Ingredient
+          Ajouter un Ingrédient
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -53,7 +53,7 @@ export default function IngredientsSection({
               htmlFor="foodItemId"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Food Item *
+              Aliment *
             </label>
             <select
               id="foodItemId"
@@ -62,7 +62,7 @@ export default function IngredientsSection({
               onChange={handleIngredientChange}
               className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
             >
-              <option value="">Select an item</option>
+              <option value="">Sélectionner un aliment</option>
               {foodItems.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name}
@@ -75,7 +75,7 @@ export default function IngredientsSection({
               htmlFor="amount"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Amount *
+              Quantité *
             </label>
             <input
               type="number"
@@ -93,7 +93,7 @@ export default function IngredientsSection({
               htmlFor="unit"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
-              Unit *
+              Unité *
             </label>
             <select
               id="unit"
@@ -102,12 +102,12 @@ export default function IngredientsSection({
               onChange={handleIngredientChange}
               className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
             >
-              <option value="g">Grams (g)</option>
-              <option value="ml">Milliliters (ml)</option>
-              <option value="piece">Piece</option>
-              <option value="tbsp">Tablespoon (tbsp)</option>
-              <option value="tsp">Teaspoon (tsp)</option>
-              <option value="cup">Cup</option>
+              <option value="g">Grammes (g)</option>
+              <option value="ml">Millilitres (ml)</option>
+              <option value="piece">Pièce</option>
+              <option value="tbsp">Cuillère à soupe (c. à s.)</option>
+              <option value="tsp">Cuillère à café (c. à c.)</option>
+              <option value="cup">Tasse</option>
             </select>
           </div>
         </div>
@@ -131,12 +131,12 @@ export default function IngredientsSection({
                 clipRule="evenodd"
               />
             </svg>
-            Add Ingredient
+            Ajouter l'Ingrédient
           </button>
         </div>
       </div>
 
-      {/* Ingredients List */}
+      {/* Liste des Ingrédients */}
       {recipeIngredients && recipeIngredients.length > 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
@@ -146,13 +146,13 @@ export default function IngredientsSection({
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Item
+                  Aliment
                 </th>
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Amount
+                  Quantité
                 </th>
                 <th
                   scope="col"
@@ -173,17 +173,17 @@ export default function IngredientsSection({
                     {getFoodItemName(ingredient.foodItemId)}
                     {ingredient.aiGenerated && (
                       <span className="ml-2 text-yellow-600 cursor-pointer relative group">
-                        (AI)
+                        (IA)
                         <div className="absolute hidden group-hover:block bg-white border shadow-lg p-2 rounded-md text-xs text-gray-700 w-64 z-10">
-                          AI-generated ingredient.
+                          Ingrédient généré par IA.
                           <br />
-                          <strong>Estimated Price:</strong>{" "}
+                          <strong>Prix estimé:</strong>{" "}
                           {ingredient.price?.toFixed(2)} {ingredient.priceUnit}{" "}
                           <br />
-                          <strong>Nutrition (per 100g):</strong>
+                          <strong>Nutrition (pour 100g):</strong>
                           {ingredient.nutritionPer100g
                             ? JSON.stringify(ingredient.nutritionPer100g)
-                            : "Unknown"}
+                            : "Inconnu"}
                         </div>
                       </span>
                     )}
@@ -197,7 +197,7 @@ export default function IngredientsSection({
                       onClick={() => removeIngredient(index)}
                       className="text-red-600 hover:text-red-900"
                     >
-                      Remove
+                      Supprimer
                     </button>
                   </td>
                 </tr>
@@ -207,7 +207,9 @@ export default function IngredientsSection({
         </div>
       ) : (
         <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-gray-500">No ingredients added yet</p>
+          <p className="text-gray-500">
+            Aucun ingrédient ajouté pour l'instant
+          </p>
         </div>
       )}
     </div>

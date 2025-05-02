@@ -31,8 +31,10 @@ export default function FoodItemsPage() {
         setItems(data);
         setError(null);
       } catch (err) {
-        console.error("Failed to load food items:", err);
-        setError("Failed to load food items. Please try again later.");
+        console.error("Échec du chargement des aliments:", err);
+        setError(
+          "Échec du chargement des aliments. Veuillez réessayer plus tard."
+        );
       } finally {
         setLoading(false);
       }
@@ -55,11 +57,13 @@ export default function FoodItemsPage() {
         );
         setEditItem(null);
       } else {
-        setError("Failed to update item. Please try again.");
+        setError("Échec de la mise à jour de l'élément. Veuillez réessayer.");
       }
     } catch (err) {
-      console.error("Error updating food item:", err);
-      setError("An error occurred while updating the item.");
+      console.error("Erreur lors de la mise à jour de l'aliment:", err);
+      setError(
+        "Une erreur s'est produite lors de la mise à jour de l'élément."
+      );
     }
   };
 
@@ -74,11 +78,11 @@ export default function FoodItemsPage() {
         setItems(updatedItems);
         setNewItem(false);
       } else {
-        setError("Failed to create item. Please try again.");
+        setError("Échec de la création de l'élément. Veuillez réessayer.");
       }
     } catch (err) {
-      console.error("Error creating food item:", err);
-      setError("An error occurred while creating the item.");
+      console.error("Erreur lors de la création de l'aliment:", err);
+      setError("Une erreur s'est produite lors de la création de l'élément.");
     }
   };
 
@@ -89,18 +93,20 @@ export default function FoodItemsPage() {
 
   // Handler for deleting an item
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this item?")) {
+    if (confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) {
       try {
         const success = await deleteFoodItem(id);
 
         if (success) {
           setItems((prev) => prev.filter((item) => item.id !== id));
         } else {
-          setError("Failed to delete item. Please try again.");
+          setError("Échec de la suppression de l'élément. Veuillez réessayer.");
         }
       } catch (err) {
-        console.error("Error deleting food item:", err);
-        setError("An error occurred while deleting the item.");
+        console.error("Erreur lors de la suppression de l'aliment:", err);
+        setError(
+          "Une erreur s'est produite lors de la suppression de l'élément."
+        );
       }
     }
   };
@@ -137,7 +143,7 @@ export default function FoodItemsPage() {
         onClick={() => setNewItem(true)}
         className="mb-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
       >
-        Add New Item
+        Ajouter un Nouvel Élément
       </button>
 
       {loading ? (

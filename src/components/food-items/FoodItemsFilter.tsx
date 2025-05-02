@@ -19,7 +19,7 @@ const FoodItemsFilter: React.FC<FoodItemsFilterProps> = ({
     <div className="flex space-x-4 mb-4">
       <input
         type="text"
-        placeholder="Search food items..."
+        placeholder="Rechercher des aliments..."
         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
@@ -29,7 +29,7 @@ const FoodItemsFilter: React.FC<FoodItemsFilterProps> = ({
         value={categoryFilter}
         onChange={(e) => setCategoryFilter(e.target.value)}
       >
-        <option value="">All Categories</option>
+        <option value="">Toutes les Catégories</option>
         {categories.map((category) => (
           <option key={category} value={category}>
             {category.charAt(0).toUpperCase() + category.slice(1)}

@@ -18,25 +18,25 @@ const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
         <thead>
           <tr className="bg-gray-50 border-b border-gray-200">
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Name
+              Nom
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Category
+              Catégorie
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Price
+              Prix
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Calories
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Protein
+              Protéines
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Carbs
+              Glucides
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Fat
+              Lipides
             </th>
             <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
@@ -65,9 +65,9 @@ const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
                       d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <p className="text-base font-medium">No food items found</p>
+                  <p className="text-base font-medium">Aucun aliment trouvé</p>
                   <p className="text-sm mt-1">
-                    Try adjusting your filters or add a new item
+                    Essayez d'ajuster vos filtres ou d'ajouter un nouvel élément
                   </p>
                 </div>
               </td>
@@ -88,7 +88,7 @@ const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                   <span className="font-medium text-gray-900">
-                    ${item.price}
+                    €{item.price}
                   </span>{" "}
                   <span className="text-xs text-gray-500">
                     {item.priceUnit}
@@ -132,7 +132,7 @@ const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
                       >
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                       </svg>
-                      Edit
+                      Modifier
                     </button>
                     <button
                       onClick={() => onDelete(item.id)}
@@ -150,7 +150,7 @@ const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
                           clipRule="evenodd"
                         />
                       </svg>
-                      Delete
+                      Supprimer
                     </button>
                   </div>
                 </td>

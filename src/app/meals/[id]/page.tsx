@@ -34,8 +34,10 @@ export default function MealDetails() {
       await deleteMeal(id);
       router.push("/");
     } catch (err) {
-      console.error("Error deleting meal:", err);
-      setError("Failed to delete meal. Please try again later.");
+      console.error("Erreur lors de la suppression du repas:", err);
+      setError(
+        "Échec de la suppression du repas. Veuillez réessayer plus tard."
+      );
     } finally {
       setDeleteLoading(false);
     }
@@ -49,8 +51,10 @@ export default function MealDetails() {
         const foundMeal = meals.find((m) => m.id === id);
         setMeal(foundMeal || null);
       } catch (err) {
-        console.error("Error loading meal:", err);
-        setError("Failed to load meal details. Please try again later.");
+        console.error("Erreur lors du chargement du repas:", err);
+        setError(
+          "Échec du chargement des détails du repas. Veuillez réessayer plus tard."
+        );
       } finally {
         setLoading(false);
       }
@@ -104,7 +108,7 @@ export default function MealDetails() {
           href="/"
           className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
         >
-          Back to Recipes
+          Retour aux Recettes
         </Link>
       </div>
     );
@@ -114,16 +118,14 @@ export default function MealDetails() {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Meal Not Found
+          Repas Non Trouvé
         </h1>
-        <p className="mb-6">
-          The meal you&apos;re looking for doesn&apos;t exist.
-        </p>
+        <p className="mb-6">Le repas que vous recherchez n&apos;existe pas.</p>
         <Link
           href="/"
           className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
         >
-          Back to Recipes
+          Retour aux Recettes
         </Link>
       </div>
     );
@@ -148,7 +150,7 @@ export default function MealDetails() {
               clipRule="evenodd"
             />
           </svg>
-          Back to All Recipes
+          Retour à Toutes les Recettes
         </Link>
 
         <button
@@ -167,7 +169,7 @@ export default function MealDetails() {
               clipRule="evenodd"
             />
           </svg>
-          Delete Recipe
+          Supprimer la Recette
         </button>
       </div>
 
@@ -175,10 +177,10 @@ export default function MealDetails() {
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDeleteMeal}
-        title="Delete Recipe"
-        description={`Are you sure you want to delete "${meal?.name}"? This action cannot be undone.`}
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        title="Supprimer la Recette"
+        description={`Êtes-vous sûr de vouloir supprimer "${meal?.name}" ? Cette action ne peut pas être annulée.`}
+        confirmLabel="Supprimer"
+        cancelLabel="Annuler"
         loading={deleteLoading}
       />
 
@@ -225,7 +227,7 @@ export default function MealDetails() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="font-semibold">Preparation Time:</span>
+                <span className="font-semibold">Temps de Préparation:</span>
                 <span className="ml-2">{meal.preparationTime} minutes</span>
               </div>
               <div className="flex items-center">
@@ -260,7 +262,7 @@ export default function MealDetails() {
                     clipRule="evenodd"
                   />
                 </svg>
-                Nutrition Information
+                Informations Nutritionnelles
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-purple-100">
@@ -273,19 +275,19 @@ export default function MealDetails() {
                   <p className="text-2xl font-bold text-red-600">
                     {nutrition?.protein}g
                   </p>
-                  <p className="text-sm text-gray-600">Protein</p>
+                  <p className="text-sm text-gray-600">Protéines</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-yellow-100">
                   <p className="text-2xl font-bold text-yellow-600">
                     {nutrition?.carbs}g
                   </p>
-                  <p className="text-sm text-gray-600">Carbs</p>
+                  <p className="text-sm text-gray-600">Glucides</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-emerald-100">
                   <p className="text-2xl font-bold text-emerald-600">
                     {nutrition?.fat}g
                   </p>
-                  <p className="text-sm text-gray-600">Fat</p>
+                  <p className="text-sm text-gray-600">Lipides</p>
                 </div>
               </div>
             </div>
@@ -308,7 +310,7 @@ export default function MealDetails() {
                     clipRule="evenodd"
                   />
                 </svg>
-                Ingredients
+                Ingrédients
               </h2>
               <ul className="space-y-2">
                 {meal.ingredients.map((ingredient, index) => (
@@ -323,7 +325,7 @@ export default function MealDetails() {
                       <span className="font-medium">
                         {ingredient.amount} {ingredient.unit}
                       </span>{" "}
-                      {foodItemNames[ingredient.foodItemId] || "Loading..."}
+                      {foodItemNames[ingredient.foodItemId] || "Chargement..."}
                     </span>
                   </li>
                 ))}

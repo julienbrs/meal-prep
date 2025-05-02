@@ -17,44 +17,44 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
   const saveImage = async (file: File) => {
     try {
-      // Create a unique filename using timestamp and original name
+      // Création d'un nom de fichier unique avec horodatage et nom d'origine
       const timestamp = new Date().getTime();
       const fileName = `${timestamp}-${file.name
         .toLowerCase()
         .replace(/\s+/g, "-")}`;
       const path = `/images/recipes/${fileName}`;
 
-      // Create FormData
+      // Création du FormData
       const formData = new FormData();
       formData.append("image", file);
       formData.append("path", path);
 
-      // Save the file to the public directory
+      // Sauvegarde du fichier dans le répertoire public
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Failed to upload image");
+        throw new Error("Échec du téléchargement de l'image");
       }
 
       return path;
     } catch (error) {
-      console.error("Error saving image:", error);
+      console.error("Erreur lors de l'enregistrement de l'image:", error);
       return null;
     }
   };
 
   const handleFileProcess = async (file: File) => {
-    // Create preview
+    // Création de l'aperçu
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result as string);
     };
     reader.readAsDataURL(file);
 
-    // Save file and get path
+    // Sauvegarde du fichier et récupération du chemin
     const path = await saveImage(file);
     onImageChange(file, path);
   };
@@ -115,7 +115,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           <div className="relative">
             <img
               src={imagePreview}
-              alt="Preview"
+              alt="Aperçu"
               className="h-32 w-32 object-cover rounded-lg shadow-md"
             />
             <button
@@ -156,14 +156,14 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
               />
             </svg>
             <span className="text-xs text-gray-500 text-center">
-              Ctrl+V to paste
+              Ctrl+V pour coller
             </span>
           </div>
         )}
       </div>
       <div className="flex-grow">
         <label className="block">
-          <span className="sr-only">Choose photo</span>
+          <span className="sr-only">Choisir une photo</span>
           <input
             type="file"
             accept="image/*"
@@ -179,7 +179,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           />
         </label>
         <p className="mt-2 text-sm text-gray-500">
-          PNG, JPG, GIF up to 10MB. Drag & drop or Ctrl+V to paste supported.
+          PNG, JPG, GIF jusqu'à 10MB. Glisser-déposer ou Ctrl+V pour coller
+          supportés.
         </p>
       </div>
     </div>

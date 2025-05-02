@@ -28,7 +28,7 @@ export default function NutritionPreview({
             clipRule="evenodd"
           />
         </svg>
-        Nutrition Preview
+        Aperçu Nutritionnel
       </h2>
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
         <div className="bg-white p-3 rounded-lg shadow-sm">
@@ -41,23 +41,23 @@ export default function NutritionPreview({
           <div className="text-xl font-bold text-gray-800">
             {nutritionPreview.protein}g
           </div>
-          <div className="text-sm text-gray-500">Protein</div>
+          <div className="text-sm text-gray-500">Protéines</div>
         </div>
         <div className="bg-white p-3 rounded-lg shadow-sm">
           <div className="text-xl font-bold text-gray-800">
             {nutritionPreview.carbs}g
           </div>
-          <div className="text-sm text-gray-500">Carbs</div>
+          <div className="text-sm text-gray-500">Glucides</div>
         </div>
         <div className="bg-white p-3 rounded-lg shadow-sm">
           <div className="text-xl font-bold text-gray-800">
             {nutritionPreview.fat}g
           </div>
-          <div className="text-sm text-gray-500">Fat</div>
+          <div className="text-sm text-gray-500">Lipides</div>
         </div>
         <div className="bg-white p-3 rounded-lg shadow-sm">
-          <div className="text-xl font-bold text-gray-800">${costPreview}</div>
-          <div className="text-sm text-gray-500">Estimated Cost</div>
+          <div className="text-xl font-bold text-gray-800">{costPreview}€</div>
+          <div className="text-sm text-gray-500">Coût estimé</div>
         </div>
       </div>
     </div>

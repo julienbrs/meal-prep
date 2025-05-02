@@ -26,16 +26,16 @@ export default function BasicInformation({
         >
           <path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
         </svg>
-        Basic Information
+        Informations de Base
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Name */}
+        {/* Nom */}
         <div>
           <label
             htmlFor="name"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Recipe Name *
+            Nom de la Recette *
           </label>
           <input
             type="text"
@@ -45,17 +45,17 @@ export default function BasicInformation({
             onChange={handleRecipeChange}
             required
             className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
-            placeholder="e.g., Avocado Toast with Poached Eggs"
+            placeholder="ex: Toast à l'avocat avec Œufs pochés"
           />
         </div>
 
-        {/* Category */}
+        {/* Catégorie */}
         <div>
           <label
             htmlFor="category"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Category *
+            Catégorie *
           </label>
           <select
             id="category"
@@ -65,20 +65,20 @@ export default function BasicInformation({
             required
             className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
           >
-            <option value="breakfast">Breakfast</option>
-            <option value="lunch">Lunch</option>
-            <option value="dinner">Dinner</option>
-            <option value="snack">Snack</option>
+            <option value="breakfast">Petit-déjeuner</option>
+            <option value="lunch">Déjeuner</option>
+            <option value="dinner">Dîner</option>
+            <option value="snack">Collation</option>
           </select>
         </div>
 
-        {/* Prep Time */}
+        {/* Temps de préparation */}
         <div>
           <label
             htmlFor="preparationTime"
             className="block text-sm font-medium text-gray-700 mb-1"
           >
-            Preparation Time (minutes) *
+            Temps de Préparation (minutes) *
           </label>
           <input
             type="number"
@@ -107,7 +107,7 @@ export default function BasicInformation({
             onChange={handleRecipeChange}
             rows={3}
             className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
-            placeholder="A brief description of your recipe..."
+            placeholder="Une brève description de votre recette..."
           />
         </div>
       </div>

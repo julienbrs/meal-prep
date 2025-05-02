@@ -21,8 +21,10 @@ export default function Home() {
         setMeals(data);
         setError(null);
       } catch (err) {
-        console.error("Failed to load meals:", err);
-        setError("Failed to load meals. Please try again later.");
+        console.error("Échec du chargement des repas:", err);
+        setError(
+          "Échec du chargement des repas. Veuillez réessayer plus tard."
+        );
       } finally {
         setIsLoading(false);
       }
@@ -53,11 +55,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-10">
           <div className="flex-1 flex flex-col gap-4">
             <h1 className="text-[#004033] text-[40px] font-semibold font-inter">
-              Manage Your Kitchen
+              Gérez Votre Cuisine
             </h1>
             <p className="text-gray-700 text-lg font-normal">
-              Explore your ingredients, create new recipes, and organize your
-              meal planning effectively
+              Explorez vos ingrédients, créez de nouvelles recettes et organisez
+              efficacement votre planification de repas
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
@@ -74,7 +76,7 @@ export default function Home() {
                 <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59z" />
               </svg>
               <span className="text-[#004033] text-base font-semibold font-inter whitespace-nowrap">
-                View Ingredients
+                Voir les Ingrédients
               </span>
             </Link>
             <Link
@@ -94,7 +96,7 @@ export default function Home() {
                 />
               </svg>
               <span className="text-white text-base font-semibold font-inter whitespace-nowrap">
-                Create Recipe
+                Créer une Recette
               </span>
             </Link>
           </div>
@@ -117,7 +119,7 @@ export default function Home() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Search recipes..."
+                placeholder="Rechercher des recettes..."
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                 value={searchTerm}
                 onChange={handleSearch}
@@ -144,11 +146,11 @@ export default function Home() {
               value={categoryFilter}
               onChange={handleCategoryChange}
             >
-              <option value="">All Categories</option>
-              <option value="breakfast">Breakfast</option>
-              <option value="lunch">Lunch</option>
-              <option value="dinner">Dinner</option>
-              <option value="snack">Snack</option>
+              <option value="">Toutes les Catégories</option>
+              <option value="breakfast">Petit-déjeuner</option>
+              <option value="lunch">Déjeuner</option>
+              <option value="dinner">Dîner</option>
+              <option value="snack">En-cas</option>
             </select>
           </div>
         </div>
@@ -176,10 +178,10 @@ export default function Home() {
             />
           </svg>
           <h3 className="mt-4 text-lg font-medium text-gray-900">
-            No recipes found
+            Aucune recette trouvée
           </h3>
           <p className="mt-1 text-gray-500">
-            Try adjusting your search or filter criteria
+            Essayez d'ajuster vos critères de recherche ou de filtrage
           </p>
         </div>
       ) : (
@@ -193,24 +195,24 @@ export default function Home() {
       {/* Categories Section */}
       <div className="mt-16">
         <h2 className="text-2xl font-bold text-gray-900 mb-8">
-          Browse by Category
+          Parcourir par Catégorie
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             {
-              name: "Breakfast",
+              name: "Petit-déjeuner",
               href: "/?category=breakfast",
               color: "amber",
-              description: "Start your day right",
+              description: "Bien commencer la journée",
               icon: (
                 <path d="M12.75 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM7.5 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM8.25 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM9.75 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM10.5 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM12.75 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM14.25 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM15 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM15 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 13.5a.75.75 0 100-1.5.75.75 0 000 1.5z" />
               ),
             },
             {
-              name: "Lunch",
+              name: "Déjeuner",
               href: "/?category=lunch",
               color: "emerald",
-              description: "Midday energy boost",
+              description: "Recharge d'énergie à midi",
               icon: (
                 <path
                   fillRule="evenodd"
@@ -220,10 +222,10 @@ export default function Home() {
               ),
             },
             {
-              name: "Dinner",
+              name: "Dîner",
               href: "/?category=dinner",
               color: "blue",
-              description: "Evening satisfaction",
+              description: "Satisfaction du soir",
               icon: (
                 <path
                   fillRule="evenodd"
@@ -233,10 +235,10 @@ export default function Home() {
               ),
             },
             {
-              name: "Snacks",
+              name: "En-cas",
               href: "/?category=snack",
               color: "rose",
-              description: "Quick bites",
+              description: "Petites bouchées rapides",
               icon: (
                 <path d="M15 1.784l-.796.796a1.125 1.125 0 101.591 0L15 1.784zM12 1.784l-.796.796a1.125 1.125 0 101.591 0L12 1.784zM9 1.784l-.796.796a1.125 1.125 0 101.591 0L9 1.784z" />
               ),

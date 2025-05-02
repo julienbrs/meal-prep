@@ -20,15 +20,15 @@ import { useFoodItems } from "@/context/FoodItemsContext";
 
 export default function WeeklyPlan() {
   const daysOfWeek = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+    "Dimanche",
   ];
-  const mealTypes = ["Breakfast", "Lunch", "Dinner"];
+  const mealTypes = ["Petit-déjeuner", "Déjeuner", "Dîner"];
 
   const [meals, setMeals] = useState<Meal[]>([]);
   const [mealPlan, setMealPlan] = useState<MealPlanState>(
@@ -60,7 +60,7 @@ export default function WeeklyPlan() {
           const hydratedPlan = await hydrateMealPlan(mealPlanData);
           setMealPlan(hydratedPlan);
         } catch (err) {
-          console.error("Error loading meal plan:", err);
+          console.error("Erreur lors du chargement du plan de repas:", err);
           setMealPlan(createEmptyMealPlan(daysOfWeek, mealTypes));
         }
 
@@ -73,8 +73,10 @@ export default function WeeklyPlan() {
 
         setError(null);
       } catch (err) {
-        console.error("Failed to initialize weekly plan:", err);
-        setError("Failed to load data. Please try again later.");
+        console.error("Échec d'initialisation du plan hebdomadaire:", err);
+        setError(
+          "Échec du chargement des données. Veuillez réessayer plus tard."
+        );
       } finally {
         setLoading(false);
       }
@@ -88,20 +90,23 @@ export default function WeeklyPlan() {
 
     if (Object.keys(mealPlan).length > 0) {
       const saveData = async () => {
-        setSavingStatus("Saving...");
+        setSavingStatus("Enregistrement...");
         try {
           const success = await saveMealPlan(mealPlan);
           if (success) {
-            setSavingStatus("Saved");
+            setSavingStatus("Enregistré");
             setTimeout(() => {
               setSavingStatus(null);
             }, 2000);
           } else {
-            setSavingStatus("Save failed");
+            setSavingStatus("Échec de l'enregistrement");
           }
         } catch (err) {
-          console.error("Error saving meal plan:", err);
-          setSavingStatus("Save failed");
+          console.error(
+            "Erreur lors de l'enregistrement du plan de repas:",
+            err
+          );
+          setSavingStatus("Échec de l'enregistrement");
         }
       };
 
@@ -200,11 +205,11 @@ export default function WeeklyPlan() {
         <div className="w-full p-10 bg-[#ffdbb6] rounded-[20px] flex justify-start items-center gap-10">
           <div className="flex-1 flex flex-col justify-start items-start gap-2.5">
             <div className="text-[#004033] text-[40px] font-semibold font-inter">
-              Surprise me!
+              Surprenez-moi !
             </div>
             <div className="text-gray-700 text-base font-normal font-inter">
-              Get a randomly generated meal plan for the week—quick, easy, and
-              hassle-free!
+              Obtenez un plan de repas généré aléatoirement pour la semaine —
+              rapide, facile et sans tracas !
             </div>
           </div>
           <button className="px-8 py-4 rounded-lg border border-[#004033] flex justify-center items-center gap-2">
@@ -224,7 +229,7 @@ export default function WeeklyPlan() {
               </g>
             </svg>
             <span className="text-[#004033] text-base font-semibold font-inter">
-              Auto-generate my meals
+              Générer mes repas automatiquement
             </span>
           </button>
         </div>
@@ -354,7 +359,7 @@ export default function WeeklyPlan() {
               clipRule="evenodd"
             />
           </svg>
-          Daily Summary for {activeDay}
+          Résumé quotidien pour {activeDay}
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="bg-gradient-to-br from-purple-100 to-purple-50 p-4 rounded-xl text-center shadow-sm border border-purple-200">
@@ -367,25 +372,25 @@ export default function WeeklyPlan() {
             <p className="text-red-800 font-bold text-2xl">
               {calculateDayTotals(activeDay).protein}g
             </p>
-            <p className="text-red-600">Protein</p>
+            <p className="text-red-600">Protéines</p>
           </div>
           <div className="bg-gradient-to-br from-yellow-100 to-yellow-50 p-4 rounded-xl text-center shadow-sm border border-yellow-200">
             <p className="text-yellow-800 font-bold text-2xl">
               {calculateDayTotals(activeDay).carbs}g
             </p>
-            <p className="text-yellow-600">Carbs</p>
+            <p className="text-yellow-600">Glucides</p>
           </div>
           <div className="bg-gradient-to-br from-green-100 to-green-50 p-4 rounded-xl text-center shadow-sm border border-green-200">
             <p className="text-green-800 font-bold text-2xl">
               {calculateDayTotals(activeDay).fat}g
             </p>
-            <p className="text-green-600">Fat</p>
+            <p className="text-green-600">Lipides</p>
           </div>
           <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-4 rounded-xl text-center shadow-sm border border-blue-200">
             <p className="text-blue-800 font-bold text-2xl">
               ${calculateDayTotals(activeDay).cost}
             </p>
-            <p className="text-blue-600">Total Cost</p>
+            <p className="text-blue-600">Coût Total</p>
           </div>
         </div>
       </div>
@@ -393,15 +398,15 @@ export default function WeeklyPlan() {
       <div className="w-full px-10 py-8 bg-white rounded-[20px] outline-1 outline-offset-[-1px] outline-gray-300">
         <div className="self-stretch justify-center text-[#004033] text-[32px] font-semibold font-['Inter']">
           {activeDay}{" "}
-          {/* You might want to format this like "Tuesday 4, March" TODO */}
+          {/* You might want to format this like "Mardi 4, Mars" TODO */}
         </div>
         <div className="self-stretch inline-flex justify-start items-center gap-5 mt-8">
           {mealTypes.map((mealType) => {
             // Define background colors for each meal type
             const headerBgColor =
-              mealType === "Breakfast"
+              mealType === "Petit-déjeuner"
                 ? "bg-[#f3d4f0]"
-                : mealType === "Lunch"
+                : mealType === "Déjeuner"
                 ? "bg-[#ffeba8]"
                 : "bg-[#d4ddf4]";
 
@@ -415,9 +420,9 @@ export default function WeeklyPlan() {
                 >
                   <Image
                     src={
-                      mealType === "Breakfast"
+                      mealType === "Petit-déjeuner"
                         ? "/icons/breakfast.png"
-                        : mealType === "Lunch"
+                        : mealType === "Déjeuner"
                         ? "/icons/lunch.png"
                         : "/icons/dinner.png"
                     }

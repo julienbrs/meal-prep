@@ -150,10 +150,10 @@ export default function CreateRecipe() {
 
   const getFoodItemName = (id: string) => {
     const result =
-      foodItems.find((item) => item.id === id)?.name || "Unknown item";
+      foodItems.find((item) => item.id === id)?.name || "Élément inconnu";
 
-    if (result === "Unknown item") {
-      console.warn(`⚠️ Could not find food item for ID: ${id}`);
+    if (result === "Élément inconnu") {
+      console.warn(`⚠️ Impossible de trouver l'élément pour l'ID: ${id}`);
     }
 
     return result;
@@ -186,7 +186,7 @@ export default function CreateRecipe() {
       recipe.instructions?.some((i) => !i)
     ) {
       setError(
-        "Please fill in all required fields and add at least one ingredient."
+        "Veuillez remplir tous les champs obligatoires et ajouter au moins un ingrédient."
       );
       return;
     }
@@ -219,10 +219,10 @@ export default function CreateRecipe() {
       const success = await addMeal(newRecipe, foodItems);
 
       if (success) {
-        console.log("✅ New meal added. Refreshing food items...");
+        console.log("✅ Nouveau repas ajouté. Actualisation des aliments...");
         await reloadFoodItems();
 
-        setSuccessMessage("Recipe created successfully!");
+        setSuccessMessage("Recette créée avec succès !");
         setRecipe({
           name: "",
           description: "",
@@ -238,11 +238,11 @@ export default function CreateRecipe() {
           router.push("/");
         }, 2000);
       } else {
-        setError("Failed to create recipe. Please try again.");
+        setError("Échec de la création de la recette. Veuillez réessayer.");
       }
     } catch (err) {
-      console.error("Error creating recipe:", err);
-      setError("An error occurred while creating the recipe.");
+      console.error("Erreur lors de la création de la recette:", err);
+      setError("Une erreur s'est produite lors de la création de la recette.");
     } finally {
       setLoading(false);
     }
@@ -252,13 +252,13 @@ export default function CreateRecipe() {
   // Auto Mode
   // -------------------------
   const handleAutoExtractSuccess = async (data: any) => {
-    console.log("Frontend: Extracted Data:", data);
+    console.log("Frontend: Données extraites:", data);
 
     await preloadFoodItems();
     const updatedFoodItems = await loadFoodItems();
 
     if (!data.ingredients || data.ingredients.length === 0) {
-      console.error("⚠️ No ingredients found in extracted data!");
+      console.error("⚠️ Aucun ingrédient trouvé dans les données extraites !");
       return;
     }
 
@@ -271,7 +271,7 @@ export default function CreateRecipe() {
 
         if (!matchedFood) {
           console.warn(
-            `⚠️ Ingredient "${ingredient.name}" not found in DB, using fallback ID.`
+            `⚠️ Ingrédient "${ingredient.name}" non trouvé dans la base de données, utilisation d'un ID de secours.`
           );
           matchedFood = {
             id: ingredient.name.toLowerCase().replace(/\s+/g, "-"),
@@ -284,7 +284,7 @@ export default function CreateRecipe() {
               fat: 0,
             },
             price: ingredient.price || 0,
-            priceUnit: ingredient.priceUnit || "per 100g",
+            priceUnit: ingredient.priceUnit || "pour 100g",
             category: "dinner",
           };
         }
@@ -320,7 +320,9 @@ export default function CreateRecipe() {
     return (
       <div className="container mx-auto px-4 py-8 flex justify-center items-center min-h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
-        <span className="ml-3 text-emerald-600">Loading food items...</span>
+        <span className="ml-3 text-emerald-600">
+          Chargement des aliments...
+        </span>
       </div>
     );
   }
@@ -344,23 +346,25 @@ export default function CreateRecipe() {
               clipRule="evenodd"
             />
           </svg>
-          Back to Recipes
+          Retour aux Recettes
         </Link>
 
         <button
           onClick={async () => {
-            console.log("Manually refreshing food items...");
+            console.log("Actualisation manuelle des aliments...");
             await reloadFoodItems();
           }}
           className="bg-white text-emerald-600 hover:text-emerald-700 px-4 py-2 rounded-lg shadow"
         >
-          Refresh
+          Actualiser
         </button>
       </div>
 
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
         <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
-          <h1 className="text-2xl font-bold text-white">Create New Recipe</h1>
+          <h1 className="text-2xl font-bold text-white">
+            Créer une Nouvelle Recette
+          </h1>
         </div>
         {foodItemsError && (
           <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
@@ -438,7 +442,7 @@ export default function CreateRecipe() {
           {/* Image Upload */}
           <div className="mb-6">
             <h2 className="text-lg font-semibold mb-3 text-gray-700">
-              Recipe Image
+              Image de la Recette
             </h2>
             <ImageUpload
               onImageChange={handleImageChange}
@@ -483,14 +487,14 @@ export default function CreateRecipe() {
               href="/"
               className="mr-3 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             >
-              Cancel
+              Annuler
             </Link>
             <button
               type="submit"
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
               disabled={loading}
             >
-              {loading ? "Creating..." : "Create Recipe"}
+              {loading ? "Création en cours..." : "Créer la Recette"}
             </button>
           </div>
         </form>

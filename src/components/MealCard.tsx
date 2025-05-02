@@ -116,19 +116,19 @@ export default function MealCard({ meal }: MealCardProps) {
             <span className="block text-xs text-red-800 font-medium">
               {nutrition.protein}g
             </span>
-            <span className="block text-xs text-red-600">Protein</span>
+            <span className="block text-xs text-red-600">Protéines</span>
           </div>
           <div className="bg-yellow-50 rounded-lg p-2 text-center">
             <span className="block text-xs text-yellow-800 font-medium">
               {nutrition.carbs}g
             </span>
-            <span className="block text-xs text-yellow-600">Carbs</span>
+            <span className="block text-xs text-yellow-600">Glucides</span>
           </div>
           <div className="bg-green-50 rounded-lg p-2 text-center">
             <span className="block text-xs text-green-800 font-medium">
               {nutrition.fat}g
             </span>
-            <span className="block text-xs text-green-600">Fat</span>
+            <span className="block text-xs text-green-600">Lipides</span>
           </div>
         </div>
 
@@ -136,7 +136,7 @@ export default function MealCard({ meal }: MealCardProps) {
           href={`/meals/${meal.id}`}
           className="block w-full text-center bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white py-2 rounded-lg transition-all duration-200 transform hover:scale-105 font-medium"
         >
-          View Recipe
+          Voir la Recette
         </Link>
       </div>
     </div>

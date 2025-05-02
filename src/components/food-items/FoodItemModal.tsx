@@ -27,19 +27,19 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
         sugar: 0,
       },
       price: 0,
-      priceUnit: "per 100g",
+      priceUnit: "pour 100g",
     }
   );
 
   useEffect(() => {
     // Update priceUnit when units change
-    if (foodItem.units === "piece" && foodItem.priceUnit !== "per piece") {
-      setFoodItem((prev) => ({ ...prev, priceUnit: "per piece" }));
+    if (foodItem.units === "piece" && foodItem.priceUnit !== "par pièce") {
+      setFoodItem((prev) => ({ ...prev, priceUnit: "par pièce" }));
     } else if (
       foodItem.units !== "piece" &&
-      foodItem.priceUnit === "per piece"
+      foodItem.priceUnit === "par pièce"
     ) {
-      setFoodItem((prev) => ({ ...prev, priceUnit: "per 100g" }));
+      setFoodItem((prev) => ({ ...prev, priceUnit: "pour 100g" }));
     }
   }, [foodItem.units]);
 
@@ -71,31 +71,31 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
   };
 
   const categories = [
-    { value: "vegetable", label: "Vegetable" },
+    { value: "vegetable", label: "Légume" },
     { value: "fruit", label: "Fruit" },
-    { value: "dairy", label: "Dairy" },
-    { value: "protein", label: "Protein" },
-    { value: "meat", label: "Meat" },
-    { value: "grain", label: "Grain" },
-    { value: "spice", label: "Spice" },
+    { value: "dairy", label: "Produit laitier" },
+    { value: "protein", label: "Protéine" },
+    { value: "meat", label: "Viande" },
+    { value: "grain", label: "Céréale" },
+    { value: "spice", label: "Épice" },
     { value: "condiment", label: "Condiment" },
-    { value: "fat", label: "Fat" },
-    { value: "misc", label: "Misc" },
+    { value: "fat", label: "Matière grasse" },
+    { value: "misc", label: "Divers" },
   ];
 
   const units: { value: UnitType; label: string }[] = [
-    { value: "g", label: "Grams (g)" },
-    { value: "ml", label: "Milliliters (ml)" },
-    { value: "piece", label: "Piece" },
-    { value: "tbsp", label: "Tablespoon (tbsp)" },
-    { value: "tsp", label: "Teaspoon (tsp)" },
-    { value: "cup", label: "Cup" },
+    { value: "g", label: "Grammes (g)" },
+    { value: "ml", label: "Millilitres (ml)" },
+    { value: "piece", label: "Pièce" },
+    { value: "tbsp", label: "Cuillère à soupe (c. à s.)" },
+    { value: "tsp", label: "Cuillère à café (c. à c.)" },
+    { value: "cup", label: "Tasse" },
   ];
 
   const getNutritionLabel = (): string => {
     return foodItem.units === "piece"
-      ? "Nutrition (per piece)"
-      : "Nutrition (per 100g)";
+      ? "Nutrition (par pièce)"
+      : "Nutrition (pour 100g)";
   };
 
   return (
@@ -118,7 +118,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
               />
             </svg>
-            {item ? `Edit ${item.name}` : "Add New Food Item"}
+            {item ? `Modifier ${item.name}` : "Ajouter un Nouvel Aliment"}
           </h2>
           <button
             onClick={onClose}
@@ -148,7 +148,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Name <span className="text-red-500">*</span>
+                  Nom <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -159,7 +159,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category <span className="text-red-500">*</span>
+                  Catégorie <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={foodItem.category}
@@ -167,7 +167,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
                   className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
                 >
                   <option value="" disabled>
-                    Select a category
+                    Sélectionner une catégorie
                   </option>
                   {categories.map((category) => (
                     <option key={category.value} value={category.value}>
@@ -182,7 +182,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Units
+                  Unités
                 </label>
                 <select
                   value={foodItem.units}
@@ -199,12 +199,12 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {foodItem.units === "piece"
-                    ? "Price per piece ($)"
-                    : "Price per 100g ($)"}
+                    ? "Prix par pièce (€)"
+                    : "Prix pour 100g (€)"}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-500">$</span>
+                    <span className="text-gray-500">€</span>
                   </div>
                   <input
                     type="number"
@@ -240,11 +240,11 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
                 {[
                   { name: "calories", label: "Calories" },
-                  { name: "protein", label: "Protein (g)" },
-                  { name: "carbs", label: "Carbs (g)" },
-                  { name: "fat", label: "Fat (g)" },
-                  { name: "fiber", label: "Fiber (g)" },
-                  { name: "sugar", label: "Sugar (g)" },
+                  { name: "protein", label: "Protéines (g)" },
+                  { name: "carbs", label: "Glucides (g)" },
+                  { name: "fat", label: "Lipides (g)" },
+                  { name: "fiber", label: "Fibres (g)" },
+                  { name: "sugar", label: "Sucres (g)" },
                 ].map((nutrient) => (
                   <div key={nutrient.name}>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -275,14 +275,14 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
             onClick={onClose}
             className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
           >
-            Cancel
+            Annuler
           </button>
           <button
             onClick={() => onSave(foodItem)}
             disabled={!foodItem.name || !foodItem.category}
             className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg shadow hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
-            {item ? "Update" : "Create"}
+            {item ? "Mettre à jour" : "Créer"}
           </button>
         </div>
       </div>

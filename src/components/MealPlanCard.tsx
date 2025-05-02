@@ -1,8 +1,6 @@
 import React from "react";
 import { Meal } from "../types/meal";
-import {
-  calculateRecipeNutrition,
-} from "@/utils/nutritionCalculator";
+import { calculateRecipeNutrition } from "@/utils/nutritionCalculator";
 import { useFoodItems } from "@/context/FoodItemsContext";
 
 interface MealPlanCardProps {
@@ -42,7 +40,7 @@ export default function MealPlanCard({
             defaultValue=""
           >
             <option value="" disabled>
-              Choose a meal...
+              Choisir un repas...
             </option>
             {meals.map((m) => (
               <option key={m.id} value={m.id}>
@@ -190,7 +188,11 @@ export default function MealPlanCard({
                       </g>
                     </svg>
                   )}
-                  {nutrient}
+                  {nutrient === "protein"
+                    ? "protéines"
+                    : nutrient === "carbs"
+                    ? "glucides"
+                    : "lipides"}
                 </div>
               </div>
             ))}
