@@ -62,9 +62,11 @@ export function FoodItemsProvider({ children }: { children: React.ReactNode }) {
         }
         return prevItems;
       });
+      return Promise.resolve();
     } catch (error) {
       console.error("❌ Error reloading food items:", error);
       setError("Failed to reload food items. Please try again later.");
+      return Promise.reject(error);
     } finally {
       setIsLoading(false);
     }

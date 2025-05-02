@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import CreateFoodItemModal from "./CreateFoodItemModal";
+import { useFoodItems } from "@/context/FoodItemsContext";
 
 export default function AutoExtractSection({
   onExtractSuccess,
@@ -12,6 +13,7 @@ export default function AutoExtractSection({
   const [error, setError] = useState<string | null>(null);
   const [missingIngredients, setMissingIngredients] = useState<any[]>([]);
   const [isFoodItemModalOpen, setIsFoodItemModalOpen] = useState(false);
+  const { reloadFoodItems } = useFoodItems();
 
   const handleExtract = async () => {
     if (!recipeText.trim()) {

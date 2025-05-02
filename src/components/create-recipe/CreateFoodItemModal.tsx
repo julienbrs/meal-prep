@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { addFoodItem } from "@/services/dataservice";
 import { UnitType } from "@/types/ingredient";
+import { useFoodItems } from "@/context/FoodItemsContext";
 
 export default function CreateFoodItemModal({
   missingIngredients,
@@ -13,6 +14,7 @@ export default function CreateFoodItemModal({
   onComplete: () => void;
 }) {
   const [isAutofilling, setIsAutofilling] = useState(false);
+  const { reloadFoodItems } = useFoodItems();
 
   const handleAutoFill = async () => {
     setIsAutofilling(true);
@@ -100,10 +102,15 @@ export default function CreateFoodItemModal({
   };
 
   const handleSave = async () => {
-    for (const item of foodItems) {
-      await addFoodItem(item);
+    try {
+      for (const item of foodItems) {
+        await addFoodItem(item);
+      }
+      await reloadFoodItems();
+      onComplete();
+    } catch (error) {
+      console.error("Erreur lors de la création des aliments:", error);
     }
-    onComplete();
   };
 
   const getNutritionLabel = (index: number): string => {
