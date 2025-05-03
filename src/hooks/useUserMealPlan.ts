@@ -2,14 +2,20 @@ import { useState, useEffect } from "react";
 import { useUser } from "@/context/UserContext";
 import {
   MealPlanState,
-  loadUserMealPlan,
-  saveUserMealPlan,
+  loadUserWeekMealPlan, 
+  saveUserWeekMealPlan,
   hydrateMealPlan,
   createEmptyMealPlan,
+  getWeekStartDate, 
+  formatDateToYYYYMMDD, 
 } from "@/services/dataservice";
 
-export function useUserMealPlan(daysOfWeek: string[], mealTypes: string[]) {
+export function useWeekMealPlan(daysOfWeek: string[], mealTypes: string[]) {
   const { currentUser } = useUser();
+  // Ajouté : état pour stocker la date de la semaine sélectionnée
+  const [currentWeekDate, setCurrentWeekDate] = useState<Date>(
+    getWeekStartDate(new Date())
+  );
   const [mealPlan, setMealPlan] = useState<MealPlanState>(
     createEmptyMealPlan(daysOfWeek, mealTypes)
   );
@@ -17,14 +23,21 @@ export function useUserMealPlan(daysOfWeek: string[], mealTypes: string[]) {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
 
-  // Load meal plan for the current user
+  // Ajouté : fonction pour changer la semaine sélectionnée
+  const changeWeek = (newWeekDate: Date) => {
+    const weekStart = getWeekStartDate(newWeekDate);
+    setCurrentWeekDate(weekStart);
+  };
+
+  // Mise à jour : chargement du plan de repas pour l'utilisateur et la semaine courante
   useEffect(() => {
-    async function fetchUserMealPlan() {
+    async function fetchUserWeekMealPlan() {
       setLoading(true);
       try {
-        // Load the meal plan for the current user
-        let userMealPlan = await loadUserMealPlan(
+        // Modifié : chargement du plan pour l'utilisateur et la semaine
+        let userMealPlan = await loadUserWeekMealPlan(
           currentUser.id,
+          currentWeekDate, // Ajouté : date de la semaine
           daysOfWeek,
           mealTypes
         );
@@ -36,7 +49,6 @@ export function useUserMealPlan(daysOfWeek: string[], mealTypes: string[]) {
         } else {
           setMealPlan(createEmptyMealPlan(daysOfWeek, mealTypes));
         }
-
         setError(null);
       } catch (err) {
         console.error("Failed to load user meal plan:", err);
@@ -48,30 +60,34 @@ export function useUserMealPlan(daysOfWeek: string[], mealTypes: string[]) {
       }
     }
 
-    fetchUserMealPlan();
-  }, [currentUser.id, daysOfWeek, mealTypes]);
+    fetchUserWeekMealPlan();
+  }, [currentUser.id, currentWeekDate, daysOfWeek, mealTypes]); // Ajouté currentWeekDate
 
-  // Save meal plan whenever it changes
+  // Mise à jour : sauvegarde du plan de repas pour l'utilisateur et la semaine courante
   useEffect(() => {
     if (loading) return;
-
     if (Object.keys(mealPlan).length > 0) {
       const saveData = async () => {
-        setSaving("Saving...");
+        setSaving("Enregistrement...");
         try {
-          const success = await saveUserMealPlan(currentUser.id, mealPlan);
+          // Modifié : sauvegarde du plan pour l'utilisateur et la semaine
+          const success = await saveUserWeekMealPlan(
+            currentUser.id,
+            currentWeekDate, // Ajouté : date de la semaine
+            mealPlan
+          );
 
           if (success) {
-            setSaving("Saved");
+            setSaving("Enregistré");
             setTimeout(() => {
               setSaving(null);
             }, 2000);
           } else {
-            setSaving("Failed to save");
+            setSaving("Échec de l'enregistrement");
           }
         } catch (err) {
           console.error("Error saving user meal plan:", err);
-          setSaving("Failed to save");
+          setSaving("Échec de l'enregistrement");
         }
       };
 
@@ -83,7 +99,7 @@ export function useUserMealPlan(daysOfWeek: string[], mealTypes: string[]) {
         clearTimeout(timeoutId);
       };
     }
-  }, [mealPlan, loading, currentUser.id]);
+  }, [mealPlan, loading, currentUser.id, currentWeekDate]); // Ajouté currentWeekDate
 
   // Function to update the meal plan
   const updateMealPlan = (newMealPlan: MealPlanState) => {
@@ -93,6 +109,8 @@ export function useUserMealPlan(daysOfWeek: string[], mealTypes: string[]) {
   return {
     mealPlan,
     updateMealPlan,
+    currentWeekDate, // Ajouté
+    changeWeek, // Ajouté
     loading,
     error,
     saving,

@@ -12,10 +12,8 @@ export async function GET(
   try {
     const plan = await MealPlan.findOne({ id });
     if (!plan) {
-      return NextResponse.json(
-        { error: "Meal plan not found" },
-        { status: 404 }
-      );
+      // Au lieu de renvoyer une erreur 404, renvoyez un plan vide
+      return NextResponse.json({});
     }
     return NextResponse.json(plan.planData);
   } catch (error) {

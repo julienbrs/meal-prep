@@ -10,6 +10,7 @@ interface MealPlanGeneratorProps {
   updateMealPlan: (plan: MealPlanState) => void;
   daysOfWeek: string[];
   mealTypes: string[];
+  weekDate: Date;
 }
 
 const MealPlanGenerator: React.FC<MealPlanGeneratorProps> = ({
@@ -18,6 +19,7 @@ const MealPlanGenerator: React.FC<MealPlanGeneratorProps> = ({
   updateMealPlan,
   daysOfWeek,
   mealTypes,
+  weekDate,
 }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
@@ -74,8 +76,8 @@ const MealPlanGenerator: React.FC<MealPlanGeneratorProps> = ({
         breakfast: "Petit-déjeuner",
         lunch: "Déjeuner",
         dinner: "Dîner",
-        snack: "Collation", // May not be used depending on your mealTypes
-        appetizer: "Entrée", // May not be used depending on your mealTypes
+        snack: "Collation",
+        appetizer: "Entrée",
       };
 
       // Group meals by category

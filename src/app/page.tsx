@@ -10,16 +10,16 @@ import {
 } from "@/utils/nutritionCalculator";
 import {
   loadMeals,
-  loadUserMealPlan,
-  saveUserMealPlan,
-  hydrateMealPlan,
   createEmptyMealPlan,
   MealPlanState,
+  getWeekStartDate,
 } from "@/services/dataservice";
 import { useFoodItems } from "@/context/FoodItemsContext";
 import { useUser } from "@/context/UserContext";
 import MealPlanGenerator from "@/components/MealPlanGenerator";
 import MealPlanClearButton from "@/components/MealPlanClearButton";
+import WeekSelector from "@/components/WeekSelector";
+import { useWeekMealPlan } from "@/hooks/useWeekMealPlan";
 
 export default function WeeklyPlan() {
   const daysOfWeek = [
@@ -35,19 +35,25 @@ export default function WeeklyPlan() {
   const { currentUser } = useUser();
 
   const [meals, setMeals] = useState<Meal[]>([]);
-  const [mealPlan, setMealPlan] = useState<MealPlanState>(
-    createEmptyMealPlan(daysOfWeek, mealTypes)
-  );
   const [activeDay, setActiveDay] = useState<string>(daysOfWeek[0]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [savingStatus, setSavingStatus] = useState<string | null>(null);
   const { foodItems } = useFoodItems();
+
+  // Utiliser notre nouveau hook pour gérer les plans de repas par semaine
+  const {
+    mealPlan,
+    updateMealPlan,
+    currentWeekDate,
+    changeWeek,
+    saving: savingStatus,
+  } = useWeekMealPlan(daysOfWeek, mealTypes);
 
   const handleClearComplete = async () => {
     try {
+      // Créer un plan vide pour la semaine actuelle
       const emptyPlan = createEmptyMealPlan(daysOfWeek, mealTypes);
-      setMealPlan(emptyPlan);
+      updateMealPlan(emptyPlan);
       setError(null);
     } catch (err) {
       console.error("Erreur lors de la réinitialisation du plan:", err);
@@ -64,22 +70,6 @@ export default function WeeklyPlan() {
       try {
         const mealsData = await loadMeals();
         setMeals(mealsData);
-
-        // Load meal plan for current user
-        const userMealPlan = await loadUserMealPlan(
-          currentUser.id,
-          daysOfWeek,
-          mealTypes
-        );
-
-        if (Object.keys(userMealPlan).length === 0) {
-          // If no plan exists for this user, create a new empty one
-          setMealPlan(createEmptyMealPlan(daysOfWeek, mealTypes));
-        } else {
-          // Hydrate the plan with actual meal objects
-          const hydratedPlan = await hydrateMealPlan(userMealPlan);
-          setMealPlan(hydratedPlan);
-        }
 
         // Set active day to current day of the week
         const today = new Date().getDay();
@@ -102,68 +92,26 @@ export default function WeeklyPlan() {
     initialize();
   }, [currentUser.id]); // Re-initialize when user changes
 
-  useEffect(() => {
-    if (loading) return;
-
-    if (Object.keys(mealPlan).length > 0) {
-      const saveData = async () => {
-        setSavingStatus("Enregistrement...");
-        try {
-          // Save meal plan for current user
-          const success = await saveUserMealPlan(currentUser.id, mealPlan);
-          if (success) {
-            setSavingStatus("Enregistré");
-            setTimeout(() => {
-              setSavingStatus(null);
-            }, 2000);
-          } else {
-            setSavingStatus("Échec de l'enregistrement");
-          }
-        } catch (err) {
-          console.error(
-            "Erreur lors de l'enregistrement du plan de repas:",
-            err
-          );
-          setSavingStatus("Échec de l'enregistrement");
-        }
-      };
-
-      const timeoutId = setTimeout(() => {
-        saveData();
-      }, 1000);
-
-      return () => {
-        clearTimeout(timeoutId);
-      };
-    }
-  }, [mealPlan, loading, currentUser.id]); // Include currentUser.id in dependencies
-
   const addMealToPlan = (day: string, mealType: string, mealId: string) => {
     const meal = meals.find((m) => m.id === mealId);
     if (meal) {
-      setMealPlan((prev) => {
-        const newPlan = {
-          ...prev,
-          [day]: {
-            ...prev[day],
-            [mealType]: meal,
-          },
-        };
-        return newPlan;
+      updateMealPlan({
+        ...mealPlan,
+        [day]: {
+          ...mealPlan[day],
+          [mealType]: meal,
+        },
       });
     }
   };
 
   const removeMealFromPlan = (day: string, mealType: string) => {
-    setMealPlan((prev) => {
-      const newPlan = {
-        ...prev,
-        [day]: {
-          ...prev[day],
-          [mealType]: null,
-        },
-      };
-      return newPlan;
+    updateMealPlan({
+      ...mealPlan,
+      [day]: {
+        ...mealPlan[day],
+        [mealType]: null,
+      },
     });
   };
 
@@ -220,7 +168,7 @@ export default function WeeklyPlan() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
-        <div className="w-full p-10 bg-[#ffdbb6] rounded-[20px] flex justify-start items-center gap-10">
+        <div className="w-full p-10 bg-[#ffdbb6] rounded-[20px] flex flex-col md:flex-row justify-start items-center gap-6">
           <div className="flex-1 flex flex-col justify-start items-start gap-2.5">
             <div className="text-[#004033] text-[40px] font-semibold font-inter">
               Surprenez-moi, {currentUser.name} !
@@ -230,19 +178,27 @@ export default function WeeklyPlan() {
               rapide, facile et sans tracas !
             </div>
           </div>
-          <div className="flex gap-3">
-            <MealPlanGenerator
-              meals={meals}
-              mealPlan={mealPlan}
-              updateMealPlan={setMealPlan}
-              daysOfWeek={daysOfWeek}
-              mealTypes={mealTypes}
+          <div className="flex flex-col gap-3">
+            <WeekSelector
+              currentWeekDate={currentWeekDate}
+              onWeekChange={changeWeek}
             />
-            <MealPlanClearButton
-              daysOfWeek={daysOfWeek}
-              mealTypes={mealTypes}
-              onClearComplete={handleClearComplete}
-            />
+            <div className="flex gap-3">
+              <MealPlanGenerator
+                meals={meals}
+                mealPlan={mealPlan}
+                updateMealPlan={updateMealPlan}
+                daysOfWeek={daysOfWeek}
+                mealTypes={mealTypes}
+                weekDate={currentWeekDate}
+              />
+              <MealPlanClearButton
+                daysOfWeek={daysOfWeek}
+                mealTypes={mealTypes}
+                weekDate={currentWeekDate}
+                onClearComplete={handleClearComplete}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -268,14 +224,12 @@ export default function WeeklyPlan() {
           {daysOfWeek.map((day) => {
             const isActive = day === activeDay;
             const dayTotals = calculateDayTotals(day);
-            const now = new Date();
-            const today = now.getDay();
-            const currentDayIdx = daysOfWeek.indexOf(day);
-            const todayIdx = today === 0 ? 6 : today - 1;
-            let diff = currentDayIdx - todayIdx;
-            if (diff < 0) diff += 7;
-            const targetDate = new Date(now);
-            targetDate.setDate(now.getDate() + diff);
+
+            // Calculer la date pour chaque jour en fonction de la semaine sélectionnée
+            const weekStartDate = new Date(currentWeekDate);
+            const dayIndex = daysOfWeek.indexOf(day);
+            const targetDate = new Date(weekStartDate);
+            targetDate.setDate(weekStartDate.getDate() + dayIndex);
             const dayOfMonth = targetDate.getDate();
 
             const calorieColor =

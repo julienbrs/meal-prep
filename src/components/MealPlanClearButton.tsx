@@ -1,17 +1,19 @@
 import React, { useState } from "react";
 import AlertDialog from "@/components/AlertDialog";
 import { useUser } from "@/context/UserContext";
-import { clearUserMealPlan, createEmptyMealPlan } from "@/services/dataservice";
+import { clearUserWeekMealPlan } from "@/services/dataservice";
 
 interface MealPlanClearButtonProps {
   daysOfWeek: string[];
   mealTypes: string[];
+  weekDate: Date;
   onClearComplete: () => void;
 }
 
 const MealPlanClearButton: React.FC<MealPlanClearButtonProps> = ({
   daysOfWeek,
   mealTypes,
+  weekDate,
   onClearComplete,
 }) => {
   const { currentUser } = useUser();
@@ -21,14 +23,14 @@ const MealPlanClearButton: React.FC<MealPlanClearButtonProps> = ({
   const handleClearPlan = async () => {
     setIsClearing(true);
     try {
-      const success = await clearUserMealPlan(
+      const success = await clearUserWeekMealPlan(
         currentUser.id,
+        weekDate,
         daysOfWeek,
         mealTypes
       );
 
       if (success) {
-        // Notifier le composant parent que le plan a été effacé
         onClearComplete();
       }
     } catch (error) {
@@ -63,8 +65,8 @@ const MealPlanClearButton: React.FC<MealPlanClearButtonProps> = ({
         isOpen={isConfirmDialogOpen}
         onClose={() => setIsConfirmDialogOpen(false)}
         onConfirm={handleClearPlan}
-        title="Supprimer tous les repas"
-        description={`Êtes-vous sûr de vouloir supprimer tous les repas du plan de ${currentUser.name} ? Cette action ne peut pas être annulée.`}
+        title="Supprimer tous les repas de cette semaine"
+        description={`Êtes-vous sûr de vouloir supprimer tous les repas du plan de ${currentUser.name} pour cette semaine ? Cette action ne peut pas être annulée.`}
         confirmLabel="Supprimer tous les repas"
         cancelLabel="Annuler"
         loading={isClearing}

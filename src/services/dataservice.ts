@@ -14,10 +14,17 @@ export interface MealPlanState {
   [key: string]: MealPlanDay;
 }
 
+export interface MealPlanWeek {
+  weekId: string; // Format: YYYY-MM-DD (date du lundi de la semaine)
+  data: MealPlanState;
+}
+
+export interface UserMealPlans {
+  [weekId: string]: MealPlanState;
+}
+
 export interface MealPlans {
-  [key: string]: {
-    [userId: string]: MealPlanState;
-  };
+  [userId: string]: UserMealPlans;
 }
 
 // Client-side caches to minimize API calls
@@ -40,6 +47,21 @@ export function clearMealPlansCache(): void {
   mealPlansCache = null;
 }
 
+// Helper function to get Monday of the current week
+export function getWeekStartDate(date: Date = new Date()): Date {
+  const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const diff = date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // adjust when day is Sunday
+  const monday = new Date(date);
+  monday.setDate(diff);
+  monday.setHours(0, 0, 0, 0); // Reset time to start of day
+  return monday;
+}
+
+// Helper function to format date as YYYY-MM-DD
+export function formatDateToYYYYMMDD(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
+
 // Helper function to fetch data from API
 async function fetchFromApi<T>(
   endpoint: string,
@@ -55,7 +77,7 @@ async function fetchFromApi<T>(
   return (await response.json()) as T;
 }
 
-// Food Items API Functions
+// Food Items API Functions (No changes needed)
 export async function loadFoodItems(): Promise<FoodItem[]> {
   if (foodItemsCache) {
     return foodItemsCache;
@@ -143,7 +165,7 @@ export async function deleteFoodItem(id: string): Promise<boolean> {
   }
 }
 
-// Meals API Functions
+// Meals API Functions (No changes needed)
 export async function loadMeals(): Promise<Meal[]> {
   if (mealsCache) {
     return mealsCache;
@@ -273,7 +295,7 @@ export async function deleteMeal(id: string): Promise<boolean> {
   }
 }
 
-// Meal Plans API Functions
+// Meal Plans API Functions - Updated for weekly planning
 export async function loadMealPlans(): Promise<MealPlans> {
   if (mealPlansCache) {
     return mealPlansCache;
@@ -285,7 +307,7 @@ export async function loadMealPlans(): Promise<MealPlans> {
     return data;
   } catch (error) {
     console.error("Error loading meal plans:", error);
-    return { default: {} };
+    return {};
   }
 }
 
@@ -297,8 +319,6 @@ export async function loadMealPlan(
     return response;
   } catch (error) {
     console.error(`Error loading meal plan ${id}:`, error);
-
-    // Return an empty meal plan state if it fails
     return {};
   }
 }
@@ -379,40 +399,57 @@ function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
-// Load meal plan for a specific user
-export async function loadUserMealPlan(
+// Load meal plan for a specific user and week
+export async function loadUserWeekMealPlan(
   userId: string,
+  weekDate: Date,
   daysOfWeek: string[],
   mealTypes: string[]
 ): Promise<MealPlanState> {
   try {
-    const planId = `user-${userId}`;
-    const response = await fetchFromApi<MealPlanState>(`mealPlans/${planId}`);
+    const weekStart = getWeekStartDate(weekDate);
+    const weekId = formatDateToYYYYMMDD(weekStart);
+    const planId = `user-${userId}-week-${weekId}`;
 
-    // If the meal plan exists but is empty, return a new empty one
-    if (Object.keys(response).length === 0) {
-      return createEmptyMealPlan(daysOfWeek, mealTypes);
+    console.log(`Loading meal plan: ${planId}`);
+
+    try {
+      // Essayez de charger le plan
+      const response = await fetchFromApi<MealPlanState>(`mealPlans/${planId}`);
+
+      // Si le plan existe et n'est pas vide, retournez-le
+      if (response && Object.keys(response).length > 0) {
+        return response;
+      }
+    } catch (fetchError) {
+      // Ignorez l'erreur 404 - elle signifie simplement que le plan n'existe pas encore
+      console.log(`Plan not found: ${planId}, creating a new one`);
     }
 
-    return response;
+    // Si le plan n'existe pas ou est vide, créez un plan vide
+    return createEmptyMealPlan(daysOfWeek, mealTypes);
   } catch (error) {
     console.error(`Error loading meal plan for user ${userId}:`, error);
-    // If no plan exists, create a new empty one
+    // Si une erreur se produit, retournez un plan vide
     return createEmptyMealPlan(daysOfWeek, mealTypes);
   }
 }
 
-// Save meal plan for a specific user
-export async function saveUserMealPlan(
+// Save meal plan for a specific user and week
+export async function saveUserWeekMealPlan(
   userId: string,
+  weekDate: Date,
   mealPlan: MealPlanState
 ): Promise<boolean> {
   try {
-    const planId = `user-${userId}`;
+    const weekStart = getWeekStartDate(weekDate);
+    const weekId = formatDateToYYYYMMDD(weekStart);
+    const planId = `user-${userId}-week-${weekId}`;
+
+    console.log(`Saving meal plan: ${planId}`);
+
     // Convert to a simpler format before sending to the API
     const simplifiedPlan = simplifyMealPlanForStorage(mealPlan);
-
-    console.log("Saving simplified plan:", simplifiedPlan);
 
     const response = await fetchFromApi<{ success: boolean }>(
       `mealPlans/${planId}`,
@@ -435,10 +472,17 @@ export async function saveUserMealPlan(
     return false;
   }
 }
-// Delete meal plan for a specific user
-export async function deleteUserMealPlan(userId: string): Promise<boolean> {
+
+// Delete meal plan for a specific user and week
+export async function deleteUserWeekMealPlan(
+  userId: string,
+  weekDate: Date
+): Promise<boolean> {
   try {
-    const planId = `user-${userId}`;
+    const weekStart = getWeekStartDate(weekDate);
+    const weekId = formatDateToYYYYMMDD(weekStart);
+    const planId = `user-${userId}-week-${weekId}`;
+
     const response = await fetchFromApi<{ success: boolean }>(
       `mealPlans/${planId}`,
       {
@@ -457,8 +501,10 @@ export async function deleteUserMealPlan(userId: string): Promise<boolean> {
   }
 }
 
-export async function clearUserMealPlan(
+// Clear meal plan for a specific user and week
+export async function clearUserWeekMealPlan(
   userId: string,
+  weekDate: Date,
   daysOfWeek: string[],
   mealTypes: string[]
 ): Promise<boolean> {
@@ -467,12 +513,38 @@ export async function clearUserMealPlan(
     const emptyPlan = createEmptyMealPlan(daysOfWeek, mealTypes);
 
     // Sauvegarder le plan vide
-    return await saveUserMealPlan(userId, emptyPlan);
+    return await saveUserWeekMealPlan(userId, weekDate, emptyPlan);
   } catch (error) {
     console.error(
       `Erreur lors de la suppression du plan de repas pour l'utilisateur ${userId}:`,
       error
     );
     return false;
+  }
+}
+
+// Get list of weeks with meal plans for a user
+export async function getUserMealPlanWeeks(userId: string): Promise<Date[]> {
+  try {
+    const allMealPlans = await loadMealPlans();
+    const weekDates: Date[] = [];
+
+    // Pattern to match: user-{userId}-week-{YYYY-MM-DD}
+    const userWeekPattern = new RegExp(
+      `^user-${userId}-week-(\\d{4}-\\d{2}-\\d{2})$`
+    );
+
+    Object.keys(allMealPlans).forEach((planId) => {
+      const match = planId.match(userWeekPattern);
+      if (match && match[1]) {
+        weekDates.push(new Date(match[1]));
+      }
+    });
+
+    // Sort by date (newest first)
+    return weekDates.sort((a, b) => b.getTime() - a.getTime());
+  } catch (error) {
+    console.error(`Error getting meal plan weeks for user ${userId}:`, error);
+    return [];
   }
 }
