@@ -48,8 +48,13 @@ export default function AlertDialog({
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center"
       onClick={handleBackdropClick}
+      style={{
+        backgroundColor: "rgba(0, 0, 0, 0.3)",
+        zIndex: 1000,
+        position: "absolute",
+      }}
     >
       <div
         className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 overflow-hidden"
@@ -57,6 +62,8 @@ export default function AlertDialog({
         aria-modal="true"
         aria-labelledby="dialog-title"
         aria-describedby="dialog-description"
+        onClick={(e) => e.stopPropagation()}
+        style={{ zIndex: 1001 }}
       >
         {/* Header */}
         <div className="p-6">

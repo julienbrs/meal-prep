@@ -19,6 +19,7 @@ import {
 import { useFoodItems } from "@/context/FoodItemsContext";
 import { useUser } from "@/context/UserContext";
 import MealPlanGenerator from "@/components/MealPlanGenerator";
+import MealPlanClearButton from "@/components/MealPlanClearButton";
 
 export default function WeeklyPlan() {
   const daysOfWeek = [
@@ -42,6 +43,19 @@ export default function WeeklyPlan() {
   const [error, setError] = useState<string | null>(null);
   const [savingStatus, setSavingStatus] = useState<string | null>(null);
   const { foodItems } = useFoodItems();
+
+  const handleClearComplete = async () => {
+    try {
+      const emptyPlan = createEmptyMealPlan(daysOfWeek, mealTypes);
+      setMealPlan(emptyPlan);
+      setError(null);
+    } catch (err) {
+      console.error("Erreur lors de la réinitialisation du plan:", err);
+      setError(
+        "Échec de la réinitialisation du plan. Veuillez réessayer plus tard."
+      );
+    }
+  };
 
   useEffect(() => {
     async function initialize() {
@@ -216,13 +230,20 @@ export default function WeeklyPlan() {
               rapide, facile et sans tracas !
             </div>
           </div>
-          <MealPlanGenerator
-            meals={meals}
-            mealPlan={mealPlan}
-            updateMealPlan={setMealPlan}
-            daysOfWeek={daysOfWeek}
-            mealTypes={mealTypes}
-          />
+          <div className="flex gap-3">
+            <MealPlanGenerator
+              meals={meals}
+              mealPlan={mealPlan}
+              updateMealPlan={setMealPlan}
+              daysOfWeek={daysOfWeek}
+              mealTypes={mealTypes}
+            />
+            <MealPlanClearButton
+              daysOfWeek={daysOfWeek}
+              mealTypes={mealTypes}
+              onClearComplete={handleClearComplete}
+            />
+          </div>
         </div>
       </div>
 

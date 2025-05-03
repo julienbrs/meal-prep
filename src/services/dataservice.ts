@@ -1,5 +1,6 @@
 import { FoodItem } from "@/types/ingredient";
 import { Meal } from "@/types/meal";
+import { simplifyMealPlanForStorage } from "@/utils/mealPlanUtils";
 import {
   calculateRecipeNutrition,
   calculateRecipeCost,
@@ -408,6 +409,11 @@ export async function saveUserMealPlan(
 ): Promise<boolean> {
   try {
     const planId = `user-${userId}`;
+    // Convert to a simpler format before sending to the API
+    const simplifiedPlan = simplifyMealPlanForStorage(mealPlan);
+
+    console.log("Saving simplified plan:", simplifiedPlan);
+
     const response = await fetchFromApi<{ success: boolean }>(
       `mealPlans/${planId}`,
       {
@@ -415,7 +421,7 @@ export async function saveUserMealPlan(
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(mealPlan),
+        body: JSON.stringify(simplifiedPlan),
       }
     );
 
@@ -429,7 +435,6 @@ export async function saveUserMealPlan(
     return false;
   }
 }
-
 // Delete meal plan for a specific user
 export async function deleteUserMealPlan(userId: string): Promise<boolean> {
   try {
@@ -448,6 +453,26 @@ export async function deleteUserMealPlan(userId: string): Promise<boolean> {
     return false;
   } catch (error) {
     console.error(`Error deleting meal plan for user ${userId}:`, error);
+    return false;
+  }
+}
+
+export async function clearUserMealPlan(
+  userId: string,
+  daysOfWeek: string[],
+  mealTypes: string[]
+): Promise<boolean> {
+  try {
+    // Créer un plan vide
+    const emptyPlan = createEmptyMealPlan(daysOfWeek, mealTypes);
+
+    // Sauvegarder le plan vide
+    return await saveUserMealPlan(userId, emptyPlan);
+  } catch (error) {
+    console.error(
+      `Erreur lors de la suppression du plan de repas pour l'utilisateur ${userId}:`,
+      error
+    );
     return false;
   }
 }
