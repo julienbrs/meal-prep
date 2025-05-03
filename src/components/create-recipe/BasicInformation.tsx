@@ -3,6 +3,9 @@ import React from "react";
 import { Meal } from "@/types/meal";
 import { useUser } from "@/context/UserContext";
 
+// Définir un type pour les catégories autorisées
+type MealCategory = "breakfast" | "lunch" | "dinner" | "snack" | "appetizer";
+
 interface BasicInformationProps {
   recipe: Partial<Meal>;
   handleRecipeChange: (
@@ -10,13 +13,48 @@ interface BasicInformationProps {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => void;
+  // Mettre à jour le type ici pour correspondre à celui de CreateRecipe
+  handleCategoriesChange: (selectedCategories: MealCategory[]) => void;
 }
 
 export default function BasicInformation({
   recipe,
   handleRecipeChange,
+  handleCategoriesChange,
 }: BasicInformationProps) {
   const { currentUser, users } = useUser();
+
+  // Catégories disponibles
+  const availableCategories = [
+    { value: "breakfast" as MealCategory, label: "Petit-déjeuner" },
+    { value: "lunch" as MealCategory, label: "Déjeuner" },
+    { value: "dinner" as MealCategory, label: "Dîner" },
+    { value: "snack" as MealCategory, label: "Collation" },
+    { value: "appetizer" as MealCategory, label: "Entrée" },
+  ];
+
+  // Gérer les changements de catégories
+  const toggleCategory = (category: MealCategory) => {
+    const currentCategories = (recipe.categories || []) as MealCategory[];
+    let newCategories: MealCategory[];
+
+    if (currentCategories.includes(category)) {
+      // Si la catégorie est déjà sélectionnée, on la retire
+      // Mais on vérifie qu'il reste au moins une catégorie
+      if (currentCategories.length > 1) {
+        newCategories = currentCategories.filter((cat) => cat !== category);
+      } else {
+        // Au moins une catégorie est requise
+        return;
+      }
+    } else {
+      // Sinon on l'ajoute
+      newCategories = [...currentCategories, category];
+    }
+
+    handleCategoriesChange(newCategories);
+  };
+
   return (
     <div className="mb-8">
       <h2 className="text-xl font-semibold mb-4 flex items-center text-gray-800">
@@ -43,7 +81,7 @@ export default function BasicInformation({
             type="text"
             id="name"
             name="name"
-            value={recipe.name}
+            value={recipe.name || ""}
             onChange={handleRecipeChange}
             required
             className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
@@ -51,27 +89,33 @@ export default function BasicInformation({
           />
         </div>
 
-        {/* Catégorie */}
+        {/* Catégories - Maintenant avec sélection multiple */}
         <div>
-          <label
-            htmlFor="category"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Catégorie *
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Catégories * (Au moins une)
           </label>
-          <select
-            id="category"
-            name="category"
-            value={recipe.category}
-            onChange={handleRecipeChange}
-            required
-            className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
-          >
-            <option value="breakfast">Petit-déjeuner</option>
-            <option value="lunch">Déjeuner</option>
-            <option value="dinner">Dîner</option>
-            <option value="snack">Collation</option>
-          </select>
+          <div className="flex flex-wrap gap-2">
+            {availableCategories.map((category) => (
+              <button
+                key={category.value}
+                type="button"
+                onClick={() => toggleCategory(category.value)}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors
+                  ${
+                    (recipe.categories || []).includes(category.value)
+                      ? "bg-emerald-500 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
+          {(recipe.categories || []).length === 0 && (
+            <p className="text-red-500 text-xs mt-1">
+              Au moins une catégorie est requise
+            </p>
+          )}
         </div>
 
         {/* Temps de préparation */}
@@ -86,7 +130,7 @@ export default function BasicInformation({
             type="number"
             id="preparationTime"
             name="preparationTime"
-            value={recipe.preparationTime}
+            value={recipe.preparationTime || 30}
             onChange={handleRecipeChange}
             min="1"
             required
@@ -105,7 +149,7 @@ export default function BasicInformation({
           <textarea
             id="description"
             name="description"
-            value={recipe.description}
+            value={recipe.description || ""}
             onChange={handleRecipeChange}
             rows={3}
             className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"

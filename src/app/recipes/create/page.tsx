@@ -18,6 +18,9 @@ import AutoExtractSection from "@/components/create-recipe/AutoExtractSection";
 import ImageUpload from "@/components/ImageUpload";
 import { useUser } from "@/context/UserContext";
 
+// Définir un type pour les catégories autorisées
+type MealCategory = "breakfast" | "lunch" | "dinner" | "snack" | "appetizer";
+
 export default function CreateRecipe() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -32,10 +35,11 @@ export default function CreateRecipe() {
     error: foodItemsError,
   } = useFoodItems();
 
+  // Mise à jour de l'état initial avec un tableau de catégories
   const [recipe, setRecipe] = useState<Partial<Meal>>({
     name: "",
     description: "",
-    category: "dinner",
+    categories: ["dinner" as MealCategory], // Tableau au lieu de value unique avec type correct
     preparationTime: 30,
     ingredients: [],
     instructions: [""],
@@ -63,6 +67,14 @@ export default function CreateRecipe() {
     setRecipe((prev) => ({
       ...prev,
       [name]: name === "preparationTime" ? parseInt(value) || 0 : value,
+    }));
+  };
+
+  // Nouveau gestionnaire pour les catégories multiples
+  const handleCategoriesChange = (selectedCategories: MealCategory[]) => {
+    setRecipe((prev) => ({
+      ...prev,
+      categories: selectedCategories,
     }));
   };
 
@@ -184,7 +196,7 @@ export default function CreateRecipe() {
 
     if (
       !recipe.name ||
-      !recipe.category ||
+      !recipe.categories?.length || // Vérifier que les catégories ne sont pas vides
       recipe.ingredients?.length === 0 ||
       recipe.instructions?.some((i) => !i)
     ) {
@@ -205,18 +217,14 @@ export default function CreateRecipe() {
         id: "",
         name: recipe.name as string,
         description: recipe.description || "",
-        category: recipe.category as
-          | "breakfast"
-          | "lunch"
-          | "dinner"
-          | "snack"
-          | "appetizer",
+        categories: recipe.categories as MealCategory[],
         preparationTime: recipe.preparationTime as number,
         ingredients: recipe.ingredients as RecipeIngredient[],
         instructions: recipe.instructions as string[],
         calculatedNutrition: nutritionPreview || undefined,
         totalCost: costPreview,
         image: recipe.image || "",
+        createdBy: recipe.createdBy || currentUser.id,
       };
 
       const success = await addMeal(newRecipe, foodItems);
@@ -229,16 +237,17 @@ export default function CreateRecipe() {
         setRecipe({
           name: "",
           description: "",
-          category: "dinner",
+          categories: ["dinner" as MealCategory], // Réinitialiser avec une catégorie par défaut
           preparationTime: 30,
           ingredients: [],
           instructions: [""],
           image: "",
+          createdBy: currentUser.id,
         });
         setImageFile(null);
 
         setTimeout(() => {
-          router.push("/");
+          router.push("/recipes-list");
         }, 2000);
       } else {
         setError("Échec de la création de la recette. Veuillez réessayer.");
@@ -306,13 +315,18 @@ export default function CreateRecipe() {
       }
     );
 
+    // Convertir la catégorie simple en tableau avec le bon type
+    const categories = data.category
+      ? [data.category as MealCategory]
+      : ["dinner" as MealCategory];
+
     setRecipe((prev) => ({
       ...prev,
       name: data.name,
       description: data.description,
       ingredients: mappedIngredients,
       instructions: data.steps || [],
-      category: data.category || "dinner",
+      categories: categories, // Mise à jour pour utiliser le tableau de catégories
     }));
   };
 
@@ -458,6 +472,7 @@ export default function CreateRecipe() {
           <BasicInformation
             recipe={recipe}
             handleRecipeChange={handleRecipeChange}
+            handleCategoriesChange={handleCategoriesChange}
           />
 
           {/* Ingredients Section */}
@@ -487,7 +502,7 @@ export default function CreateRecipe() {
 
           <div className="flex justify-end">
             <Link
-              href="/"
+              href="/recipes-list"
               className="mr-3 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
             >
               Annuler

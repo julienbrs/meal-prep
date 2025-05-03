@@ -16,12 +16,51 @@ interface MealCardProps {
 export default function MealCard({ meal }: MealCardProps) {
   const { foodItems } = useFoodItems();
   const { users } = useUser();
-  const creator = users.find(user => user.id === meal.createdBy) || users[0];
+  const creator = users.find((user) => user.id === meal.createdBy) || users[0];
   const nutrition =
     meal.calculatedNutrition ||
     calculateRecipeNutrition(meal.ingredients, foodItems);
   const cost =
     meal.totalCost || calculateRecipeCost(meal.ingredients, foodItems);
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case "breakfast":
+        return "bg-amber-500";
+      case "lunch":
+        return "bg-emerald-500";
+      case "dinner":
+        return "bg-blue-500";
+      case "snack":
+        return "bg-purple-500";
+      case "appetizer":
+        return "bg-rose-500";
+      default:
+        return "bg-emerald-500";
+    }
+  };
+
+  const getCategoryName = (category: string) => {
+    switch (category) {
+      case "breakfast":
+        return "Petit-déjeuner";
+      case "lunch":
+        return "Déjeuner";
+      case "dinner":
+        return "Dîner";
+      case "snack":
+        return "Collation";
+      case "appetizer":
+        return "Entrée";
+      default:
+        return category;
+    }
+  };
+
+  const primaryCategory =
+    meal.categories && meal.categories.length > 0
+      ? meal.categories[0]
+      : "dinner";
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group">
@@ -50,13 +89,40 @@ export default function MealCard({ meal }: MealCardProps) {
             </svg>
           </div>
         )}
+
         <div className="absolute top-2 right-2">
-          <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full uppercase tracking-wide shadow-md">
-            {meal.category}
+          <span
+            className={`${getCategoryColor(
+              primaryCategory
+            )} text-white text-xs px-2 py-1 rounded-full uppercase tracking-wide shadow-md`}
+          >
+            {getCategoryName(primaryCategory)}
+            {meal.categories && meal.categories.length > 1 && (
+              <span className="ml-1 bg-white text-gray-800 rounded-full px-1 text-xs">
+                +{meal.categories.length - 1}
+              </span>
+            )}
           </span>
         </div>
       </div>
-      <div className="flex items-center mt-2">
+
+      {/* Afficher toutes les catégories dans une ligne en dessous de l'image si nécessaire */}
+      {meal.categories && meal.categories.length > 1 && (
+        <div className="flex flex-wrap gap-1 px-4 py-1 bg-gray-50">
+          {meal.categories.map((category, index) => (
+            <span
+              key={index}
+              className={`${getCategoryColor(
+                category
+              )} bg-opacity-20 text-xs px-2 py-0.5 rounded-full`}
+            >
+              {getCategoryName(category)}
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-center mt-2 px-5">
         <Image
           src={creator.avatar}
           alt={`Créé par ${creator.name}`}
@@ -106,7 +172,9 @@ export default function MealCard({ meal }: MealCardProps) {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="font-semibold text-emerald-600">${cost}</span>
+            <span className="font-semibold text-emerald-600">
+              ${cost.toFixed(2)}
+            </span>
           </div>
           <div className="flex items-center">
             <svg

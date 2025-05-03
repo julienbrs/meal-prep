@@ -31,6 +31,42 @@ export default function MealDetails() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Fonction pour obtenir la couleur en fonction de la catégorie
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case "breakfast":
+        return "bg-amber-100 text-amber-700";
+      case "lunch":
+        return "bg-emerald-100 text-emerald-700";
+      case "dinner":
+        return "bg-blue-100 text-blue-700";
+      case "snack":
+        return "bg-purple-100 text-purple-700";
+      case "appetizer":
+        return "bg-rose-100 text-rose-700";
+      default:
+        return "bg-emerald-100 text-emerald-700";
+    }
+  };
+
+  // Fonction pour obtenir le nom traduit de la catégorie
+  const getCategoryName = (category: string) => {
+    switch (category) {
+      case "breakfast":
+        return "Petit-déjeuner";
+      case "lunch":
+        return "Déjeuner";
+      case "dinner":
+        return "Dîner";
+      case "snack":
+        return "Collation";
+      case "appetizer":
+        return "Entrée";
+      default:
+        return category;
+    }
+  };
+
   const handleDeleteMeal = async () => {
     try {
       setDeleteLoading(true);
@@ -208,9 +244,21 @@ export default function MealDetails() {
             )}
           </div>
           <div className="md:w-1/2 p-6">
-            <div className="inline-block px-3 py-1 rounded-full text-xs uppercase tracking-wide font-semibold bg-emerald-100 text-emerald-700 mb-2">
-              {meal.category}
+            {/* Affichage des catégories */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {meal.categories &&
+                meal.categories.map((category, index) => (
+                  <div
+                    key={index}
+                    className={`${getCategoryColor(
+                      category
+                    )} px-3 py-1 rounded-full text-xs uppercase tracking-wide font-semibold`}
+                  >
+                    {getCategoryName(category)}
+                  </div>
+                ))}
             </div>
+
             <h1 className="text-3xl font-bold text-gray-800 mt-2 mb-4">
               {meal.name}
             </h1>
@@ -270,7 +318,9 @@ export default function MealDetails() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="font-semibold text-emerald-600">${cost}</span>
+                <span className="font-semibold text-emerald-600">
+                  ${cost ? cost.toFixed(2) : "0.00"}
+                </span>
               </div>
             </div>
 

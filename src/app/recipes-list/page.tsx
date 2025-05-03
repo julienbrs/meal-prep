@@ -48,13 +48,27 @@ export default function Home() {
     setUserFilter(e.target.value);
   };
 
+  // Mise à jour du filtrage pour prendre en compte les catégories multiples
   const filteredMeals = meals.filter((meal) => {
     return (
       meal.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (categoryFilter === "" || meal.category === categoryFilter) &&
+      (categoryFilter === "" ||
+        (meal.categories && meal.categories.includes(categoryFilter as any))) && // Modification ici
       (userFilter === "" || meal.createdBy === userFilter)
     );
   });
+
+  // Fonction pour obtenir le nom traduit d'une catégorie
+  const getCategoryName = (categoryKey: string): string => {
+    const categoryMap: Record<string, string> = {
+      breakfast: "Petit-déjeuner",
+      lunch: "Déjeuner",
+      dinner: "Dîner",
+      snack: "En-cas",
+      appetizer: "Entrée",
+    };
+    return categoryMap[categoryKey] || categoryKey;
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -159,6 +173,7 @@ export default function Home() {
               <option value="lunch">Déjeuner</option>
               <option value="dinner">Dîner</option>
               <option value="snack">En-cas</option>
+              <option value="appetizer">Entrée</option>
             </select>
           </div>
           <div className="md:w-1/4">
@@ -219,11 +234,11 @@ export default function Home() {
         <h2 className="text-2xl font-bold text-gray-900 mb-8">
           Parcourir par Catégorie
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {[
             {
+              key: "breakfast",
               name: "Petit-déjeuner",
-              href: "/?category=breakfast",
               color: "amber",
               description: "Bien commencer la journée",
               icon: (
@@ -231,8 +246,8 @@ export default function Home() {
               ),
             },
             {
+              key: "lunch",
               name: "Déjeuner",
-              href: "/?category=lunch",
               color: "emerald",
               description: "Recharge d'énergie à midi",
               icon: (
@@ -244,8 +259,8 @@ export default function Home() {
               ),
             },
             {
+              key: "dinner",
               name: "Dîner",
-              href: "/?category=dinner",
               color: "blue",
               description: "Satisfaction du soir",
               icon: (
@@ -257,19 +272,28 @@ export default function Home() {
               ),
             },
             {
+              key: "snack",
               name: "En-cas",
-              href: "/?category=snack",
               color: "rose",
               description: "Petites bouchées rapides",
               icon: (
                 <path d="M15 1.784l-.796.796a1.125 1.125 0 101.591 0L15 1.784zM12 1.784l-.796.796a1.125 1.125 0 101.591 0L12 1.784zM9 1.784l-.796.796a1.125 1.125 0 101.591 0L9 1.784z" />
               ),
             },
+            {
+              key: "appetizer",
+              name: "Entrée",
+              color: "purple",
+              description: "Pour commencer le repas",
+              icon: (
+                <path d="M6.429 9.75L2.25 12l4.179 2.25m0-4.5l5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0l4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0l-5.571 3-5.571-3" />
+              ),
+            },
           ].map((category) => (
             <Link
-              key={category.name}
-              href={category.href}
-              onClick={() => setCategoryFilter(category.name.toLowerCase())}
+              key={category.key}
+              href={`/?category=${category.key}`}
+              onClick={() => setCategoryFilter(category.key)}
               className={`bg-${category.color}-50 hover:bg-${category.color}-100 border border-${category.color}-200 rounded-xl p-6 text-center transition-colors duration-200`}
             >
               <div

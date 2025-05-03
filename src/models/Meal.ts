@@ -31,10 +31,17 @@ const MealSchema = new mongoose.Schema(
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     description: { type: String, default: "" },
-    category: {
-      type: String,
+    // Modification du champ category en categories (tableau)
+    categories: {
+      type: [String],
       enum: ["breakfast", "lunch", "dinner", "snack", "appetizer"],
       required: true,
+      validate: {
+        validator: function (v: string[]) {
+          return v.length > 0; // Au moins une catégorie est requise
+        },
+        message: () => `Au moins une catégorie est requise`,
+      },
     },
     preparationTime: { type: Number, default: 30 },
     image: { type: String },
