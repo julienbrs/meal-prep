@@ -14,7 +14,9 @@ export interface MealPlanState {
 }
 
 export interface MealPlans {
-  [key: string]: MealPlanState;
+  [key: string]: {
+    [userId: string]: MealPlanState;
+  };
 }
 
 // Client-side caches to minimize API calls
@@ -295,13 +297,8 @@ export async function loadMealPlan(
   } catch (error) {
     console.error(`Error loading meal plan ${id}:`, error);
 
-    // If plan doesn't exist, try to get all plans and extract the one we want
-    try {
-      const allPlans = await loadMealPlans();
-      return allPlans[id] || {};
-    } catch {
-      return {};
-    }
+    // Return an empty meal plan state if it fails
+    return {};
   }
 }
 
@@ -379,4 +376,78 @@ export function createEmptyMealPlan(
 // Helper function to generate unique IDs
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
+}
+
+// Load meal plan for a specific user
+export async function loadUserMealPlan(
+  userId: string,
+  daysOfWeek: string[],
+  mealTypes: string[]
+): Promise<MealPlanState> {
+  try {
+    const planId = `user-${userId}`;
+    const response = await fetchFromApi<MealPlanState>(`mealPlans/${planId}`);
+
+    // If the meal plan exists but is empty, return a new empty one
+    if (Object.keys(response).length === 0) {
+      return createEmptyMealPlan(daysOfWeek, mealTypes);
+    }
+
+    return response;
+  } catch (error) {
+    console.error(`Error loading meal plan for user ${userId}:`, error);
+    // If no plan exists, create a new empty one
+    return createEmptyMealPlan(daysOfWeek, mealTypes);
+  }
+}
+
+// Save meal plan for a specific user
+export async function saveUserMealPlan(
+  userId: string,
+  mealPlan: MealPlanState
+): Promise<boolean> {
+  try {
+    const planId = `user-${userId}`;
+    const response = await fetchFromApi<{ success: boolean }>(
+      `mealPlans/${planId}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(mealPlan),
+      }
+    );
+
+    if (response.success) {
+      clearMealPlansCache();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error(`Error saving meal plan for user ${userId}:`, error);
+    return false;
+  }
+}
+
+// Delete meal plan for a specific user
+export async function deleteUserMealPlan(userId: string): Promise<boolean> {
+  try {
+    const planId = `user-${userId}`;
+    const response = await fetchFromApi<{ success: boolean }>(
+      `mealPlans/${planId}`,
+      {
+        method: "DELETE",
+      }
+    );
+
+    if (response.success) {
+      clearMealPlansCache();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error(`Error deleting meal plan for user ${userId}:`, error);
+    return false;
+  }
 }

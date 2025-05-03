@@ -36,16 +36,24 @@ export async function PUT(
   await dbConnect();
   try {
     const planData = await request.json();
-    const updated = await MealPlan.findOneAndUpdate(
-      { id },
-      { planData },
-      { new: true }
-    );
-    if (!updated) {
-      // create new if missing
-      await new MealPlan({ id, planData }).save();
+
+    // Check if plan exists
+    const existingPlan = await MealPlan.findOne({ id });
+
+    if (existingPlan) {
+      // Update existing plan
+      const updated = await MealPlan.findOneAndUpdate(
+        { id },
+        { planData },
+        { new: true }
+      );
+      return NextResponse.json({ success: true, plan: updated });
+    } else {
+      // Create new plan
+      const newPlan = new MealPlan({ id, planData });
+      await newPlan.save();
+      return NextResponse.json({ success: true, plan: newPlan });
     }
-    return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error updating meal plan:", error);
     return NextResponse.json(
