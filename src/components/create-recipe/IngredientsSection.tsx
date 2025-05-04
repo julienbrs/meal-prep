@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { RecipeIngredient } from "@/types/meal";
 import { FoodItem } from "@/types/ingredient";
 
@@ -24,6 +24,75 @@ export default function IngredientsSection({
   handleIngredientChange,
   getFoodItemName,
 }: IngredientsSectionProps) {
+  // État pour stocker le texte de recherche
+  const [searchText, setSearchText] = useState("");
+  // État pour contrôler si la liste déroulante est visible
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  // Référence pour fermer le dropdown quand on clique ailleurs
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Trier les ingrédients par ordre alphabétique
+  const sortedFoodItems = [...foodItems].sort((a, b) =>
+    a.name.localeCompare(b.name, "fr", { sensitivity: "base" })
+  );
+
+  // Filtrer les ingrédients en fonction du texte de recherche
+  const filteredFoodItems = sortedFoodItems.filter((item) =>
+    item.name.toLowerCase().includes(searchText.toLowerCase())
+  );
+
+  // Gérer le changement dans le champ de recherche
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchText(e.target.value);
+    setIsDropdownOpen(true);
+  };
+
+  // Gérer la sélection d'un ingrédient dans la liste déroulante
+  const handleSelectIngredient = (itemId: string, itemName: string) => {
+    // Simuler un événement de changement pour être compatible avec handleIngredientChange
+    const event = {
+      target: {
+        name: "foodItemId",
+        value: itemId,
+      },
+    } as React.ChangeEvent<HTMLSelectElement>;
+
+    handleIngredientChange(event);
+    setSearchText(itemName);
+    setIsDropdownOpen(false);
+  };
+
+  // Fermer le dropdown quand on clique ailleurs
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Mettre à jour le texte de recherche quand un nouvel ingrédient est sélectionné
+  useEffect(() => {
+    if (newIngredient.foodItemId) {
+      const selectedItem = foodItems.find(
+        (item) => item.id === newIngredient.foodItemId
+      );
+      if (selectedItem) {
+        setSearchText(selectedItem.name);
+      }
+    } else {
+      setSearchText("");
+    }
+  }, [newIngredient.foodItemId, foodItems]);
+
   return (
     <div className="mb-8">
       <h2 className="text-xl font-semibold mb-4 flex items-center text-gray-800">
@@ -48,27 +117,52 @@ export default function IngredientsSection({
           Ajouter un Ingrédient
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
+          <div className="relative" ref={dropdownRef}>
             <label
-              htmlFor="foodItemId"
+              htmlFor="ingredientSearch"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
               Aliment *
             </label>
-            <select
+            <input
+              type="text"
+              id="ingredientSearch"
+              name="ingredientSearch"
+              value={searchText}
+              onChange={handleSearchChange}
+              onClick={() => setIsDropdownOpen(true)}
+              placeholder="Rechercher un aliment..."
+              className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
+            />
+
+            {/* Liste déroulante des ingrédients filtrés */}
+            {isDropdownOpen && (
+              <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm">
+                {filteredFoodItems.length > 0 ? (
+                  filteredFoodItems.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleSelectIngredient(item.id, item.name)}
+                      className="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-gray-100"
+                    >
+                      {item.name}
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-gray-500 py-2 px-3">
+                    Aucun aliment trouvé
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Champ caché pour stocker l'ID de l'ingrédient sélectionné */}
+            <input
+              type="hidden"
               id="foodItemId"
               name="foodItemId"
-              value={newIngredient.foodItemId}
-              onChange={handleIngredientChange}
-              className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
-            >
-              <option value="">Sélectionner un aliment</option>
-              {foodItems.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
+              value={newIngredient.foodItemId || ""}
+            />
           </div>
           <div>
             <label
