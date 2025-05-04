@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  images: {
+    domains: [
+      "rsuhwfvuwikctq7h.public.blob.vercel-storage.com",
+      "vercel-blob.com",
+    ],
+  },
   // Enable static file serving for the data directory
   async rewrites() {
     return [

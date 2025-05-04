@@ -23,6 +23,14 @@ export default function MealCard({ meal }: MealCardProps) {
   const cost =
     meal.totalCost || calculateRecipeCost(meal.ingredients, foodItems);
 
+  const getImageSrc = (imagePath: string | undefined): string => {
+    if (!imagePath) return "";
+    if (imagePath.startsWith("http")) {
+      return imagePath;
+    }
+    return imagePath.startsWith("/") ? imagePath : `/${imagePath}`;
+  };
+
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "breakfast":
@@ -67,7 +75,7 @@ export default function MealCard({ meal }: MealCardProps) {
       <div className="h-48 bg-gray-200 relative overflow-hidden">
         {meal.image ? (
           <Image
-            src={meal.image}
+            src={getImageSrc(meal.image)}
             alt={meal.name}
             width={400}
             height={192}
