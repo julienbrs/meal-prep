@@ -53,15 +53,15 @@ export default function CreateFoodItemModal({
         name: ing.name,
         category: "misc", // Par défaut à misc, l'utilisateur sélectionnera la catégorie appropriée
         units: unit,
-        price: 0,
+        price: "",
         priceUnit: unit === "piece" ? "par pièce" : "pour 100g",
         nutritionPer100g: {
-          calories: 0,
-          protein: 0,
-          carbs: 0,
-          fat: 0,
-          fiber: 0,
-          sugar: 0,
+          calories: "",
+          protein: "",
+          carbs: "",
+          fat: "",
+          fiber: "",
+          sugar: "",
         },
       };
     })
@@ -85,25 +85,71 @@ export default function CreateFoodItemModal({
     );
   };
 
-  const handleNutritionChange = (index: number, field: string, value: any) => {
-    setFoodItems((prevItems) =>
-      prevItems.map((item, i) =>
-        i === index
-          ? {
-              ...item,
-              nutritionPer100g: {
-                ...item.nutritionPer100g,
-                [field]: parseFloat(value) || 0,
-              },
-            }
-          : item
-      )
-    );
+  const handleNutritionChange = (
+    index: number,
+    field: string,
+    value: string
+  ) => {
+    // Validation pour n'accepter que des nombres
+    if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+      setFoodItems((prevItems) =>
+        prevItems.map((item, i) =>
+          i === index
+            ? {
+                ...item,
+                nutritionPer100g: {
+                  ...item.nutritionPer100g,
+                  [field]: value,
+                },
+              }
+            : item
+        )
+      );
+    }
+  };
+
+  const handlePriceChange = (index: number, value: string) => {
+    // Validation pour n'accepter que des nombres
+    if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+      handleChange(index, "price", value);
+    }
   };
 
   const handleSave = async () => {
     try {
-      for (const item of foodItems) {
+      // Convertir les valeurs vides en 0 avant l'enregistrement
+      const preparedItems = foodItems.map((item) => ({
+        ...item,
+        price: item.price === "" ? 0 : parseFloat(item.price),
+        nutritionPer100g: {
+          calories:
+            item.nutritionPer100g.calories === ""
+              ? 0
+              : parseFloat(item.nutritionPer100g.calories),
+          protein:
+            item.nutritionPer100g.protein === ""
+              ? 0
+              : parseFloat(item.nutritionPer100g.protein),
+          carbs:
+            item.nutritionPer100g.carbs === ""
+              ? 0
+              : parseFloat(item.nutritionPer100g.carbs),
+          fat:
+            item.nutritionPer100g.fat === ""
+              ? 0
+              : parseFloat(item.nutritionPer100g.fat),
+          fiber:
+            item.nutritionPer100g.fiber === ""
+              ? 0
+              : parseFloat(item.nutritionPer100g.fiber),
+          sugar:
+            item.nutritionPer100g.sugar === ""
+              ? 0
+              : parseFloat(item.nutritionPer100g.sugar),
+        },
+      }));
+
+      for (const item of preparedItems) {
         await addFoodItem(item);
       }
       await reloadFoodItems();
@@ -272,14 +318,11 @@ export default function CreateFoodItemModal({
                       <span className="text-gray-500">€</span>
                     </div>
                     <input
-                      type="number"
+                      type="text"
                       value={item.price}
-                      onChange={(e) =>
-                        handleChange(index, "price", parseFloat(e.target.value))
-                      }
-                      className="w-full pl-7 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                      min="0"
-                      step="0.01"
+                      onChange={(e) => handlePriceChange(index, e.target.value)}
+                      placeholder="0.00"
+                      className="w-full pl-7 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors placeholder-gray-300"
                     />
                   </div>
                 </div>
@@ -318,7 +361,7 @@ export default function CreateFoodItemModal({
                         {nutrient.label}
                       </label>
                       <input
-                        type="number"
+                        type="text"
                         value={
                           item.nutritionPer100g[
                             nutrient.name as keyof typeof item.nutritionPer100g
@@ -331,9 +374,8 @@ export default function CreateFoodItemModal({
                             e.target.value
                           )
                         }
-                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                        min="0"
-                        step="0.1"
+                        placeholder="0.0"
+                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors placeholder-gray-300"
                       />
                     </div>
                   ))}

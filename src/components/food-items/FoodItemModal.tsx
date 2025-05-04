@@ -1,5 +1,23 @@
 import React, { useState, useEffect } from "react";
-import { FoodItem, UnitType } from "@/types/ingredient";
+import { UnitType } from "@/types/ingredient";
+
+// Modifier l'interface FoodItem pour permettre des chaînes vides dans les champs numériques
+interface FoodItem {
+  id: string;
+  name: string;
+  category: string;
+  units: UnitType;
+  nutritionPer100g: {
+    calories: number | string;
+    protein: number | string;
+    carbs: number | string;
+    fat: number | string;
+    fiber: number | string;
+    sugar: number | string;
+  };
+  price: number | string;
+  priceUnit: string;
+}
 
 interface FoodItemModalProps {
   item?: FoodItem;
@@ -19,14 +37,14 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
       category: "",
       units: "g" as UnitType,
       nutritionPer100g: {
-        calories: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        fiber: 0,
-        sugar: 0,
+        calories: "",
+        protein: "",
+        carbs: "",
+        fat: "",
+        fiber: "",
+        sugar: "",
       },
-      price: 0,
+      price: "",
       priceUnit: "pour 100g",
     }
   );
@@ -47,27 +65,34 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
     key: string
   ) => {
-    const value =
-      e.target.type === "number"
-        ? parseFloat(e.target.value) || 0
-        : e.target.value;
+    const value = e.target.value;
 
-    setFoodItem((prev) => ({ ...prev, [key]: value }));
+    // Si c'est un champ numérique, valider qu'il ne contient que des nombres
+    if (key === "price") {
+      if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+        setFoodItem((prev) => ({ ...prev, [key]: value }));
+      }
+    } else {
+      setFoodItem((prev) => ({ ...prev, [key]: value }));
+    }
   };
 
   const handleNutritionChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     nutrient: string
   ) => {
-    const value = parseFloat(e.target.value) || 0;
+    const value = e.target.value;
 
-    setFoodItem((prev) => ({
-      ...prev,
-      nutritionPer100g: {
-        ...prev.nutritionPer100g,
-        [nutrient]: value,
-      },
-    }));
+    // Valider que la valeur est un nombre ou vide
+    if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+      setFoodItem((prev) => ({
+        ...prev,
+        nutritionPer100g: {
+          ...prev.nutritionPer100g,
+          [nutrient]: value,
+        },
+      }));
+    }
   };
 
   const categories = [
@@ -91,7 +116,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
     { value: "processed", label: "Aliment transformé" },
     { value: "baking", label: "Ingrédient de pâtisserie" },
     { value: "misc", label: "Divers" },
-  ]
+  ];
 
   const units: { value: UnitType; label: string }[] = [
     { value: "g", label: "Grammes (g)" },
@@ -106,6 +131,51 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
     return foodItem.units === "piece"
       ? "Nutrition (par pièce)"
       : "Nutrition (pour 100g)";
+  };
+
+  const handleSave = () => {
+    // Convertir toutes les valeurs vides en 0 avant de sauvegarder
+    const preparedItem: FoodItem = {
+      ...foodItem,
+      price:
+        typeof foodItem.price === "string" && foodItem.price === ""
+          ? 0
+          : parseFloat(String(foodItem.price)),
+      nutritionPer100g: {
+        calories:
+          typeof foodItem.nutritionPer100g.calories === "string" &&
+          foodItem.nutritionPer100g.calories === ""
+            ? 0
+            : parseFloat(String(foodItem.nutritionPer100g.calories)),
+        protein:
+          typeof foodItem.nutritionPer100g.protein === "string" &&
+          foodItem.nutritionPer100g.protein === ""
+            ? 0
+            : parseFloat(String(foodItem.nutritionPer100g.protein)),
+        carbs:
+          typeof foodItem.nutritionPer100g.carbs === "string" &&
+          foodItem.nutritionPer100g.carbs === ""
+            ? 0
+            : parseFloat(String(foodItem.nutritionPer100g.carbs)),
+        fat:
+          typeof foodItem.nutritionPer100g.fat === "string" &&
+          foodItem.nutritionPer100g.fat === ""
+            ? 0
+            : parseFloat(String(foodItem.nutritionPer100g.fat)),
+        fiber:
+          typeof foodItem.nutritionPer100g.fiber === "string" &&
+          foodItem.nutritionPer100g.fiber === ""
+            ? 0
+            : parseFloat(String(foodItem.nutritionPer100g.fiber)),
+        sugar:
+          typeof foodItem.nutritionPer100g.sugar === "string" &&
+          foodItem.nutritionPer100g.sugar === ""
+            ? 0
+            : parseFloat(String(foodItem.nutritionPer100g.sugar)),
+      },
+    };
+
+    onSave(preparedItem);
   };
 
   return (
@@ -217,12 +287,11 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
                     <span className="text-gray-500">€</span>
                   </div>
                   <input
-                    type="number"
+                    type="text"
                     value={foodItem.price}
                     onChange={(e) => handleInputChange(e, "price")}
-                    className="w-full pl-7 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                    min="0"
-                    step="0.01"
+                    placeholder="0.00"
+                    className="w-full pl-7 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors placeholder-gray-300"
                   />
                 </div>
               </div>
@@ -261,16 +330,15 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
                       {nutrient.label}
                     </label>
                     <input
-                      type="number"
+                      type="text"
                       value={
                         foodItem.nutritionPer100g[
                           nutrient.name as keyof typeof foodItem.nutritionPer100g
                         ]
                       }
                       onChange={(e) => handleNutritionChange(e, nutrient.name)}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors"
-                      min="0"
-                      step="0.1"
+                      placeholder="0.0"
+                      className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors placeholder-gray-300"
                     />
                   </div>
                 ))}
@@ -288,7 +356,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
             Annuler
           </button>
           <button
-            onClick={() => onSave(foodItem)}
+            onClick={handleSave}
             disabled={!foodItem.name || !foodItem.category}
             className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg shadow hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
