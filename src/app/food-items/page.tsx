@@ -21,6 +21,7 @@ export default function FoodItemsPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [editItem, setEditItem] = useState<FoodItem | null>(null);
   const [newItem, setNewItem] = useState(false);
+  const [duplicateItem, setDuplicateItem] = useState<FoodItem | null>(null); // Nouvel état pour la duplication
 
   // Load food items on component mount
   useEffect(() => {
@@ -77,6 +78,7 @@ export default function FoodItemsPage() {
         const updatedItems = await loadFoodItems();
         setItems(updatedItems);
         setNewItem(false);
+        setDuplicateItem(null); // Réinitialiser l'état de duplication
       } else {
         setError("Échec de la création de l'élément. Veuillez réessayer.");
       }
@@ -89,6 +91,17 @@ export default function FoodItemsPage() {
   // Handler for editing an item
   const handleEdit = (item: FoodItem) => {
     setEditItem(item);
+  };
+
+  // Handler for duplicating an item
+  const handleDuplicate = (item: FoodItem) => {
+    // Créer une copie de l'item mais sans l'ID pour en faire un nouvel élément
+    const itemCopy = {
+      ...item,
+      id: "", // Vider l'ID pour que le backend en génère un nouveau
+      name: `${item.name} (copie)`, // Ajouter "(copie)" au nom
+    };
+    setDuplicateItem(itemCopy);
   };
 
   // Handler for deleting an item
@@ -155,6 +168,7 @@ export default function FoodItemsPage() {
           items={filteredItems}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onDuplicate={handleDuplicate} // Ajouter le gestionnaire de duplication
         />
       )}
 
@@ -170,6 +184,15 @@ export default function FoodItemsPage() {
           item={editItem}
           onSave={handleSave}
           onClose={() => setEditItem(null)}
+        />
+      )}
+
+      {duplicateItem && (
+        <FoodItemModal
+          item={duplicateItem}
+          onSave={handleCreate} // Utiliser le gestionnaire de création pour les items dupliqués
+          onClose={() => setDuplicateItem(null)}
+          isDuplicate={true} // Indiquer que c'est une duplication
         />
       )}
     </div>

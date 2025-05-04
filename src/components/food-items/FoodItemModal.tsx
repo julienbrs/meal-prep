@@ -24,12 +24,14 @@ interface FoodItemModalProps {
   item?: FoodItem;
   onSave: (item: FoodItem) => void;
   onClose: () => void;
+  isDuplicate?: boolean; // Nouvelle prop pour indiquer la duplication
 }
 
 const FoodItemModal: React.FC<FoodItemModalProps> = ({
   item,
   onSave,
   onClose,
+  isDuplicate = false, // Valeur par défaut à false
 }) => {
   const [foodItem, setFoodItem] = useState<FoodItemFormState>(
     item
@@ -216,7 +218,11 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
               />
             </svg>
-            {item ? `Modifier ${item.name}` : "Ajouter un Nouvel Aliment"}
+            {isDuplicate
+              ? `Dupliquer ${item?.name || ""}`
+              : item
+              ? `Modifier ${item.name}`
+              : "Ajouter un Nouvel Aliment"}
           </h2>
           <button
             onClick={onClose}
@@ -398,7 +404,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
             disabled={!foodItem.name || !foodItem.category}
             className="px-6 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium rounded-lg shadow hover:from-green-600 hover:to-emerald-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
-            {item ? "Mettre à jour" : "Créer"}
+            {isDuplicate ? "Créer une copie" : item ? "Mettre à jour" : "Créer"}
           </button>
         </div>
       </div>

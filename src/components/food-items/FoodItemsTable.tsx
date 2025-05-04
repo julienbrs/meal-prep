@@ -5,12 +5,14 @@ interface FoodItemsTableProps {
   items: FoodItem[];
   onEdit: (item: FoodItem) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (item: FoodItem) => void;
 }
 
 const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
   items,
   onEdit,
   onDelete,
+  onDuplicate,
 }) => {
   return (
     <div className="overflow-x-auto rounded-lg shadow">
@@ -133,6 +135,22 @@ const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
                         <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                       </svg>
                       Modifier
+                    </button>
+                    {/* Nouveau bouton pour dupliquer */}
+                    <button
+                      onClick={() => onDuplicate(item)}
+                      className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-3.5 w-3.5 mr-1"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M7 9a2 2 0 012-2h6a2 2 0 012 2v6a2 2 0 01-2 2H9a2 2 0 01-2-2V9z" />
+                        <path d="M5 3a2 2 0 00-2 2v6a2 2 0 002 2V5h8a2 2 0 00-2-2H5z" />
+                      </svg>
+                      Dupliquer
                     </button>
                     <button
                       onClick={() => onDelete(item.id)}
