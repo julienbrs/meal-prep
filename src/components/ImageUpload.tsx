@@ -14,47 +14,45 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const [imagePreview, setImagePreview] = useState<string | null>(
     initialImage || null
   );
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   const saveImage = async (file: File) => {
     try {
-      // Création d'un nom de fichier unique avec horodatage et nom d'origine
-      const timestamp = new Date().getTime();
-      const fileName = `${timestamp}-${file.name
-        .toLowerCase()
-        .replace(/\s+/g, "-")}`;
-      const path = `/images/recipes/${fileName}`;
+      setIsUploading(true);
 
-      // Création du FormData
+      // Create FormData
       const formData = new FormData();
       formData.append("image", file);
-      formData.append("path", path);
 
-      // Sauvegarde du fichier dans le répertoire public
+      // Upload the file using our API route
       const response = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Échec du téléchargement de l'image");
+        throw new Error("Failed to upload image");
       }
 
-      return path;
+      const data = await response.json();
+      return data.path; // This is now the full URL to the blob
     } catch (error) {
-      console.error("Erreur lors de l'enregistrement de l'image:", error);
+      console.error("Error saving image:", error);
       return null;
+    } finally {
+      setIsUploading(false);
     }
   };
 
   const handleFileProcess = async (file: File) => {
-    // Création de l'aperçu
+    // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result as string);
     };
     reader.readAsDataURL(file);
 
-    // Sauvegarde du fichier et récupération du chemin
+    // Save the file and get the URL
     const path = await saveImage(file);
     onImageChange(file, path);
   };
@@ -115,7 +113,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           <div className="relative">
             <img
               src={imagePreview}
-              alt="Aperçu"
+              alt="Preview"
               className="h-32 w-32 object-cover rounded-lg shadow-md"
             />
             <button
@@ -143,44 +141,54 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
             onDrop={handleDrop}
             className="h-32 w-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100 transition-colors duration-200"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8 text-gray-400 mb-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-xs text-gray-500 text-center">
-              Ctrl+V pour coller
-            </span>
+            {isUploading ? (
+              <div className="flex flex-col items-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+                <span className="text-xs text-gray-500 mt-2">Uploading...</span>
+              </div>
+            ) : (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8 text-gray-400 mb-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="text-xs text-gray-500 text-center">
+                  Ctrl+V to paste
+                </span>
+              </>
+            )}
           </div>
         )}
       </div>
       <div className="flex-grow">
         <label className="block">
-          <span className="sr-only">Choisir une photo</span>
+          <span className="sr-only">Choose a photo</span>
           <input
             type="file"
             accept="image/*"
             onChange={handleImageChange}
-            className="block w-full text-sm text-gray-500
+            disabled={isUploading}
+            className={`block w-full text-sm text-gray-500
               file:mr-4 file:py-2 file:px-4
               file:rounded-full file:border-0
               file:text-sm file:font-semibold
               file:bg-emerald-50 file:text-emerald-700
               hover:file:bg-emerald-100
               transition-colors duration-200
-            "
+              ${isUploading ? "opacity-50 cursor-not-allowed" : ""}
+            `}
           />
         </label>
         <p className="mt-2 text-sm text-gray-500">
-          PNG, JPG, GIF jusqu'à 10MB. Glisser-déposer ou Ctrl+V pour coller
-          supportés.
+          PNG, JPG, GIF up to 10MB. Drag & drop or Ctrl+V supported.
         </p>
       </div>
     </div>
