@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { UnitType } from "@/types/ingredient";
+import { FoodItem, UnitType, NutritionInfo } from "@/types/ingredient";
 
-// Modifier l'interface FoodItem pour permettre des chaînes vides dans les champs numériques
-interface FoodItem {
+// Define an interface for the modal's internal state
+interface FoodItemFormState {
   id: string;
   name: string;
   category: string;
@@ -17,6 +17,7 @@ interface FoodItem {
   };
   price: number | string;
   priceUnit: string;
+  weightPerPiece?: number | string;
 }
 
 interface FoodItemModalProps {
@@ -30,24 +31,48 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
   onSave,
   onClose,
 }) => {
-  const [foodItem, setFoodItem] = useState<FoodItem>(
-    item || {
-      id: "",
-      name: "",
-      category: "",
-      units: "g" as UnitType,
-      nutritionPer100g: {
-        calories: "",
-        protein: "",
-        carbs: "",
-        fat: "",
-        fiber: "",
-        sugar: "",
-      },
-      price: "",
-      priceUnit: "pour 100g",
-    }
+  const [foodItem, setFoodItem] = useState<FoodItemFormState>(
+    item
+      ? convertToFormState(item)
+      : {
+          id: "",
+          name: "",
+          category: "",
+          units: "g" as UnitType,
+          nutritionPer100g: {
+            calories: "",
+            protein: "",
+            carbs: "",
+            fat: "",
+            fiber: "",
+            sugar: "",
+          },
+          price: "",
+          priceUnit: "pour 100g",
+          weightPerPiece: "",
+        }
   );
+
+  // Helper function to convert FoodItem to FormState
+  function convertToFormState(item: FoodItem): FoodItemFormState {
+    return {
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      units: item.units,
+      nutritionPer100g: {
+        calories: item.nutritionPer100g.calories,
+        protein: item.nutritionPer100g.protein,
+        carbs: item.nutritionPer100g.carbs,
+        fat: item.nutritionPer100g.fat,
+        fiber: item.nutritionPer100g.fiber || "",
+        sugar: item.nutritionPer100g.sugar || "",
+      },
+      price: item.price,
+      priceUnit: item.priceUnit,
+      weightPerPiece: item.weightPerPiece || "",
+    };
+  }
 
   useEffect(() => {
     // Update priceUnit when units change
@@ -68,7 +93,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
     const value = e.target.value;
 
     // Si c'est un champ numérique, valider qu'il ne contient que des nombres
-    if (key === "price") {
+    if (key === "price" || key === "weightPerPiece") {
       if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
         setFoodItem((prev) => ({ ...prev, [key]: value }));
       }
@@ -128,55 +153,48 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
   ];
 
   const getNutritionLabel = (): string => {
-    return foodItem.units === "piece"
-      ? "Nutrition (par pièce)"
-      : "Nutrition (pour 100g)";
+    return "Nutrition (pour 100g)";
   };
 
   const handleSave = () => {
-    // Convertir toutes les valeurs vides en 0 avant de sauvegarder
+    // Convert form state to FoodItem type with proper data types
     const preparedItem: FoodItem = {
-      ...foodItem,
-      price:
-        typeof foodItem.price === "string" && foodItem.price === ""
-          ? 0
-          : parseFloat(String(foodItem.price)),
+      id: foodItem.id,
+      name: foodItem.name,
+      category: foodItem.category,
+      units: foodItem.units,
+      price: convertToNumber(foodItem.price, 0),
+      priceUnit: foodItem.priceUnit,
+      weightPerPiece:
+        foodItem.units === "piece"
+          ? convertToNumber(foodItem.weightPerPiece, 100)
+          : foodItem.weightPerPiece !== undefined &&
+            foodItem.weightPerPiece !== ""
+          ? convertToNumber(foodItem.weightPerPiece, 0)
+          : undefined,
       nutritionPer100g: {
-        calories:
-          typeof foodItem.nutritionPer100g.calories === "string" &&
-          foodItem.nutritionPer100g.calories === ""
-            ? 0
-            : parseFloat(String(foodItem.nutritionPer100g.calories)),
-        protein:
-          typeof foodItem.nutritionPer100g.protein === "string" &&
-          foodItem.nutritionPer100g.protein === ""
-            ? 0
-            : parseFloat(String(foodItem.nutritionPer100g.protein)),
-        carbs:
-          typeof foodItem.nutritionPer100g.carbs === "string" &&
-          foodItem.nutritionPer100g.carbs === ""
-            ? 0
-            : parseFloat(String(foodItem.nutritionPer100g.carbs)),
-        fat:
-          typeof foodItem.nutritionPer100g.fat === "string" &&
-          foodItem.nutritionPer100g.fat === ""
-            ? 0
-            : parseFloat(String(foodItem.nutritionPer100g.fat)),
-        fiber:
-          typeof foodItem.nutritionPer100g.fiber === "string" &&
-          foodItem.nutritionPer100g.fiber === ""
-            ? 0
-            : parseFloat(String(foodItem.nutritionPer100g.fiber)),
-        sugar:
-          typeof foodItem.nutritionPer100g.sugar === "string" &&
-          foodItem.nutritionPer100g.sugar === ""
-            ? 0
-            : parseFloat(String(foodItem.nutritionPer100g.sugar)),
+        calories: convertToNumber(foodItem.nutritionPer100g.calories, 0),
+        protein: convertToNumber(foodItem.nutritionPer100g.protein, 0),
+        carbs: convertToNumber(foodItem.nutritionPer100g.carbs, 0),
+        fat: convertToNumber(foodItem.nutritionPer100g.fat, 0),
+        fiber: convertToNumber(foodItem.nutritionPer100g.fiber, 0),
+        sugar: convertToNumber(foodItem.nutritionPer100g.sugar, 0),
       },
     };
 
     onSave(preparedItem);
   };
+
+  // Helper function to convert string or undefined values to numbers
+  function convertToNumber(
+    value: string | number | undefined,
+    defaultValue: number
+  ): number {
+    if (value === undefined || value === "") {
+      return defaultValue;
+    }
+    return typeof value === "string" ? parseFloat(value) : value;
+  }
 
   return (
     <div className="fixed inset-y-0 right-0 flex z-50">
@@ -278,9 +296,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {foodItem.units === "piece"
-                    ? "Prix par pièce (€)"
-                    : "Prix pour 100g (€)"}
+                  Prix pour 100g (€)
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -296,6 +312,28 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* Weight Per Piece - Seulement affiché si l'unité est "piece" */}
+            {foodItem.units === "piece" && (
+              <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Poids moyen par pièce (en grammes)
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={foodItem.weightPerPiece || ""}
+                    onChange={(e) => handleInputChange(e, "weightPerPiece")}
+                    placeholder="ex: 150 pour une pomme moyenne"
+                    className="w-full p-2 border border-amber-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors placeholder-amber-300 bg-white"
+                  />
+                  <div className="mt-1 text-sm text-amber-600">
+                    Cette valeur sera utilisée pour calculer les informations
+                    nutritionnelles équivalentes à 100g.
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Nutrition Information */}
             <div>

@@ -6,6 +6,7 @@ export interface FoodItem {
   nutritionPer100g: NutritionInfo;
   price: number;
   priceUnit: string;
+  weightPerPiece?: number;
 }
 
 export interface NutritionInfo {

@@ -20,6 +20,7 @@ const FoodItemSchema = new mongoose.Schema(
     },
     price: { type: Number, default: 0 },
     priceUnit: { type: String, default: "per 100g" },
+    weightPerPiece: { type: Number },
   },
   {
     timestamps: true,

@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useEffect } from "react";
 import { addFoodItem } from "@/services/dataservice";
 import { UnitType } from "@/types/ingredient";
@@ -40,6 +39,7 @@ export default function CreateFoodItemModal({
       setIsAutofilling(false);
     }
   };
+
   const [foodItems, setFoodItems] = useState(
     missingIngredients.map((ing) => {
       const unit =
@@ -55,6 +55,7 @@ export default function CreateFoodItemModal({
         units: unit,
         price: "",
         priceUnit: unit === "piece" ? "par pièce" : "pour 100g",
+        weightPerPiece: unit === "piece" ? "150" : "", // Valeur par défaut pour les aliments à la pièce
         nutritionPer100g: {
           calories: "",
           protein: "",
@@ -115,12 +116,25 @@ export default function CreateFoodItemModal({
     }
   };
 
+  const handleWeightPerPieceChange = (index: number, value: string) => {
+    // Validation pour n'accepter que des nombres
+    if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
+      handleChange(index, "weightPerPiece", value);
+    }
+  };
+
   const handleSave = async () => {
     try {
       // Convertir les valeurs vides en 0 avant l'enregistrement
       const preparedItems = foodItems.map((item) => ({
         ...item,
         price: item.price === "" ? 0 : parseFloat(item.price),
+        weightPerPiece:
+          item.weightPerPiece === ""
+            ? item.units === "piece"
+              ? 100
+              : 0 // Valeur par défaut si unité est "piece"
+            : parseFloat(item.weightPerPiece || "0"),
         nutritionPer100g: {
           calories:
             item.nutritionPer100g.calories === ""
@@ -160,10 +174,7 @@ export default function CreateFoodItemModal({
   };
 
   const getNutritionLabel = (index: number): string => {
-    const item = foodItems[index];
-    return item.units === "piece"
-      ? "Nutrition (par pièce)"
-      : "Nutrition (pour 100g)";
+    return "Nutrition (pour 100g)";
   };
 
   return (
@@ -309,9 +320,7 @@ export default function CreateFoodItemModal({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {item.units === "piece"
-                      ? "Prix par pièce (€)"
-                      : "Prix pour 100g (€)"}
+                    Prix pour 100g (€)
                   </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -327,6 +336,30 @@ export default function CreateFoodItemModal({
                   </div>
                 </div>
               </div>
+
+              {/* Weight Per Piece - Seulement affiché si l'unité est "piece" */}
+              {item.units === "piece" && (
+                <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Poids moyen par pièce (en grammes)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={item.weightPerPiece || ""}
+                      onChange={(e) =>
+                        handleWeightPerPieceChange(index, e.target.value)
+                      }
+                      placeholder="ex: 150 pour une pomme moyenne"
+                      className="w-full p-2 border border-amber-300 rounded-md focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors placeholder-amber-300 bg-white"
+                    />
+                    <div className="mt-1 text-sm text-amber-600">
+                      Cette valeur sera utilisée pour calculer les informations
+                      nutritionnelles équivalentes à 100g.
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Informations Nutritionnelles */}
               <div className="mt-4">
