@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Meal } from "@/types/meal";
 import { useFoodItems } from "@/context/FoodItemsContext";
-import { MealPlanState } from "@/services/dataservice";
+import { MealPlanState } from "@/types/mealPlan";
 import AlertDialog from "@/components/AlertDialog";
 
 interface MealPlanGeneratorProps {
@@ -115,7 +115,15 @@ const MealPlanGenerator: React.FC<MealPlanGeneratorProps> = ({
             const randomIndex = Math.floor(
               Math.random() * availableMeals.length
             );
-            newPlan[day][mealType] = availableMeals[randomIndex];
+            const chosen = availableMeals[randomIndex];
+
+            if (mealType === "Snack") {
+              // Pour "Snack", on stocke un tableau de SnackEntry[]
+              newPlan[day][mealType] = [{ meal: chosen, portions: 1 }];
+            } else {
+              // Pour les autres repas, on stocke un MealPlanEntry
+              newPlan[day][mealType] = { meal: chosen, portions: 1 };
+            }
 
             // Remove the meal to avoid duplicates in the same week
             if (availableMeals.length > mealTypes.length) {

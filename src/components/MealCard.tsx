@@ -15,14 +15,39 @@ interface MealCardProps {
 
 export default function MealCard({ meal }: MealCardProps) {
   const { foodItems } = useFoodItems();
-  const { users } = useUser();
-  const creator = users.find((user) => user.id === meal.createdBy) || users[0];
-  const nutrition =
+  const { currentUser, users } = useUser();
+
+  // 1) On calcule ici le nombre de portions « préférées » pour cet utilisateur
+  const preferredPortions =
+    // si meal.preferredPortions existe et contient un champ pour currentUser.id, on l’utilise
+    meal.preferredPortions && meal.preferredPortions[currentUser.id]
+      ? meal.preferredPortions[currentUser.id]
+      : 1;
+
+  // 2) On calcule la nutrition « unitaire » (pour 1 portion) → puis on multiplie
+  const nutritionPerPortion =
     meal.calculatedNutrition ||
     calculateRecipeNutrition(meal.ingredients, foodItems);
-  const cost =
-    meal.totalCost || calculateRecipeCost(meal.ingredients, foodItems);
+  const nutrition = {
+    calories: Math.round(nutritionPerPortion.calories * preferredPortions),
+    protein: Number(
+      (nutritionPerPortion.protein * preferredPortions).toFixed(1)
+    ),
+    carbs: Number((nutritionPerPortion.carbs * preferredPortions).toFixed(1)),
+    fat: Number((nutritionPerPortion.fat * preferredPortions).toFixed(1)),
+  };
 
+  // 3) Même principe pour le coût unitaire → on multiplie
+  const costPerPortion =
+    meal.totalCost !== undefined
+      ? meal.totalCost
+      : calculateRecipeCost(meal.ingredients, foodItems);
+  const totalCost = Number((costPerPortion * preferredPortions).toFixed(2));
+
+  // 4) On préfère afficher l’avatar du créateur du repas
+  const creator = users.find((u) => u.id === meal.createdBy) || users[0];
+
+  // 5) Helpers pour l’image et la couleur de catégorie
   const getImageSrc = (imagePath: string | undefined): string => {
     if (!imagePath) return "";
     if (imagePath.startsWith("http")) {
@@ -114,7 +139,7 @@ export default function MealCard({ meal }: MealCardProps) {
         </div>
       </div>
 
-      {/* Afficher toutes les catégories dans une ligne en dessous de l'image si nécessaire */}
+      {/* Si plusieurs catégories, on affiche la liste en dessous de l’image */}
       {meal.categories && meal.categories.length > 1 && (
         <div className="flex flex-wrap gap-1 px-4 py-1 bg-gray-50">
           {meal.categories.map((category, index) => (
@@ -140,6 +165,7 @@ export default function MealCard({ meal }: MealCardProps) {
         />
         <span className="text-xs text-gray-500">Créé par {creator.name}</span>
       </div>
+
       <div className="p-5">
         <div className="mb-3">
           <h2 className="text-xl font-bold text-gray-800 mb-1 group-hover:text-emerald-600 transition-colors duration-200">
@@ -151,6 +177,7 @@ export default function MealCard({ meal }: MealCardProps) {
         </div>
 
         <div className="flex justify-between items-center text-sm mb-4">
+          {/* Temps de préparation */}
           <div className="flex items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -166,6 +193,8 @@ export default function MealCard({ meal }: MealCardProps) {
             </svg>
             <span className="text-gray-600">{meal.preparationTime} mins</span>
           </div>
+
+          {/* Coût total (multiplié par preferredPortions) */}
           <div className="flex items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -181,9 +210,11 @@ export default function MealCard({ meal }: MealCardProps) {
               />
             </svg>
             <span className="font-semibold text-emerald-600">
-              ${cost.toFixed(2)}
+              ${totalCost.toFixed(2)}
             </span>
           </div>
+
+          {/* Calories totales (multiplié par preferredPortions) */}
           <div className="flex items-center">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -202,19 +233,19 @@ export default function MealCard({ meal }: MealCardProps) {
         <div className="grid grid-cols-3 gap-2 mb-4">
           <div className="bg-red-50 rounded-lg p-2 text-center">
             <span className="block text-xs text-red-800 font-medium">
-              {nutrition.protein}g
+              {nutrition.protein} g
             </span>
             <span className="block text-xs text-red-600">Protéines</span>
           </div>
           <div className="bg-yellow-50 rounded-lg p-2 text-center">
             <span className="block text-xs text-yellow-800 font-medium">
-              {nutrition.carbs}g
+              {nutrition.carbs} g
             </span>
             <span className="block text-xs text-yellow-600">Glucides</span>
           </div>
           <div className="bg-green-50 rounded-lg p-2 text-center">
             <span className="block text-xs text-green-800 font-medium">
-              {nutrition.fat}g
+              {nutrition.fat} g
             </span>
             <span className="block text-xs text-green-600">Lipides</span>
           </div>

@@ -7,19 +7,20 @@ import Image from "next/image";
 import {
   calculateRecipeNutrition,
   calculateRecipeCost,
+  adjustIngredientsForPortions,
 } from "@/utils/nutritionCalculator";
-import { deleteMeal, loadMeals } from "@/services/dataservice";
+import { deleteMeal, loadMeal, updateMeal } from "@/services/dataservice";
 import { Meal } from "@/types/meal";
 import { useFoodItems } from "@/context/FoodItemsContext";
 import { useUser } from "@/context/UserContext";
 import AlertDialog from "@/components/AlertDialog";
+import PortionSelector from "@/components/PortionSelector";
 
 export default function MealDetails() {
   const params = useParams();
   const router = useRouter();
   const { foodItems } = useFoodItems();
-  const { users } = useUser();
-
+  const { currentUser, users } = useUser();
   const id = params.id as string;
 
   const [meal, setMeal] = useState<Meal | null>(null);
@@ -31,7 +32,11 @@ export default function MealDetails() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // Fonction pour obtenir la couleur en fonction de la catégorie
+  // Portions
+  const [currentPortions, setCurrentPortions] = useState<number>(1);
+  const [savingPreference, setSavingPreference] = useState(false);
+
+  // Obtenir la couleur en fonction de la catégorie
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "breakfast":
@@ -49,7 +54,6 @@ export default function MealDetails() {
     }
   };
 
-  // Fonction pour obtenir le nom traduit de la catégorie
   const getCategoryName = (category: string) => {
     switch (category) {
       case "breakfast":
@@ -67,64 +71,88 @@ export default function MealDetails() {
     }
   };
 
-  const handleDeleteMeal = async () => {
-    try {
-      setDeleteLoading(true);
-      await deleteMeal(id);
-      router.push("/");
-    } catch (err) {
-      console.error("Erreur lors de la suppression du repas:", err);
-      setError(
-        "Échec de la suppression du repas. Veuillez réessayer plus tard."
-      );
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
-
+  // Charger un seul repas via GET /api/meals/[id]
   useEffect(() => {
+    setLoading(true);
+    setError(null);
+
     async function fetchMeal() {
-      setLoading(true);
       try {
-        const meals = await loadMeals();
-        const foundMeal = meals.find((m) => m.id === id);
-        setMeal(foundMeal || null);
+        const fetched: Meal = await loadMeal(id);
+        setMeal(fetched);
+        // Initialiser la portion à la préférence ou à 1
+        const userPref = fetched.preferredPortions?.[currentUser.id] || 1;
+        setCurrentPortions(userPref);
       } catch (err) {
-        console.error("Erreur lors du chargement du repas:", err);
-        setError(
-          "Échec du chargement des détails du repas. Veuillez réessayer plus tard."
-        );
+        console.error("Erreur lors du chargement du repas :", err);
+        setError("Échec du chargement du repas. Réessayez plus tard.");
       } finally {
         setLoading(false);
       }
     }
 
     fetchMeal();
-  }, [id]);
+    // Ne dépendre que de l’ID et de l’utilisateur
+  }, [id, currentUser.id]);
 
-  // Load food item names in a separate useEffect
+  // Charger les noms des food items (si repas chargé et foodItems déjà disponibles)
   useEffect(() => {
     if (!meal || foodItems.length === 0) return;
-
     const names: Record<string, string> = {};
-    meal.ingredients.forEach((ingredient) => {
-      const foodItem = foodItems.find(
-        (item) => item.id === ingredient.foodItemId
-      );
-      if (foodItem) {
-        names[ingredient.foodItemId] = foodItem.name;
-      }
+    meal.ingredients.forEach((ing) => {
+      const fi = foodItems.find((f) => f.id === ing.foodItemId);
+      if (fi) names[ing.foodItemId] = fi.name;
     });
-
     setFoodItemNames(names);
   }, [meal, foodItems]);
 
-  const nutrition =
-    meal?.calculatedNutrition ||
-    (meal ? calculateRecipeNutrition(meal.ingredients, foodItems) : null);
-  const cost =
-    meal?.totalCost ||
-    (meal ? calculateRecipeCost(meal.ingredients, foodItems) : null);
+  const handleDeleteMeal = async () => {
+    try {
+      setDeleteLoading(true);
+      await deleteMeal(id);
+      router.push("/");
+    } catch (err) {
+      console.error("Erreur lors de la suppression :", err);
+      setError("Échec de la suppression. Réessayez plus tard.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const handleSavePortionPreference = async (portions: number) => {
+    if (!meal) return;
+    try {
+      setSavingPreference(true);
+      console.log(
+        "Saving preference for user",
+        currentUser.id,
+        "with portions",
+        portions
+      );
+      const updatedMeal: Meal = {
+        ...meal,
+        preferredPortions: {
+          ...meal.preferredPortions,
+          [currentUser.id]: portions,
+        },
+      };
+      const success = await updateMeal(updatedMeal, foodItems);
+      console.log("Success", success);
+      if (success) {
+        setMeal(updatedMeal);
+        // Vider le cache des repas pour forcer un fetch frais
+        const { clearMealsCache } = await import("@/services/dataservice");
+        clearMealsCache();
+      } else {
+        setError("Échec de la sauvegarde.");
+      }
+    } catch (err) {
+      console.error("Erreur lors de la sauvegarde :", err);
+      setError("Erreur inattendue. Réessayez.");
+    } finally {
+      setSavingPreference(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -145,7 +173,7 @@ export default function MealDetails() {
         </div>
         <Link
           href="/"
-          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg"
         >
           Retour aux Recettes
         </Link>
@@ -159,10 +187,10 @@ export default function MealDetails() {
         <h1 className="text-3xl font-bold text-gray-800 mb-4">
           Repas Non Trouvé
         </h1>
-        <p className="mb-6">Le repas que vous recherchez n&apos;existe pas.</p>
+        <p className="mb-6">Le repas que vous recherchez n’existe pas.</p>
         <Link
           href="/"
-          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+          className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg"
         >
           Retour aux Recettes
         </Link>
@@ -170,18 +198,34 @@ export default function MealDetails() {
     );
   }
 
+  // Calculs ajustés pour la portion
+  const adjustedIngredients = adjustIngredientsForPortions(
+    meal.ingredients,
+    currentPortions
+  );
+  const nutrition = calculateRecipeNutrition(
+    meal.ingredients,
+    foodItems,
+    currentPortions
+  );
+  const cost = calculateRecipeCost(
+    meal.ingredients,
+    foodItems,
+    currentPortions
+  );
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <Link
           href="/"
-          className="inline-block text-emerald-500 hover:text-emerald-700 transition-colors duration-200 flex items-center"
+          className="inline-flex items-center text-emerald-500 hover:text-emerald-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="currentColor"
-            className="w-5 h-5 mr-1"
+            className="w-5 h-5 mr-2"
           >
             <path
               fillRule="evenodd"
@@ -189,12 +233,12 @@ export default function MealDetails() {
               clipRule="evenodd"
             />
           </svg>
-          Retour à Toutes les Recettes
+          Retour aux recettes
         </Link>
 
         <button
           onClick={() => setIsDeleteDialogOpen(true)}
-          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center"
+          className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg flex items-center"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -217,7 +261,7 @@ export default function MealDetails() {
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={handleDeleteMeal}
         title="Supprimer la Recette"
-        description={`Êtes-vous sûr de vouloir supprimer "${meal?.name}" ? Cette action ne peut pas être annulée.`}
+        description={`Êtes-vous sûr de vouloir supprimer "${meal.name}" ? Cette action est irréversible.`}
         confirmLabel="Supprimer"
         cancelLabel="Annuler"
         loading={deleteLoading}
@@ -244,19 +288,17 @@ export default function MealDetails() {
             )}
           </div>
           <div className="md:w-1/2 p-6">
-            {/* Affichage des catégories */}
             <div className="flex flex-wrap gap-2 mb-3">
-              {meal.categories &&
-                meal.categories.map((category, index) => (
-                  <div
-                    key={index}
-                    className={`${getCategoryColor(
-                      category
-                    )} px-3 py-1 rounded-full text-xs uppercase tracking-wide font-semibold`}
-                  >
-                    {getCategoryName(category)}
-                  </div>
-                ))}
+              {meal.categories.map((category, idx) => (
+                <div
+                  key={idx}
+                  className={`${getCategoryColor(
+                    category
+                  )} px-3 py-1 rounded-full text-xs uppercase font-semibold`}
+                >
+                  {getCategoryName(category)}
+                </div>
+              ))}
             </div>
 
             <h1 className="text-3xl font-bold text-gray-800 mt-2 mb-4">
@@ -264,7 +306,7 @@ export default function MealDetails() {
             </h1>
             <p className="text-gray-600 mb-4">{meal.description}</p>
 
-            {meal.createdBy && (
+            {/* {meal.createdBy && (
               <div className="flex items-center mt-2 mb-4">
                 <Image
                   src={
@@ -285,7 +327,7 @@ export default function MealDetails() {
                     "Inconnu"}
                 </span>
               </div>
-            )}
+            )} */}
 
             <div className="flex justify-between items-center text-sm mb-4">
               <div className="flex items-center text-gray-700">
@@ -301,26 +343,35 @@ export default function MealDetails() {
                     clipRule="evenodd"
                   />
                 </svg>
-                <span className="font-semibold">Temps de Préparation:</span>
+                <span className="font-semibold">Temps de Préparation :</span>
                 <span className="ml-2">{meal.preparationTime} minutes</span>
               </div>
-              <div className="flex items-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-4 h-4 text-emerald-500 mr-1"
-                >
-                  <path d="M10.464 8.746c.227-.18.497-.311.786-.394v2.795a2.252 2.252 0 01-.786-.393c-.394-.313-.546-.681-.546-1.004 0-.323.152-.691.546-1.004zM12.75 15.662v-2.824c.347.085.664.228.921.421.427.32.579.686.579.991 0 .305-.152.671-.579.991a2.534 2.534 0 01-.921.42z" />
-                  <path
-                    fillRule="evenodd"
-                    d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v.816a3.836 3.836 0 00-1.72.756c-.712.566-1.112 1.35-1.112 2.178 0 .829.4 1.612 1.113 2.178.502.4 1.102.647 1.719.756v2.978a2.536 2.536 0 01-.921-.421l-.879-.66a.75.75 0 00-.9 1.2l.879.66c.533.4 1.169.645 1.821.75V18a.75.75 0 001.5 0v-.81a4.124 4.124 0 001.821-.749c.745-.559 1.179-1.344 1.179-2.191 0-.847-.434-1.632-1.179-2.191a4.122 4.122 0 00-1.821-.75V8.354c.29.082.559.213.786.393l.415.33a.75.75 0 00.933-1.175l-.415-.33a3.836 3.836 0 00-1.719-.755V6z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span className="font-semibold text-emerald-600">
-                  ${cost ? cost.toFixed(2) : "0.00"}
-                </span>
+
+              <div className="flex items-center gap-4">
+                <div className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-4 h-4 text-emerald-500 mr-1"
+                  >
+                    <path d="M10.464 8.746c.227-.18.497-.311.786-.394v2.795a2.252 2.252 0 01-.786-.393c-.394-.313-.546-.681-.546-1.004 0-.323.152-.691.546-1.004zM12.75 15.662v-2.824c.347.085.664.228.921.421.427.32.579.686.579.991 0 .305-.152.671-.579.991a2.534 2.534 0 01-.921.42z" />
+                    <path
+                      fillRule="evenodd"
+                      d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 00-1.5 0v.816a3.836 3.836 0 00-1.72.756c-.712.566-1.112 1.35-1.112 2.178 0 .829.4 1.612 1.113 2.178.502.4 1.102.647 1.719.756v2.978a2.536 2.536 0 01-.921-.421l-.879-.66a.75.75 0 00-.9 1.2l.879.66c.533.4 1.169.645 1.821.75V18a.75.75 0 001.5 0v-.81a4.124 4.124 0 001.821-.749c.745-.559 1.179-1.344 1.179-2.191 0-.847-.434-1.632-1.179-2.191a4.122 4.122 0 00-1.821-.75V8.354c.29.082.559.213.786.393l.415.33a.75.75 0 00.933-1.175l-.415-.33a3.836 3.836 0 00-1.719-.755V6z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className="font-semibold text-emerald-600">
+                    ${cost.toFixed(2)}
+                  </span>
+                </div>
+
+                <PortionSelector
+                  meal={meal}
+                  onPortionChange={setCurrentPortions}
+                  onSavePreference={handleSavePortionPreference}
+                />
               </div>
             </div>
 
@@ -343,25 +394,25 @@ export default function MealDetails() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-purple-100">
                   <p className="text-2xl font-bold text-purple-600">
-                    {nutrition?.calories}
+                    {nutrition.calories}
                   </p>
                   <p className="text-sm text-gray-600">Calories</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-red-100">
                   <p className="text-2xl font-bold text-red-600">
-                    {nutrition?.protein}g
+                    {nutrition.protein}g
                   </p>
                   <p className="text-sm text-gray-600">Protéines</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-yellow-100">
                   <p className="text-2xl font-bold text-yellow-600">
-                    {nutrition?.carbs}g
+                    {nutrition.carbs}g
                   </p>
                   <p className="text-sm text-gray-600">Glucides</p>
                 </div>
                 <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-emerald-100">
                   <p className="text-2xl font-bold text-emerald-600">
-                    {nutrition?.fat}g
+                    {nutrition.fat}g
                   </p>
                   <p className="text-sm text-gray-600">Lipides</p>
                 </div>
@@ -386,20 +437,24 @@ export default function MealDetails() {
                     clipRule="evenodd"
                   />
                 </svg>
-                Ingrédients
+                Ingrédients{" "}
+                {currentPortions !== 1 && `(${currentPortions} portions)`}
               </h2>
               <ul className="space-y-2">
-                {meal.ingredients.map((ingredient, index) => (
+                {adjustedIngredients.map((ingredient, idx) => (
                   <li
-                    key={index}
+                    key={idx}
                     className="flex items-start text-gray-700 py-2 border-b border-gray-100 last:border-0"
                   >
                     <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 rounded-full text-emerald-700 flex items-center justify-center font-bold mr-3 mt-0.5">
-                      <span className="text-xs">{index + 1}</span>
+                      <span className="text-xs">{idx + 1}</span>
                     </div>
                     <span>
                       <span className="font-medium">
-                        {ingredient.amount} {ingredient.unit}
+                        {ingredient.amount.toFixed(
+                          ingredient.amount % 1 === 0 ? 0 : 1
+                        )}{" "}
+                        {ingredient.unit}
                       </span>{" "}
                       {foodItemNames[ingredient.foodItemId] || "Chargement..."}
                     </span>
@@ -424,11 +479,11 @@ export default function MealDetails() {
                 Instructions
               </h2>
               <ol className="space-y-4">
-                {meal.instructions.map((step, index) => (
-                  <li key={index} className="text-gray-700">
+                {meal.instructions.map((step, idx) => (
+                  <li key={idx} className="text-gray-700">
                     <div className="flex">
                       <div className="flex-shrink-0 w-8 h-8 bg-emerald-500 rounded-full text-white flex items-center justify-center font-bold mr-3">
-                        {index + 1}
+                        {idx + 1}
                       </div>
                       <div className="flex-1 pb-4 border-b border-gray-100 last:border-0">
                         {step}

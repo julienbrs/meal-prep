@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useUser } from "@/context/UserContext";
 import {
-  MealPlanState,
   loadUserWeekMealPlan, 
   saveUserWeekMealPlan,
   hydrateMealPlan,
@@ -9,6 +8,7 @@ import {
   getWeekStartDate, 
   formatDateToYYYYMMDD, 
 } from "@/services/dataservice";
+import { MealPlanState } from "@/types/mealPlan";
 
 export function useWeekMealPlan(daysOfWeek: string[], mealTypes: string[]) {
   const { currentUser } = useUser();

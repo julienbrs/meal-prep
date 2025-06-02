@@ -12,6 +12,8 @@ export interface Meal {
   calculatedNutrition?: NutritionInfo;
   totalCost?: number;
   createdBy?: string;
+  // Nouveau : portions préférées par utilisateur
+  preferredPortions?: { [userId: string]: number };
 }
 
 export interface RecipeIngredient {
@@ -29,4 +31,13 @@ export interface RecipeIngredient {
   price?: number;
   priceUnit?: string;
   aiGenerated?: boolean;
+}
+
+// Nouveau : Interface pour les calculs avec portions
+export interface MealWithPortions {
+  meal: Meal;
+  portions: number;
+  adjustedIngredients: RecipeIngredient[];
+  adjustedNutrition: NutritionInfo;
+  adjustedCost: number;
 }

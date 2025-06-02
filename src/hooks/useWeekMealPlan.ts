@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "@/context/UserContext";
 import {
-  MealPlanState,
   loadUserWeekMealPlan,
   saveUserWeekMealPlan,
   hydrateMealPlan,
@@ -9,76 +8,114 @@ import {
   getWeekStartDate,
   formatDateToYYYYMMDD,
 } from "@/services/dataservice";
+import {
+  MealPlanEntry,
+  SnackEntry,
+  MealPlanState,
+  DayPlan,
+} from "@/types/mealPlan";
 
 export function useWeekMealPlan(daysOfWeek: string[], mealTypes: string[]) {
   const { currentUser } = useUser();
+
+  // 1) date du début de semaine (lundi par défaut)
   const [currentWeekDate, setCurrentWeekDate] = useState<Date>(
     getWeekStartDate(new Date())
   );
+
+  // 2) état du mealPlan (structure DayPlan pour chaque jour)
   const [mealPlan, setMealPlan] = useState<MealPlanState>(
     createEmptyMealPlan(daysOfWeek, mealTypes)
   );
-  const [loading, setLoading] = useState(true);
+
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState<string | null>(null);
 
-  // Important: Add refs to track state without triggering rerenders
-  const isLoadingRef = useRef(true);
+  // Pour détecter si on est en train de charger pour la première fois
+  const isLoadingRef = useRef<boolean>(true);
+
+  // Pour comparer local / serveur et éviter les enregistrements redondants
   const mealPlanRef = useRef<MealPlanState>(mealPlan);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedMealPlanRef = useRef<string>("");
 
-  // Change the current week
+  // Pour retarder l’enregistrement automatique (debounce)
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Changer de semaine sans perdre la structure du hook
   const changeWeek = (newWeekDate: Date) => {
     const weekStart = getWeekStartDate(newWeekDate);
     setCurrentWeekDate(weekStart);
   };
 
-  // Load meal plan for the current user and selected week
+  // ─── useEffect chargé de récupérer ou créer le plan sur le serveur ───
   useEffect(() => {
-    // Reset loading state when week changes
     setLoading(true);
     isLoadingRef.current = true;
 
-    // Generate a unique key for this week to prevent duplicate loads
+    // Clé unique pour l’API (id-utilisateur + date-début-semaine)
     const weekKey = `${currentUser.id}-${formatDateToYYYYMMDD(
       currentWeekDate
     )}`;
 
     async function fetchUserWeekMealPlan() {
       try {
-        console.log(`Loading meal plan: ${weekKey}`);
-
-        // Load the meal plan for the current user and week
-        let userWeekMealPlan = await loadUserWeekMealPlan(
+        // 1) On tente de récupérer le plan enregistré
+        const userWeekMealPlan = await loadUserWeekMealPlan(
           currentUser.id,
           currentWeekDate,
           daysOfWeek,
           mealTypes
         );
 
-        // Only update state if component is still mounted
-        let hydratedPlan;
+        let hydratedPlan: MealPlanState;
 
-        // Hydrate the meal plan with actual meal objects
+        // 2) Si on a déjà un objet renvoyé par l’API, on l’hydrate
         if (Object.keys(userWeekMealPlan).length > 0) {
           hydratedPlan = await hydrateMealPlan(userWeekMealPlan);
         } else {
+          // Sinon, on crée un plan vide
           hydratedPlan = createEmptyMealPlan(daysOfWeek, mealTypes);
         }
 
+        // ── Normalisation des portions si jamais elles sont manquantes
+        //    - Pour un mealType ≠ "Snack", `entry` est MealPlanEntry ou null
+        //    - Pour mealType === "Snack", `entry` est un tableau SnackEntry[]
+        Object.values(hydratedPlan).forEach((dayObj: DayPlan) => {
+          Object.entries(dayObj).forEach(([mt, entry]) => {
+            if (mt === "Snack") {
+              // Si c’est un tableau de SnackEntry, on boucle
+              const snackArray = (entry as SnackEntry[]) || [];
+              snackArray.forEach((sn: SnackEntry) => {
+                // Si snack a portions manquante, on applique préférence
+                if (!sn.portions) {
+                  const userPref =
+                    sn.meal.preferredPortions?.[currentUser.id] || 1;
+                  sn.portions = userPref;
+                }
+              });
+            } else {
+              // mt ≠ "Snack" ⇒ entry est MealPlanEntry ou null
+              const normalEntry = entry as MealPlanEntry | null;
+              if (normalEntry) {
+                const userPref =
+                  normalEntry.meal.preferredPortions?.[currentUser.id] || 1;
+                normalEntry.portions = normalEntry.portions || userPref;
+              }
+            }
+          });
+        });
+
+        // On met à jour le state
         setMealPlan(hydratedPlan);
         mealPlanRef.current = hydratedPlan;
-
-        // Save the serialized plan for comparison
         lastSavedMealPlanRef.current = JSON.stringify(hydratedPlan);
-
         setError(null);
       } catch (err) {
         console.error("Failed to load user week meal plan:", err);
         setError("Failed to load meal plan. Please try again later.");
 
-        // Set default empty plan as fallback
+        // On retombe sur un plan vide en cas d’erreur
         const emptyPlan = createEmptyMealPlan(daysOfWeek, mealTypes);
         setMealPlan(emptyPlan);
         mealPlanRef.current = emptyPlan;
@@ -90,7 +127,7 @@ export function useWeekMealPlan(daysOfWeek: string[], mealTypes: string[]) {
 
     fetchUserWeekMealPlan();
 
-    // Cleanup function: cancel any pending save operations
+    // Nettoyage si changement de semaine avant fin du chargement
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
@@ -104,35 +141,26 @@ export function useWeekMealPlan(daysOfWeek: string[], mealTypes: string[]) {
     mealTypes.join(","),
   ]);
 
-  // Save meal plan whenever it changes - with proper debouncing
+  // ─── useEffect chargé d’enregistrer automatiquement les modifications ───
   useEffect(() => {
-    // Don't save while loading
+    // Si on est encore en train de charger, on ne déclenche pas l’enregistrement.
     if (loading || isLoadingRef.current) return;
 
-    // Skip the initial render
     const mealPlanString = JSON.stringify(mealPlan);
+    if (mealPlanString === lastSavedMealPlanRef.current) return;
 
-    // Don't save if nothing has changed
-    if (mealPlanString === lastSavedMealPlanRef.current) {
-      return;
-    }
-
-    // Clear any existing timeout
+    // On efface tout timeout en cours pour “debounce”
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Set saving status
     setSaving("Enregistrement...");
 
-    // Debounce the save operation
     saveTimeoutRef.current = setTimeout(async () => {
       try {
         const weekKey = `${currentUser.id}-${formatDateToYYYYMMDD(
           currentWeekDate
         )}`;
-        console.log(`Saving meal plan: ${weekKey}`);
-
         const success = await saveUserWeekMealPlan(
           currentUser.id,
           currentWeekDate,
@@ -140,13 +168,9 @@ export function useWeekMealPlan(daysOfWeek: string[], mealTypes: string[]) {
         );
 
         if (success) {
-          // Update the last saved plan reference
           lastSavedMealPlanRef.current = mealPlanString;
-
           setSaving("Enregistré");
-          setTimeout(() => {
-            setSaving(null);
-          }, 2000);
+          setTimeout(() => setSaving(null), 2000);
         } else {
           setSaving("Échec de l'enregistrement");
         }
@@ -156,10 +180,10 @@ export function useWeekMealPlan(daysOfWeek: string[], mealTypes: string[]) {
       } finally {
         saveTimeoutRef.current = null;
       }
-    }, 2000); // Increased debounce to 2 seconds
+    }, 2000);
   }, [mealPlan, currentUser.id, currentWeekDate]);
 
-  // Function to update the meal plan - use functional updates to avoid dependency issues
+  // Fonction pour mettre à jour le mealPlan (en passant un updater fonctionnel ou un nouvel objet)
   const updateMealPlan = (
     updater: MealPlanState | ((prev: MealPlanState) => MealPlanState)
   ) => {

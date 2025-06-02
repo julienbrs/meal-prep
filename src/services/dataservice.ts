@@ -1,18 +1,11 @@
 import { FoodItem } from "@/types/ingredient";
 import { Meal } from "@/types/meal";
+import { MealPlanEntry, SnackEntry, MealPlanState, DayPlan } from "@/types/mealPlan";
 import { simplifyMealPlanForStorage } from "@/utils/mealPlanUtils";
 import {
   calculateRecipeNutrition,
   calculateRecipeCost,
 } from "@/utils/nutritionCalculator";
-
-export interface MealPlanDay {
-  [key: string]: Meal | null;
-}
-
-export interface MealPlanState {
-  [key: string]: MealPlanDay;
-}
 
 export interface MealPlanWeek {
   weekId: string; // Format: YYYY-MM-DD (date du lundi de la semaine)
@@ -350,34 +343,65 @@ export async function saveMealPlan(
   }
 }
 
+async function loadMeal(id: string): Promise<Meal> {
+  const response = await fetchFromApi<Meal>(`meals/${id}`);
+  return response;
+}
+export { loadMeal };
+
 export async function hydrateMealPlan(
-  mealPlan: MealPlanState
+  simplifiedPlan: Record<string, any>
 ): Promise<MealPlanState> {
-  try {
-    const meals = await loadMeals();
-    const hydratedPlan: MealPlanState = {};
+  const meals = await loadMeals();
+  const hydrated: MealPlanState = {};
 
-    Object.keys(mealPlan).forEach((day) => {
-      hydratedPlan[day] = {};
+  Object.entries(simplifiedPlan).forEach(([day, dayObj]: [string, any]) => {
+    // dayObj correspond à l’objet de type { "Petit-déjeuner": {...}, "Déjeuner": {...}, "Dîner": {...}, "Snack": [...] }
+    const dayEntry: DayPlan = {} as DayPlan;
 
-      Object.keys(mealPlan[day]).forEach((mealType) => {
-        const mealData = mealPlan[day][mealType];
-
-        if (mealData && typeof mealData === "object" && "id" in mealData) {
-          // Find the corresponding meal in our loaded meals
-          const meal = meals.find((m) => m.id === mealData.id);
-          hydratedPlan[day][mealType] = meal || null;
+    Object.entries(dayObj).forEach(([mealType, storedEntry]: [string, any]) => {
+      if (mealType === "Snack") {
+        // Si on a bien un tableau de snacks (même s’il est vide)
+        if (Array.isArray(storedEntry)) {
+          const snackArr: SnackEntry[] = [];
+          storedEntry.forEach((sn: any) => {
+            if (sn && sn.id) {
+              const foundMeal = meals.find((m) => m.id === sn.id);
+              if (foundMeal) {
+                snackArr.push({
+                  meal: foundMeal,
+                  portions: sn.portions ?? 1,
+                });
+              }
+            }
+          });
+          dayEntry[mealType] = snackArr;
         } else {
-          hydratedPlan[day][mealType] = null;
+          // Si le back ne renvoie pas de tableau, on met un tableau vide
+          dayEntry[mealType] = [] as SnackEntry[];
         }
-      });
+      } else {
+        // Cas "Petit-déjeuner" | "Déjeuner" | "Dîner"
+        if (storedEntry && storedEntry.id) {
+          const found = meals.find((m) => m.id === storedEntry.id);
+          if (found) {
+            dayEntry[mealType] = {
+              meal: found,
+              portions: storedEntry.portions ?? 1,
+            } as MealPlanEntry;
+          } else {
+            dayEntry[mealType] = null;
+          }
+        } else {
+          dayEntry[mealType] = null;
+        }
+      }
     });
 
-    return hydratedPlan;
-  } catch (error) {
-    console.error("Error hydrating meal plan:", error);
-    return mealPlan;
-  }
+    hydrated[day] = dayEntry;
+  });
+
+  return hydrated;
 }
 
 export function createEmptyMealPlan(
@@ -385,12 +409,20 @@ export function createEmptyMealPlan(
   mealTypes: string[]
 ): MealPlanState {
   const plan: MealPlanState = {};
+
   daysOfWeek.forEach((day) => {
     plan[day] = {};
-    mealTypes.forEach((mealType) => {
-      plan[day][mealType] = null;
+    mealTypes.forEach((mt) => {
+      if (mt === "Snack") {
+        // Un tableau vide de snacks
+        plan[day][mt] = [] as SnackEntry[];
+      } else {
+        // Aucun repas sélectionné
+        plan[day][mt] = null;
+      }
     });
   });
+
   return plan;
 }
 

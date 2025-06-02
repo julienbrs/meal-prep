@@ -1,22 +1,30 @@
-import { MealPlanState } from "@/services/dataservice";
+import { MealPlanState } from "@/types/mealPlan";
+import { Meal } from "@/types/meal";
 
-// Convert a meal plan to a simple storable format with just IDs
-export function simplifyMealPlanForStorage(mealPlan: MealPlanState): any {
-  const simplifiedPlan: any = {};
+export function simplifyMealPlanForStorage(plan: MealPlanState) {
+  const simplified: Record<string, any> = {};
 
-  Object.keys(mealPlan).forEach((day) => {
-    simplifiedPlan[day] = {};
+  Object.entries(plan).forEach(([day, dayObj]) => {
+    const dayStorage: Record<string, any> = {};
 
-    Object.keys(mealPlan[day]).forEach((mealType) => {
-      const meal = mealPlan[day][mealType];
-      if (meal && meal.id) {
-        // Only store the meal ID
-        simplifiedPlan[day][mealType] = { id: meal.id };
+    Object.entries(dayObj).forEach(([mealType, entry]) => {
+      if (!entry) {
+        dayStorage[mealType] = null;
+      } else if (Array.isArray(entry)) {
+        dayStorage[mealType] = entry.map((snackEntry) => ({
+          id: snackEntry.meal.id,
+          portions: snackEntry.portions,
+        }));
       } else {
-        simplifiedPlan[day][mealType] = null;
+        dayStorage[mealType] = {
+          id: (entry.meal as Meal).id,
+          portions: entry.portions,
+        };
       }
     });
+
+    simplified[day] = dayStorage;
   });
 
-  return simplifiedPlan;
+  return simplified;
 }

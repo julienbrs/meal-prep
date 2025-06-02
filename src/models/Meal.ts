@@ -1,3 +1,4 @@
+// src/models/Meal.ts
 import mongoose from "mongoose";
 
 const RecipeIngredientSchema = new mongoose.Schema({
@@ -50,6 +51,12 @@ const MealSchema = new mongoose.Schema(
     calculatedNutrition: NutritionInfoSchema,
     totalCost: Number,
     createdBy: { type: String, default: "clara" },
+    // Nouveau : portions préférées par utilisateur
+    preferredPortions: {
+      type: Map,
+      of: Number,
+      default: {},
+    },
   },
   {
     timestamps: true,
