@@ -479,7 +479,7 @@ export default function MealDetails() {
                 Instructions
               </h2>
               <ol className="space-y-4">
-                {meal.instructions.map((step, idx) => (
+                {meal.instructions?.map((step, idx) => (
                   <li key={idx} className="text-gray-700">
                     <div className="flex">
                       <div className="flex-shrink-0 w-8 h-8 bg-emerald-500 rounded-full text-white flex items-center justify-center font-bold mr-3">
@@ -490,7 +490,7 @@ export default function MealDetails() {
                       </div>
                     </div>
                   </li>
-                ))}
+                )) ?? null}
               </ol>
             </div>
           </div>

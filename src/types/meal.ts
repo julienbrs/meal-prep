@@ -8,7 +8,7 @@ export interface Meal {
   preparationTime: number; // in minutes
   image?: string;
   ingredients: RecipeIngredient[];
-  instructions: string[];
+  instructions?: string[];
   calculatedNutrition?: NutritionInfo;
   totalCost?: number;
   createdBy?: string;
@@ -25,8 +25,8 @@ export interface RecipeIngredient {
     protein: number;
     carbs: number;
     fat: number;
-    fiber?: number;
-    sugar?: number;
+    fiber: number;
+    sugar: number;
   };
   price?: number;
   priceUnit?: string;

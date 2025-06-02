@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { FoodItem, UnitType, NutritionInfo } from "@/types/ingredient";
+import { FoodItem, UnitType } from "@/types/ingredient";
 
-// Define an interface for the modal's internal state
+// Interface pour l’état interne du formulaire
 interface FoodItemFormState {
   id: string;
   name: string;
@@ -24,15 +24,16 @@ interface FoodItemModalProps {
   item?: FoodItem;
   onSave: (item: FoodItem) => void;
   onClose: () => void;
-  isDuplicate?: boolean; // Nouvelle prop pour indiquer la duplication
+  isDuplicate?: boolean; // Champ pour indiquer si on duplique
 }
 
 const FoodItemModal: React.FC<FoodItemModalProps> = ({
   item,
   onSave,
   onClose,
-  isDuplicate = false, // Valeur par défaut à false
+  isDuplicate = false, // Valeur par défaut false
 }) => {
+  // Initialisation de l’état à partir de l’item passé en props (ou valeurs vides)
   const [foodItem, setFoodItem] = useState<FoodItemFormState>(
     item
       ? convertToFormState(item)
@@ -40,7 +41,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
           id: "",
           name: "",
           category: "",
-          units: "g" as UnitType,
+          units: "g",
           nutritionPer100g: {
             calories: "",
             protein: "",
@@ -55,7 +56,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
         }
   );
 
-  // Helper function to convert FoodItem to FormState
+  // Convertit un FoodItem (from props) en FoodItemFormState pour préremplir le formulaire
   function convertToFormState(item: FoodItem): FoodItemFormState {
     return {
       id: item.id,
@@ -67,17 +68,17 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
         protein: item.nutritionPer100g.protein,
         carbs: item.nutritionPer100g.carbs,
         fat: item.nutritionPer100g.fat,
-        fiber: item.nutritionPer100g.fiber || "",
-        sugar: item.nutritionPer100g.sugar || "",
+        fiber: item.nutritionPer100g.fiber ?? "",
+        sugar: item.nutritionPer100g.sugar ?? "",
       },
       price: item.price,
       priceUnit: item.priceUnit,
-      weightPerPiece: item.weightPerPiece || "",
+      weightPerPiece: item.weightPerPiece ?? "",
     };
   }
 
+  // Si on change “units” en “piece”, on force le priceUnit sur “par pièce”, sinon “pour 100g”
   useEffect(() => {
-    // Update priceUnit when units change
     if (foodItem.units === "piece" && foodItem.priceUnit !== "par pièce") {
       setFoodItem((prev) => ({ ...prev, priceUnit: "par pièce" }));
     } else if (
@@ -88,13 +89,14 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
     }
   }, [foodItem.units]);
 
+  // Gère le changement sur un champ text / select (prix, poids, texte libre, etc.)
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-    key: string
+    key: keyof FoodItemFormState
   ) => {
     const value = e.target.value;
 
-    // Si c'est un champ numérique, valider qu'il ne contient que des nombres
+    // Valider numérique si c’est “price” ou “weightPerPiece”
     if (key === "price" || key === "weightPerPiece") {
       if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
         setFoodItem((prev) => ({ ...prev, [key]: value }));
@@ -104,13 +106,12 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
     }
   };
 
+  // Gère le changement sur les champs nutritionnels (calories, protéines, etc.)
   const handleNutritionChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    nutrient: string
+    nutrient: keyof FoodItemFormState["nutritionPer100g"]
   ) => {
     const value = e.target.value;
-
-    // Valider que la valeur est un nombre ou vide
     if (value === "" || /^[0-9]*\.?[0-9]*$/.test(value)) {
       setFoodItem((prev) => ({
         ...prev,
@@ -122,6 +123,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
     }
   };
 
+  // Liste des catégories disponibles pour le sélecteur
   const categories = [
     { value: "vegetable", label: "Légume" },
     { value: "fruit", label: "Fruit" },
@@ -145,6 +147,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
     { value: "misc", label: "Divers" },
   ];
 
+  // Options d’unités
   const units: { value: UnitType; label: string }[] = [
     { value: "g", label: "Grammes (g)" },
     { value: "ml", label: "Millilitres (ml)" },
@@ -154,12 +157,14 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
     { value: "cup", label: "Tasse" },
   ];
 
+  // Étiquette au-dessus des champs nutritionnels
   const getNutritionLabel = (): string => {
     return "Nutrition (pour 100g)";
   };
 
+  // Lorsqu’on clique sur “Créer” ou “Mettre à jour” :
   const handleSave = () => {
-    // Convert form state to FoodItem type with proper data types
+    // Conversion des chaînes en nombres (ou valeurs par défaut) pour le backend
     const preparedItem: FoodItem = {
       id: foodItem.id,
       name: foodItem.name,
@@ -187,7 +192,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
     onSave(preparedItem);
   };
 
-  // Helper function to convert string or undefined values to numbers
+  // Convertit string | number | undefined → number
   function convertToNumber(
     value: string | number | undefined,
     defaultValue: number
@@ -201,7 +206,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
   return (
     <div className="fixed inset-y-0 right-0 flex z-50">
       <div className="w-screen max-w-2xl bg-white shadow-lg flex flex-col border-l border-gray-200">
-        {/* Header */}
+        {/* ─── Header ─── */}
         <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-6 py-4 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-white flex items-center">
             <svg
@@ -245,10 +250,10 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
           </button>
         </div>
 
-        {/* Body */}
+        {/* ─── Body ─── */}
         <div className="flex-1 overflow-y-auto p-6">
           <div className="space-y-6">
-            {/* Name & Category */}
+            {/* ─── Nom & Catégorie ─── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -282,7 +287,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
               </div>
             </div>
 
-            {/* Units & Price */}
+            {/* ─── Unités & Prix ─── */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -319,7 +324,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
               </div>
             </div>
 
-            {/* Weight Per Piece - Seulement affiché si l'unité est "piece" */}
+            {/* ─── Poids par pièce (si unité “piece”) ─── */}
             {foodItem.units === "piece" && (
               <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -341,7 +346,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
               </div>
             )}
 
-            {/* Nutrition Information */}
+            {/* ─── Nutrition ─── */}
             <div>
               <h4 className="text-md font-semibold text-gray-700 mb-2 flex items-center">
                 <svg
@@ -380,7 +385,12 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
                           nutrient.name as keyof typeof foodItem.nutritionPer100g
                         ]
                       }
-                      onChange={(e) => handleNutritionChange(e, nutrient.name)}
+                      onChange={(e) =>
+                        handleNutritionChange(
+                          e,
+                          nutrient.name as keyof typeof foodItem.nutritionPer100g
+                        )
+                      }
                       placeholder="0.0"
                       className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors placeholder-gray-300"
                     />
@@ -391,7 +401,7 @@ const FoodItemModal: React.FC<FoodItemModalProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
+        {/* ─── Footer ─── */}
         <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-between items-center">
           <button
             onClick={onClose}

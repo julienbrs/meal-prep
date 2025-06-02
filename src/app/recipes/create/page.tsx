@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Meal, RecipeIngredient } from "@/types/meal";
-import { loadFoodItems, addMeal } from "@/services/dataservice";
+import { loadFoodItems, addMeal, addFoodItem } from "@/services/dataservice";
 import {
   calculateRecipeNutrition,
   calculateRecipeCost,
@@ -17,6 +17,7 @@ import NutritionPreview from "@/components/create-recipe/NutritionPreview";
 import AutoExtractSection from "@/components/create-recipe/AutoExtractSection";
 import ImageUpload from "@/components/ImageUpload";
 import { useUser } from "@/context/UserContext";
+import FoodItemModal from "@/components/food-items/FoodItemModal";
 
 // Définir un type pour les catégories autorisées
 type MealCategory = "breakfast" | "lunch" | "dinner" | "snack" | "appetizer";
@@ -34,6 +35,7 @@ export default function CreateRecipe() {
     isLoading: foodItemsLoading,
     error: foodItemsError,
   } = useFoodItems();
+  const [isFoodItemModalOpen, setIsFoodItemModalOpen] = useState(false);
 
   // Mise à jour de l'état initial avec un tableau de catégories
   const [recipe, setRecipe] = useState<Partial<Meal>>({
@@ -76,6 +78,20 @@ export default function CreateRecipe() {
       ...prev,
       categories: selectedCategories,
     }));
+  };
+
+  const handleSaveFoodItem = async (newItem: any) => {
+    try {
+      // 1) Envoyer au backend
+      await addFoodItem(newItem);
+      // 2) Recharger la liste dans le Context
+      await reloadFoodItems();
+      // 3) Fermer le modal
+      setIsFoodItemModalOpen(false);
+    } catch (err) {
+      console.error("Erreur lors de la création du food item:", err);
+      // Vous pouvez afficher un message d’erreur ici si besoin
+    }
   };
 
   const handleImageChange = (file: File | null, path: string | null) => {
@@ -197,8 +213,7 @@ export default function CreateRecipe() {
     if (
       !recipe.name ||
       !recipe.categories?.length || // Vérifier que les catégories ne sont pas vides
-      recipe.ingredients?.length === 0 ||
-      recipe.instructions?.some((i) => !i)
+      recipe.ingredients?.length === 0
     ) {
       setError(
         "Veuillez remplir tous les champs obligatoires et ajouter au moins un ingrédient."
@@ -208,10 +223,6 @@ export default function CreateRecipe() {
 
     try {
       setLoading(true);
-
-      // Here you would typically handle image upload to your server or storage
-      // and get back a URL to store in the recipe
-      // For now, we'll just use the data URL that's stored in recipe.image
 
       const newRecipe: Meal = {
         id: "",
@@ -484,6 +495,7 @@ export default function CreateRecipe() {
             removeIngredient={removeIngredient}
             handleIngredientChange={handleIngredientChange}
             getFoodItemName={getFoodItemName}
+            onAddFoodItem={() => setIsFoodItemModalOpen(true)}
           />
 
           {/* Instructions Section */}
@@ -512,10 +524,23 @@ export default function CreateRecipe() {
               className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-50"
               disabled={loading}
             >
-              {loading ? "Création en cours..." : "Créer la Recette"}
+              {loading ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                  Création en cours...
+                </div>
+              ) : (
+                "Créer la Recette"
+              )}
             </button>
           </div>
         </form>
+        {isFoodItemModalOpen && (
+          <FoodItemModal
+            onSave={handleSaveFoodItem}
+            onClose={() => setIsFoodItemModalOpen(false)}
+          />
+        )}
       </div>
     </div>
   );

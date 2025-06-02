@@ -12,6 +12,7 @@ interface IngredientsSectionProps {
   handleIngredientChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;
+  onAddFoodItem: () => void;
   getFoodItemName: (id: string) => string;
 }
 
@@ -22,6 +23,7 @@ export default function IngredientsSection({
   addIngredient,
   removeIngredient,
   handleIngredientChange,
+  onAddFoodItem,
   getFoodItemName,
 }: IngredientsSectionProps) {
   // État pour stocker le texte de recherche
@@ -206,7 +208,7 @@ export default function IngredientsSection({
           </div>
         </div>
 
-        <div className="mt-3">
+        <div className="mt-3 flex space-x-2">
           <button
             type="button"
             onClick={addIngredient}
@@ -227,12 +229,20 @@ export default function IngredientsSection({
             </svg>
             Ajouter l'Ingrédient
           </button>
+
+          <button
+            type="button"
+            onClick={onAddFoodItem}
+            className="inline-flex items-center px-4 py-2 border border-green-600 text-sm font-medium rounded-md text-green-600 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+          >
+            + Nouvel Aliment
+          </button>
         </div>
       </div>
 
       {/* Liste des Ingrédients */}
       {recipeIngredients && recipeIngredients.length > 0 ? (
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-visible">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -258,51 +268,137 @@ export default function IngredientsSection({
             </thead>
 
             <tbody className="bg-white divide-y divide-gray-200">
-              {recipeIngredients.map((ingredient, index) => (
-                <tr
-                  key={index}
-                  className={ingredient.aiGenerated ? "bg-yellow-50" : ""}
-                >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 relative">
-                    {getFoodItemName(ingredient.foodItemId)}
-                    {ingredient.aiGenerated && (
-                      <span className="ml-2 text-yellow-600 cursor-pointer relative group">
-                        (IA)
-                        <div className="absolute hidden group-hover:block bg-white border shadow-lg p-2 rounded-md text-xs text-gray-700 w-64 z-10">
-                          Ingrédient généré par IA.
-                          <br />
-                          <strong>Prix estimé:</strong>{" "}
-                          {ingredient.price?.toFixed(2)} {ingredient.priceUnit}{" "}
-                          <br />
-                          <strong>Nutrition (pour 100g):</strong>
-                          {ingredient.nutritionPer100g
-                            ? JSON.stringify(ingredient.nutritionPer100g)
-                            : "Inconnu"}
+              {recipeIngredients.map((ingredient, index) => {
+                // ── 1) On cherche le FoodItem correspondant ──
+                const foodItem = foodItems.find(
+                  (fi) => fi.id === ingredient.foodItemId
+                );
+
+                // ── 2) Nutrition de base ──
+                const baseNutrition = ingredient.nutritionPer100g
+                  ? ingredient.nutritionPer100g
+                  : foodItem?.nutritionPer100g ?? {
+                      calories: 0,
+                      protein: 0,
+                      carbs: 0,
+                      fat: 0,
+                      fiber: 0,
+                      sugar: 0,
+                    };
+
+                // ── 3) Prix de base ──
+                const basePrice =
+                  ingredient.price !== undefined
+                    ? ingredient.price
+                    : foodItem?.price ?? 0;
+
+                // ── 4) Unité de prix ──
+                const basePriceUnit = ingredient.priceUnit
+                  ? ingredient.priceUnit
+                  : foodItem?.priceUnit ?? "pour 100g";
+
+                // ── 5) Calcul du scale ──
+                const { amount, unit } = ingredient;
+                const scale =
+                  unit === "g" || unit === "ml"
+                    ? (amount! || 0) / 100
+                    : unit === "piece"
+                    ? amount! || 0
+                    : (amount! || 0) / 100;
+
+                // ── 6) Appliquer le scale sur la nutrition de base ──
+                const cal = (baseNutrition.calories * scale).toFixed(1);
+                const prot = (baseNutrition.protein * scale).toFixed(1);
+                const carbs = (baseNutrition.carbs * scale).toFixed(1);
+                const fat = (baseNutrition.fat * scale).toFixed(1);
+                const fiber = (baseNutrition.fiber! * scale).toFixed(1);
+                const sugar = (baseNutrition.sugar! * scale).toFixed(1);
+
+                // ── 7) Calculer le coût total ──
+                let totalPrice = 0;
+                if (basePriceUnit.includes("100")) {
+                  // “pour 100g”
+                  totalPrice = basePrice * ((amount! || 0) / 100);
+                } else if (
+                  basePriceUnit.toLowerCase().includes("pièce") ||
+                  basePriceUnit.toLowerCase().includes("piece")
+                ) {
+                  totalPrice = basePrice * (amount! || 0);
+                } else {
+                  // Par sécurité, on découpe aussi en “pour 100g”
+                  totalPrice = basePrice * ((amount! || 0) / 100);
+                }
+                const priceDisplay = totalPrice.toFixed(2);
+
+                return (
+                  <tr
+                    key={index}
+                    className={`group ${
+                      ingredient.aiGenerated ? "bg-yellow-50" : ""
+                    }`}
+                  >
+                    {/* ── Colonne “Aliment” avec tooltip au survol ── */}
+                    <td
+                      className="
+                        px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 
+                        relative
+                        overflow-visible
+                      "
+                    >
+                      <span className="relative inline-block">
+                        {getFoodItemName(ingredient.foodItemId)}
+
+                        {/* Tooltip qui devient visible au hover du <tr> */}
+                        <div
+                          className="
+                            hidden 
+                            absolute z-10 bg-white border border-gray-200 shadow-lg 
+                            p-3 rounded-lg w-64 
+                            top-full left-0 mt-1 
+                            text-xs text-gray-700
+                            group-hover:block
+                          "
+                        >
+                          <div className="font-semibold mb-1">
+                            Informations nutritionnelles
+                          </div>
+                          <ul className="space-y-0.5">
+                            <li>Calories : {cal} kcal</li>
+                            <li>Protéines : {prot} g</li>
+                            <li>Glucides : {carbs} g</li>
+                            <li>Lipides : {fat} g</li>
+                            <li>Fibres : {fiber} g</li>
+                            <li>Sucres : {sugar} g</li>
+                          </ul>
+                          <div className="border-t border-gray-100 my-2" />
+                          <div className="font-semibold">Coût estimé</div>
+                          <div>{priceDisplay} €</div>
                         </div>
                       </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {ingredient.amount} {ingredient.unit}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button
-                      type="button"
-                      onClick={() => removeIngredient(index)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Supprimer
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {ingredient.amount} {ingredient.unit}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        type="button"
+                        onClick={() => removeIngredient(index)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Supprimer
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       ) : (
         <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-gray-500">
-            Aucun ingrédient ajouté pour l'instant
+            Aucun ingrédient ajouté pour l’instant
           </p>
         </div>
       )}

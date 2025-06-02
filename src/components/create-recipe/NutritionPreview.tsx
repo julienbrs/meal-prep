@@ -30,33 +30,60 @@ export default function NutritionPreview({
         </svg>
         Aperçu Nutritionnel
       </h2>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+
+      {/* On met 7 colonnes pour inclure calories, protéines, glucides, lipides, fibres, sucres et coût */}
+      <div className="grid grid-cols-2 md:grid-cols-7 gap-4 text-center">
+        {/* Calories */}
         <div className="bg-white p-3 rounded-lg shadow-sm">
           <div className="text-xl font-bold text-gray-800">
             {nutritionPreview.calories}
           </div>
           <div className="text-sm text-gray-500">Calories</div>
         </div>
+
+        {/* Protéines */}
         <div className="bg-white p-3 rounded-lg shadow-sm">
           <div className="text-xl font-bold text-gray-800">
-            {nutritionPreview.protein}g
+            {nutritionPreview.protein} g
           </div>
           <div className="text-sm text-gray-500">Protéines</div>
         </div>
+
+        {/* Glucides */}
         <div className="bg-white p-3 rounded-lg shadow-sm">
           <div className="text-xl font-bold text-gray-800">
-            {nutritionPreview.carbs}g
+            {nutritionPreview.carbs} g
           </div>
           <div className="text-sm text-gray-500">Glucides</div>
         </div>
+
+        {/* Lipides */}
         <div className="bg-white p-3 rounded-lg shadow-sm">
           <div className="text-xl font-bold text-gray-800">
-            {nutritionPreview.fat}g
+            {nutritionPreview.fat} g
           </div>
           <div className="text-sm text-gray-500">Lipides</div>
         </div>
+
+        {/* Fibres */}
         <div className="bg-white p-3 rounded-lg shadow-sm">
-          <div className="text-xl font-bold text-gray-800">{costPreview}€</div>
+          <div className="text-xl font-bold text-gray-800">
+            {nutritionPreview.fiber} g
+          </div>
+          <div className="text-sm text-gray-500">Fibres</div>
+        </div>
+
+        {/* Sucres */}
+        <div className="bg-white p-3 rounded-lg shadow-sm">
+          <div className="text-xl font-bold text-gray-800">
+            {nutritionPreview.sugar} g
+          </div>
+          <div className="text-sm text-gray-500">Sucres</div>
+        </div>
+
+        {/* Coût estimé */}
+        <div className="bg-white p-3 rounded-lg shadow-sm">
+          <div className="text-xl font-bold text-gray-800">{costPreview} €</div>
           <div className="text-sm text-gray-500">Coût estimé</div>
         </div>
       </div>

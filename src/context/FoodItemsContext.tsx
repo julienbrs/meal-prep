@@ -7,6 +7,7 @@ import {
   clearFoodItemsCache,
 } from "@/utils/foodItemFetcher";
 import { FoodItem } from "@/types/ingredient";
+import { loadFoodItems } from "@/services/dataservice";
 
 interface FoodItemsContextType {
   foodItems: FoodItem[];
