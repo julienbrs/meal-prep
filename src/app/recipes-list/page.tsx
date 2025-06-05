@@ -290,11 +290,14 @@ export default function Home() {
               ),
             },
           ].map((category) => (
-            <Link
+            <button
               key={category.key}
-              href={`/?category=${category.key}`}
-              onClick={() => setCategoryFilter(category.key)}
-              className={`bg-${category.color}-50 hover:bg-${category.color}-100 border border-${category.color}-200 rounded-xl p-6 text-center transition-colors duration-200`}
+              onClick={() => {
+                setCategoryFilter(category.key);
+                // Scroll vers la section des résultats
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+              className={`bg-${category.color}-50 hover:bg-${category.color}-100 border border-${category.color}-200 rounded-xl p-6 text-center transition-colors duration-200 cursor-pointer`}
             >
               <div
                 className={`w-16 h-16 bg-${category.color}-200 rounded-full flex items-center justify-center mx-auto mb-3`}
@@ -316,7 +319,7 @@ export default function Home() {
               <p className={`text-${category.color}-600 text-sm`}>
                 {category.description}
               </p>
-            </Link>
+            </button>
           ))}
         </div>
       </div>
