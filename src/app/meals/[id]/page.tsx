@@ -363,7 +363,7 @@ export default function MealDetails() {
                     />
                   </svg>
                   <span className="font-semibold text-emerald-600">
-                    ${cost.toFixed(2)}
+                    €{cost.toFixed(2)}
                   </span>
                 </div>
 

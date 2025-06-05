@@ -54,7 +54,24 @@ export default function BasicInformation({
 
     handleCategoriesChange(newCategories);
   };
-
+const handlePreparationTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const value = e.target.value;
+  
+  // Permettre une valeur vide ou seulement des chiffres
+  if (value === "" || /^\d+$/.test(value)) {
+    // Créer un événement modifié pour passer la validation
+    const modifiedEvent = {
+      ...e,
+      target: {
+        ...e.target,
+        name: "preparationTime",
+        value: value, // Garder la valeur telle quelle (vide ou nombre)
+      }
+    };
+    handleRecipeChange(modifiedEvent as React.ChangeEvent<HTMLInputElement>);
+  }
+  // Si la valeur ne correspond pas au pattern, on ignore le changement
+};
   return (
     <div className="mb-8">
       <h2 className="text-xl font-semibold mb-4 flex items-center text-gray-800">
@@ -119,24 +136,26 @@ export default function BasicInformation({
         </div>
 
         {/* Temps de préparation */}
-        <div>
-          <label
-            htmlFor="preparationTime"
-            className="block text-sm font-medium text-gray-700 mb-1"
-          >
-            Temps de Préparation (minutes) *
-          </label>
-          <input
-            type="number"
-            id="preparationTime"
-            name="preparationTime"
-            value={recipe.preparationTime || 30}
-            onChange={handleRecipeChange}
-            min="1"
-            required
-            className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
-          />
-        </div>
+<div>
+  <label
+    htmlFor="preparationTime"
+    className="block text-sm font-medium text-gray-700 mb-1"
+  >
+    Temps de Préparation (minutes)
+  </label>
+  <input
+    type="text"
+    id="preparationTime"
+    name="preparationTime"
+    value={recipe.preparationTime || ""}
+    onChange={handlePreparationTimeChange}
+    className="shadow-sm focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md p-2"
+    placeholder="30"
+  />
+  <p className="text-xs text-gray-500 mt-1">
+    Saisissez uniquement des chiffres (vide = 0 minute)
+  </p>
+</div>
 
         {/* Description */}
         <div className="md:col-span-2">

@@ -210,7 +210,7 @@ export default function MealCard({ meal }: MealCardProps) {
               />
             </svg>
             <span className="font-semibold text-emerald-600">
-              ${totalCost.toFixed(2)}
+              €{totalCost.toFixed(2)}
             </span>
           </div>
 
