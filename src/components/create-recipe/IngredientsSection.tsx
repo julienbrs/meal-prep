@@ -314,18 +314,27 @@ export default function IngredientsSection({
                 const fiber = (baseNutrition.fiber! * scale).toFixed(1);
                 const sugar = (baseNutrition.sugar! * scale).toFixed(1);
 
-                // ── 7) Calculer le coût total ──
                 let totalPrice = 0;
-                if (basePriceUnit.includes("100")) {
-                  // “pour 100g”
-                  totalPrice = basePrice * ((amount! || 0) / 100);
-                } else if (
-                  basePriceUnit.toLowerCase().includes("pièce") ||
-                  basePriceUnit.toLowerCase().includes("piece")
-                ) {
-                  totalPrice = basePrice * (amount! || 0);
+                const weightPerPiece = foodItem?.weightPerPiece;
+
+                if (unit === "piece" && weightPerPiece) {
+                  // Pour les pièces avec poids défini
+                  const totalWeight = (amount! || 0) * weightPerPiece;
+                  if (basePriceUnit.includes("100")) {
+                    // Prix pour 100g, convertir le poids total
+                    totalPrice = basePrice * (totalWeight / 100);
+                  } else if (
+                    basePriceUnit.toLowerCase().includes("pièce") ||
+                    basePriceUnit.toLowerCase().includes("piece")
+                  ) {
+                    // Prix en fonction de pièce (mais le prix est quand même au 100g)
+                    totalPrice = (totalWeight / 100) * basePrice;
+                  } else {
+                    // Par défaut, traiter comme prix pour 100g
+                    totalPrice = basePrice * (totalWeight / 100);
+                  }
                 } else {
-                  // Par sécurité, on découpe aussi en “pour 100g”
+                  // Pour toutes les autres unités (g, ml, etc.)
                   totalPrice = basePrice * ((amount! || 0) / 100);
                 }
                 const priceDisplay = totalPrice.toFixed(2);
@@ -337,7 +346,7 @@ export default function IngredientsSection({
                       ingredient.aiGenerated ? "bg-yellow-50" : ""
                     }`}
                   >
-                    {/* ── Colonne “Aliment” avec tooltip au survol ── */}
+                    {/* ── Colonne "Aliment" avec tooltip au survol ── */}
                     <td
                       className="
                         px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 
@@ -398,7 +407,7 @@ export default function IngredientsSection({
       ) : (
         <div className="text-center py-6 bg-gray-50 rounded-lg border border-gray-200">
           <p className="text-gray-500">
-            Aucun ingrédient ajouté pour l’instant
+            Aucun ingrédient ajouté pour l'instant
           </p>
         </div>
       )}

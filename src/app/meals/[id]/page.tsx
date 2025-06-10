@@ -92,7 +92,7 @@ export default function MealDetails() {
     }
 
     fetchMeal();
-    // Ne dépendre que de l’ID et de l’utilisateur
+    // Ne dépendre que de l'ID et de l'utilisateur
   }, [id, currentUser.id]);
 
   // Charger les noms des food items (si repas chargé et foodItems déjà disponibles)
@@ -172,7 +172,7 @@ export default function MealDetails() {
           <p>{error}</p>
         </div>
         <Link
-          href="/"
+          href="/recipes-list"
           className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg"
         >
           Retour aux Recettes
@@ -187,9 +187,9 @@ export default function MealDetails() {
         <h1 className="text-3xl font-bold text-gray-800 mb-4">
           Repas Non Trouvé
         </h1>
-        <p className="mb-6">Le repas que vous recherchez n’existe pas.</p>
+        <p className="mb-6">Le repas que vous recherchez n'existe pas.</p>
         <Link
-          href="/"
+          href="/recipes-list"
           className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg"
         >
           Retour aux Recettes
@@ -218,7 +218,7 @@ export default function MealDetails() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <Link
-          href="/"
+          href="/recipes-list"
           className="inline-flex items-center text-emerald-500 hover:text-emerald-700"
         >
           <svg
@@ -287,7 +287,7 @@ export default function MealDetails() {
         loading={deleteLoading}
       />
 
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-visible">
         <div className="md:flex">
           <div className="md:w-1/2 bg-gray-200 h-80 md:h-auto relative">
             {meal.image ? (
@@ -325,29 +325,6 @@ export default function MealDetails() {
               {meal.name}
             </h1>
             <p className="text-gray-600 mb-4">{meal.description}</p>
-
-            {/* {meal.createdBy && (
-              <div className="flex items-center mt-2 mb-4">
-                <Image
-                  src={
-                    users.find((u) => u.id === meal.createdBy)?.avatar ||
-                    users[0].avatar
-                  }
-                  alt={`Créé par ${
-                    users.find((u) => u.id === meal.createdBy)?.name ||
-                    "Inconnu"
-                  }`}
-                  width={24}
-                  height={24}
-                  className="rounded-full mr-2"
-                />
-                <span className="text-sm text-gray-600">
-                  Créé par{" "}
-                  {users.find((u) => u.id === meal.createdBy)?.name ||
-                    "Inconnu"}
-                </span>
-              </div>
-            )} */}
 
             <div className="flex justify-between items-center text-sm mb-4">
               <div className="flex items-center text-gray-700">
@@ -411,7 +388,7 @@ export default function MealDetails() {
                 </svg>
                 Informations Nutritionnelles
               </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-purple-100">
                   <p className="text-2xl font-bold text-purple-600">
                     {nutrition.calories}
@@ -436,6 +413,18 @@ export default function MealDetails() {
                   </p>
                   <p className="text-sm text-gray-600">Lipides</p>
                 </div>
+                <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-blue-100">
+                  <p className="text-2xl font-bold text-blue-600">
+                    {nutrition.fiber}g
+                  </p>
+                  <p className="text-sm text-gray-600">Fibres</p>
+                </div>
+                <div className="bg-white rounded-lg p-3 text-center shadow-sm border border-pink-100">
+                  <p className="text-2xl font-bold text-pink-600">
+                    {nutrition.sugar}g
+                  </p>
+                  <p className="text-sm text-gray-600">Sucres</p>
+                </div>
               </div>
             </div>
           </div>
@@ -443,7 +432,7 @@ export default function MealDetails() {
 
         <div className="p-6 border-t border-gray-200">
           <div className="md:flex">
-            <div className="md:w-1/2 md:pr-8 mb-6 md:mb-0">
+            <div className="md:w-1/2 md:pr-8 mb-6 md:mb-0 overflow-visible">
               <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -460,26 +449,111 @@ export default function MealDetails() {
                 Ingrédients{" "}
                 {currentPortions !== 1 && `(${currentPortions} portions)`}
               </h2>
-              <ul className="space-y-2">
-                {adjustedIngredients.map((ingredient, idx) => (
-                  <li
-                    key={idx}
-                    className="flex items-start text-gray-700 py-2 border-b border-gray-100 last:border-0"
-                  >
-                    <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 rounded-full text-emerald-700 flex items-center justify-center font-bold mr-3 mt-0.5">
-                      <span className="text-xs">{idx + 1}</span>
-                    </div>
-                    <span>
-                      <span className="font-medium">
-                        {ingredient.amount.toFixed(
-                          ingredient.amount % 1 === 0 ? 0 : 1
-                        )}{" "}
-                        {ingredient.unit}
-                      </span>{" "}
-                      {foodItemNames[ingredient.foodItemId] || "Chargement..."}
-                    </span>
-                  </li>
-                ))}
+              <ul className="space-y-2 overflow-visible">
+                {adjustedIngredients.map((ingredient, idx) => {
+                  // Calcul des informations nutritionnelles pour le tooltip
+                  const foodItem = foodItems.find(
+                    (fi) => fi.id === ingredient.foodItemId
+                  );
+
+                  const baseNutrition = ingredient.nutritionPer100g
+                    ? ingredient.nutritionPer100g
+                    : foodItem?.nutritionPer100g ?? {
+                        calories: 0,
+                        protein: 0,
+                        carbs: 0,
+                        fat: 0,
+                        fiber: 0,
+                        sugar: 0,
+                      };
+
+                  const basePrice =
+                    ingredient.price !== undefined
+                      ? ingredient.price
+                      : foodItem?.price ?? 0;
+
+                  const basePriceUnit = ingredient.priceUnit
+                    ? ingredient.priceUnit
+                    : foodItem?.priceUnit ?? "pour 100g";
+
+                  const { amount, unit } = ingredient;
+                  const scale =
+                    unit === "g" || unit === "ml"
+                      ? (amount! || 0) / 100
+                      : unit === "piece"
+                      ? amount! || 0
+                      : (amount! || 0) / 100;
+
+                  const cal = (baseNutrition.calories * scale).toFixed(1);
+                  const prot = (baseNutrition.protein * scale).toFixed(1);
+                  const carbs = (baseNutrition.carbs * scale).toFixed(1);
+                  const fat = (baseNutrition.fat * scale).toFixed(1);
+                  const fiber = (baseNutrition.fiber! * scale).toFixed(1);
+                  const sugar = (baseNutrition.sugar! * scale).toFixed(1);
+
+                  let totalPrice = 0;
+                  const weightPerPiece = foodItem?.weightPerPiece;
+
+                  if (unit === "piece" && weightPerPiece) {
+                    // Pour les pièces avec poids défini
+                    const totalWeight = (amount! || 0) * weightPerPiece;
+                    if (basePriceUnit.includes("100")) {
+                      // Prix pour 100g, convertir le poids total
+                      totalPrice = basePrice * (totalWeight / 100);
+                    } else if (
+                      basePriceUnit.toLowerCase().includes("pièce") ||
+                      basePriceUnit.toLowerCase().includes("piece")
+                    ) {
+                      // Prix en fonction de pièce (mais le prix est quand même au 100g)
+                      totalPrice = basePrice * (totalWeight / 100);
+                    } else {
+                      // Par défaut, traiter comme prix pour 100g
+                      totalPrice = basePrice * (totalWeight / 100);
+                    }
+                  } else {
+                    // Pour toutes les autres unités (g, ml, etc.)
+                    totalPrice = basePrice * ((amount! || 0) / 100);
+                  }
+                  const priceDisplay = totalPrice.toFixed(2);
+
+                  return (
+                    <li
+                      key={idx}
+                      className="flex items-start text-gray-700 py-2 border-b border-gray-100 last:border-0 group relative"
+                    >
+                      <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 rounded-full text-emerald-700 flex items-center justify-center font-bold mr-3 mt-0.5">
+                        <span className="text-xs">{idx + 1}</span>
+                      </div>
+                      <span className="relative">
+                        <span className="font-medium">
+                          {ingredient.amount.toFixed(
+                            ingredient.amount % 1 === 0 ? 0 : 1
+                          )}{" "}
+                          {ingredient.unit}
+                        </span>{" "}
+                        {foodItemNames[ingredient.foodItemId] ||
+                          "Chargement..."}
+                        {/* Tooltip nutritionnel */}
+                        <div className="hidden group-hover:block absolute z-50 bg-white border border-gray-200 shadow-xl p-3 rounded-lg w-64 top-full left-0 mt-1 text-xs text-gray-700">
+                          <div className="font-semibold mb-1">
+                            Informations nutritionnelles
+                          </div>
+                          <ul className="space-y-0.5">
+                            <li>Calories : {cal} kcal</li>
+                            <li>Protéines : {prot} g</li>
+                            <li>Glucides : {carbs} g</li>
+                            <li>Lipides : {fat} g</li>
+                            <li>Fibres : {fiber} g</li>
+                            <li>Sucres : {sugar} g</li>
+                          </ul>
+                          <div className="border-t border-gray-100 my-2" />
+                          <div className="font-semibold">Coût estimé</div>
+                          <div>{priceDisplay} €</div>
+                        </div>
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
             <div className="md:w-1/2">

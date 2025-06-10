@@ -14,6 +14,32 @@ const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
   onDelete,
   onDuplicate,
 }) => {
+  const formatPrice = (item: FoodItem) => {
+    const basePrice = item.price || 0;
+    
+    if (item.weightPerPiece && item.weightPerPiece > 0) {
+      const pricePerPiece = (basePrice * item.weightPerPiece) / 100;
+      return (
+        <>
+          <span className="font-medium text-gray-900">
+            {pricePerPiece.toFixed(2)}€
+          </span>{" "}
+          <br />
+        </>
+      );
+    }
+    
+    return (
+      <>
+        <span className="font-medium text-gray-900">
+          {basePrice}€
+        </span>{" "}
+        <span className="text-xs text-gray-500">
+        </span>
+      </>
+    );
+  };
+
   return (
     <div className="overflow-x-auto rounded-lg shadow">
       <table className="w-full border-collapse bg-white">
@@ -40,6 +66,12 @@ const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Lipides
             </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Fibres
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Sucres
+            </th>
             <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
             </th>
@@ -49,7 +81,7 @@ const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
           {items.length === 0 ? (
             <tr>
               <td
-                colSpan={8}
+                colSpan={10}
                 className="px-4 py-8 text-center text-gray-500 bg-gray-50"
               >
                 <div className="flex flex-col items-center justify-center">
@@ -90,7 +122,7 @@ const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                   <span className="font-medium text-gray-900">
-                    €{item.price}
+                    {formatPrice(item)}
                   </span>{" "}
                   <span className="text-xs text-gray-500">
                     {item.priceUnit}
@@ -117,6 +149,18 @@ const FoodItemsTable: React.FC<FoodItemsTableProps> = ({
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                   <span className="font-medium">
                     {item.nutritionPer100g.fat}
+                  </span>{" "}
+                  <span className="text-xs text-gray-400">g</span>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                  <span className="font-medium">
+                    {item.nutritionPer100g.fiber || 0}
+                  </span>{" "}
+                  <span className="text-xs text-gray-400">g</span>
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                  <span className="font-medium">
+                    {item.nutritionPer100g.sugar || 0}
                   </span>{" "}
                   <span className="text-xs text-gray-400">g</span>
                 </td>

@@ -140,7 +140,7 @@ export default function MealCard({ meal }: MealCardProps) {
       </div>
 
       {/* Si plusieurs catégories, on affiche la liste en dessous de l’image */}
-      {meal.categories && meal.categories.length > 1 && (
+      {meal.categories && meal.categories.length > 0 && (
         <div className="flex flex-wrap gap-1 px-4 py-1 bg-gray-50">
           {meal.categories.map((category, index) => (
             <span
