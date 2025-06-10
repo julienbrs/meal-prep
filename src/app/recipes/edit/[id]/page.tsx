@@ -218,17 +218,6 @@ export default function EditRecipe() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !recipe.name ||
-      !recipe.categories?.length ||
-      recipe.ingredients?.length === 0 ||
-      recipe.instructions?.some((i) => !i)
-    ) {
-      setError(
-        "Veuillez remplir tous les champs obligatoires et ajouter au moins un ingrédient."
-      );
-      return;
-    }
 
     try {
       setLoading(true);
