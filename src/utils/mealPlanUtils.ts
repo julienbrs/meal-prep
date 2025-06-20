@@ -1,4 +1,4 @@
-import { MealPlanState } from "@/types/mealPlan";
+import { isCatalogMeal, MealPlanState } from "@/types/mealPlan";
 import { Meal } from "@/types/meal";
 
 export function simplifyMealPlanForStorage(plan: MealPlanState) {
@@ -11,13 +11,17 @@ export function simplifyMealPlanForStorage(plan: MealPlanState) {
       if (!entry) {
         dayStorage[mealType] = null;
       } else if (Array.isArray(entry)) {
+        // Cas : snacks = tableau de SnackEntry
         dayStorage[mealType] = entry.map((snackEntry) => ({
-          id: snackEntry.meal.id,
+          id: isCatalogMeal(snackEntry.meal)
+            ? snackEntry.meal.id
+            : snackEntry.meal.tempId,
           portions: snackEntry.portions,
         }));
       } else {
+        // Cas : repas normal (MealPlanEntry)
         dayStorage[mealType] = {
-          id: (entry.meal as Meal).id,
+          id: isCatalogMeal(entry.meal) ? entry.meal.id : entry.meal.tempId,
           portions: entry.portions,
         };
       }

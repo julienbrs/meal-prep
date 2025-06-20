@@ -13,6 +13,7 @@ import {
   SnackEntry,
   MealPlanState,
   DayPlan,
+  isCatalogMeal,
 } from "@/types/mealPlan";
 
 export function useWeekMealPlan(daysOfWeek: string[], mealTypes: string[]) {
@@ -89,8 +90,9 @@ export function useWeekMealPlan(daysOfWeek: string[], mealTypes: string[]) {
               snackArray.forEach((sn: SnackEntry) => {
                 // Si snack a portions manquante, on applique préférence
                 if (!sn.portions) {
-                  const userPref =
-                    sn.meal.preferredPortions?.[currentUser.id] || 1;
+                  const userPref = isCatalogMeal(sn.meal)
+                    ? sn.meal.preferredPortions?.[currentUser.id] || 1
+                    : 1;
                   sn.portions = userPref;
                 }
               });
@@ -98,8 +100,9 @@ export function useWeekMealPlan(daysOfWeek: string[], mealTypes: string[]) {
               // mt ≠ "Snack" ⇒ entry est MealPlanEntry ou null
               const normalEntry = entry as MealPlanEntry | null;
               if (normalEntry) {
-                const userPref =
-                  normalEntry.meal.preferredPortions?.[currentUser.id] || 1;
+                const userPref = isCatalogMeal(normalEntry.meal)
+                  ? normalEntry.meal.preferredPortions?.[currentUser.id] || 1
+                  : 1;
                 normalEntry.portions = normalEntry.portions || userPref;
               }
             }

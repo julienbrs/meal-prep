@@ -13,12 +13,18 @@ import { useUser } from "@/context/UserContext";
 
 import MealPlanCard from "@/components/MealPlanCard";
 import SnackCard from "@/components/SnackCard"; // ← Notre nouveau composant
-import { MealPlanEntry, SnackEntry } from "@/types/mealPlan";
+import {
+  CustomMeal,
+  isCatalogMeal,
+  MealPlanEntry,
+  SnackEntry,
+} from "@/types/mealPlan";
 
 import MealPlanGenerator from "@/components/MealPlanGenerator";
 import MealPlanClearButton from "@/components/MealPlanClearButton";
 import WeekSelector from "@/components/WeekSelector";
 import { useWeekMealPlan } from "@/hooks/useWeekMealPlan";
+import { NutritionInfo } from "@/types/ingredient";
 
 export default function WeeklyPlan() {
   const daysOfWeek = [
@@ -79,18 +85,47 @@ export default function WeeklyPlan() {
   }, [currentUser.id]);
 
   // ─── Handlers pour Petit-déj / Déj / Dîner ───
-  const addMealToPlan = (day: string, mealType: string, mealId: string) => {
-    const meal = meals.find((m) => m.id === mealId);
-    if (!meal) return;
-    const defaultPortion = meal.preferredPortions?.[currentUser.id] || 1;
-    updateMealPlan((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [mealType]: { meal, portions: defaultPortion } as MealPlanEntry,
-      },
-    }));
+  const addMealToPlan = (
+    day: string,
+    mealType: string,
+    input: string | CustomMeal
+  ) => {
+    if (typeof input === "string") {
+      const found = meals.find((m) => m.id === input);
+      if (!found) return;
+      const defPortion = found.preferredPortions?.[currentUser.id] || 1;
+      updateMealPlan((p) => ({
+        ...p,
+        [day]: { ...p[day], [mealType]: { meal: found, portions: defPortion } },
+      }));
+    } else {
+      /* repas libre => 1 portion par défaut */
+      updateMealPlan((p) => ({
+        ...p,
+        [day]: { ...p[day], [mealType]: { meal: input, portions: 1 } },
+      }));
+    }
   };
+
+  const getNutrition = (
+    meal: Meal | CustomMeal,
+    portions: number
+  ): NutritionInfo => {
+    if (isCatalogMeal(meal) && meal.calculatedNutrition) {
+      return {
+        calories: meal.calculatedNutrition.calories * portions,
+        protein: meal.calculatedNutrition.protein * portions,
+        carbs: meal.calculatedNutrition.carbs * portions,
+        fat: meal.calculatedNutrition.fat * portions,
+      };
+    }
+    return calculateRecipeNutrition(meal.ingredients, foodItems, portions);
+  };
+
+  const getCost = (meal: Meal | CustomMeal, portions: number): number =>
+    isCatalogMeal(meal) && meal.totalCost !== undefined
+      ? meal.totalCost * portions
+      : calculateRecipeCost(meal.ingredients, foodItems, portions);
 
   const removeMealFromPlan = (day: string, mealType: string) => {
     updateMealPlan((prev) => ({
@@ -148,74 +183,34 @@ export default function WeeklyPlan() {
 
   // ─── Calcul des totaux journaliers (inclut la somme de tous les snacks) ───
   const calculateDayTotals = (day: string) => {
-    if (!mealPlan || !mealPlan[day]) {
+    if (!mealPlan?.[day])
       return { calories: 0, protein: 0, carbs: 0, fat: 0, cost: 0 };
-    }
 
-    let dayCalories = 0;
-    let dayProtein = 0;
-    let dayCarbs = 0;
-    let dayFat = 0;
-    let dayCost = 0;
+    let cals = 0,
+      prot = 0,
+      carbs = 0,
+      fat = 0,
+      cost = 0;
 
-    Object.entries(mealPlan[day]).forEach(([mt, entry]) => {
+    Object.values(mealPlan[day]).forEach((entry) => {
       if (!entry) return;
 
-      if (mt === "Snack") {
-        // entry est un tableau de SnackEntry
-        const snackArray = entry as SnackEntry[];
-        snackArray.forEach(({ meal, portions }) => {
-          let nutrition = meal.calculatedNutrition
-            ? {
-                calories: meal.calculatedNutrition.calories * portions,
-                protein: meal.calculatedNutrition.protein * portions,
-                carbs: meal.calculatedNutrition.carbs * portions,
-                fat: meal.calculatedNutrition.fat * portions,
-              }
-            : calculateRecipeNutrition(meal.ingredients, foodItems, portions);
-
-          const cost =
-            meal.totalCost !== undefined
-              ? meal.totalCost * portions
-              : calculateRecipeCost(meal.ingredients, foodItems, portions);
-
-          dayCalories += nutrition.calories;
-          dayProtein += nutrition.protein;
-          dayCarbs += nutrition.carbs;
-          dayFat += nutrition.fat;
-          dayCost += cost;
-        });
-      } else {
-        // entry est un unique MealPlanEntry
-        const { meal, portions } = entry as MealPlanEntry;
-        let nutrition = meal.calculatedNutrition
-          ? {
-              calories: meal.calculatedNutrition.calories * portions,
-              protein: meal.calculatedNutrition.protein * portions,
-              carbs: meal.calculatedNutrition.carbs * portions,
-              fat: meal.calculatedNutrition.fat * portions,
-            }
-          : calculateRecipeNutrition(meal.ingredients, foodItems, portions);
-
-        const cost =
-          meal.totalCost !== undefined
-            ? meal.totalCost * portions
-            : calculateRecipeCost(meal.ingredients, foodItems, portions);
-
-        dayCalories += nutrition.calories;
-        dayProtein += nutrition.protein;
-        dayCarbs += nutrition.carbs;
-        dayFat += nutrition.fat;
-        dayCost += cost;
-      }
+      const list = Array.isArray(entry) ? entry : [entry];
+      list.forEach(({ meal, portions }) => {
+        const n = getNutrition(meal, portions);
+        cals += n.calories;
+        prot += n.protein;
+        carbs += n.carbs;
+        fat += n.fat;
+        cost += getCost(meal, portions);
+      });
     });
-
     return {
-      calories: Math.round(dayCalories),
-      protein: Number(dayProtein.toFixed(1)),
-      carbs: Number(dayCarbs.toFixed(1)),
-      fat: Number(dayFat.toFixed(1)),
-      cost: Number(dayCost.toFixed(2)),
+      calories: Math.round(cals),
+      protein: +prot.toFixed(1),
+      carbs: +carbs.toFixed(1),
+      fat: +fat.toFixed(1),
+      cost: +cost.toFixed(2),
     };
   };
 
