@@ -1,7 +1,8 @@
 import React, { useState } from "react";
+import { Combobox } from "@headlessui/react";
 import { Meal } from "@/types/meal";
 import { useFoodItems } from "@/context/FoodItemsContext";
-import { SnackEntry, isCatalogMeal } from "@/types/mealPlan"; // ⬅️
+import { SnackEntry, isCatalogMeal } from "@/types/mealPlan";
 
 interface SnackCardProps {
   day: string;
@@ -18,42 +19,64 @@ export default function SnackCard({
   onAddSnack,
   onRemoveSnack,
 }: SnackCardProps) {
-  const { foodItems } = useFoodItems(); // ← encore utilisé plus tard ?
-  const [selectedMealId, setSelectedMealId] = useState("");
+  const { foodItems } = useFoodItems(); // ← utile pour l’avenir si tu veux afficher des détails
+  const [query, setQuery] = useState("");
 
-  const handleAdd = () => {
-    if (!selectedMealId) return;
-    const meal = allMeals.find((m) => m.id === selectedMealId);
+  const filteredMeals =
+    query.trim() === ""
+      ? allMeals
+      : allMeals.filter((m) =>
+          m.name.toLowerCase().includes(query.toLowerCase())
+        );
+
+  const handleAddSnack = (mealId: string) => {
+    const meal = allMeals.find((m) => m.id === mealId);
     if (!meal) return;
     onAddSnack(day, { meal, portions: 1 });
-    setSelectedMealId("");
+    setQuery(""); // reset après ajout
   };
 
   return (
     <div className="flex flex-col gap-3">
       {/* ---- Choisir un snack ---- */}
-      <div className="flex items-center gap-2">
-        <select
-          className="flex-1 p-2 border border-gray-300 rounded-lg text-sm"
-          value={selectedMealId}
-          onChange={(e) => setSelectedMealId(e.target.value)}
-        >
-          <option value="" disabled>
-            Ajouter un snack...
-          </option>
-          {allMeals.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={handleAdd}
-          className="px-3 py-1 bg-green-500 text-white rounded-lg text-sm"
-        >
-          ➕
-        </button>
-      </div>
+      <Combobox
+        value={""}
+        onChange={(value: string) => {
+          if (value) handleAddSnack(value);
+        }}
+      >
+        <div className="relative">
+          <Combobox.Input
+            className="w-full p-2 border border-gray-300 rounded-lg text-sm"
+            placeholder="Ajouter un snack..."
+            onChange={(e) => setQuery(e.target.value)}
+          />
+          <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
+            {filteredMeals.length === 0 && (
+              <Combobox.Option
+                value=""
+                disabled
+                className="cursor-default select-none px-4 py-2 text-gray-700"
+              >
+                Aucun snack trouvé
+              </Combobox.Option>
+            )}
+            {filteredMeals.map((m) => (
+              <Combobox.Option
+                key={m.id}
+                value={m.id}
+                className={({ active }) =>
+                  `relative cursor-pointer select-none py-2 pl-3 pr-9 ${
+                    active ? "bg-emerald-600 text-white" : "text-gray-900"
+                  }`
+                }
+              >
+                {m.name}
+              </Combobox.Option>
+            ))}
+          </Combobox.Options>
+        </div>
+      </Combobox>
 
       {/* ---- Liste des snacks ---- */}
       <ul className="max-h-48 overflow-y-auto space-y-2">
@@ -85,7 +108,6 @@ export default function SnackCard({
                 className="text-red-500 hover:text-red-700"
                 title="Retirer ce snack"
               >
-                {/* icône poubelle */}
                 <svg
                   width="18"
                   height="20"

@@ -7,6 +7,7 @@ import { calculateRecipeNutrition } from "@/utils/nutritionCalculator";
 import { useFoodItems } from "@/context/FoodItemsContext";
 import CustomMealModal from "./create-recipe/CustomMealPlanModal";
 import { FoodItem } from "@/types/ingredient";
+import { Combobox } from "@headlessui/react";
 
 // ———————————————————————————————————————————————————————————————————————
 // Helpers
@@ -42,7 +43,11 @@ export default function MealPlanCard({
   onPortionChange,
 }: MealPlanCardProps) {
   const { foodItems } = useFoodItems();
-
+  const [query, setQuery] = useState("");
+  const filteredMeals =
+    query.trim() === ""
+      ? meals
+      : meals.filter((m) => m.name.toLowerCase().includes(query.toLowerCase()));
   /* état local du champ “Portions” */
   const [portionInput, setPortionInput] = useState(portions.toString());
   const [showCustomModal, setShowCustomModal] = useState(false);
@@ -93,22 +98,44 @@ export default function MealPlanCard({
       {/* —————————————————— AUCUN REPAS SÉLECTIONNÉ —————————————————— */}
       {!meal && (
         <>
-          <select
-            className="w-full p-2 mb-2 rounded-lg ring-1 ring-gray-300 focus:ring-2 focus:ring-orange-500"
-            defaultValue=""
-            onChange={(e) =>
-              e.target.value && onAddMeal(day, mealType, e.target.value)
-            }
-          >
-            <option value="" disabled>
-              Choisir un repas…
-            </option>
-            {meals.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name}
-              </option>
-            ))}
-          </select>
+          <div className="w-full mb-2 relative">
+            <Combobox
+              value={""} // pas besoin de gérer value ici
+              onChange={(value: string) => {
+                if (value) onAddMeal(day, mealType, value);
+              }}
+            >
+              <Combobox.Input
+                className="w-full p-2 rounded-lg ring-1 ring-gray-300 focus:ring-2 focus:ring-orange-500"
+                placeholder="Choisir un repas…"
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
+                {filteredMeals.length === 0 && (
+                  <Combobox.Option
+                    value=""
+                    disabled
+                    className="cursor-default select-none px-4 py-2 text-gray-700"
+                  >
+                    Aucun repas trouvé
+                  </Combobox.Option>
+                )}
+                {filteredMeals.map((m) => (
+                  <Combobox.Option
+                    key={m.id}
+                    value={m.id}
+                    className={({ active }) =>
+                      `relative cursor-pointer select-none py-2 pl-3 pr-9 ${
+                        active ? "bg-emerald-600 text-white" : "text-gray-900"
+                      }`
+                    }
+                  >
+                    {m.name}
+                  </Combobox.Option>
+                ))}
+              </Combobox.Options>
+            </Combobox>
+          </div>
 
           <button
             onClick={() => setShowCustomModal(true)}

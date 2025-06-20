@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.5",
+    "@headlessui/react": "^2.2.4",
     "@vercel/blob": "^1.0.1",
     "dotenv": "^16.5.0",
     "mongodb": "^6.16.0",

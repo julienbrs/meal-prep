@@ -25,6 +25,8 @@ import MealPlanClearButton from "@/components/MealPlanClearButton";
 import WeekSelector from "@/components/WeekSelector";
 import { useWeekMealPlan } from "@/hooks/useWeekMealPlan";
 import { NutritionInfo } from "@/types/ingredient";
+import { Combobox } from "@headlessui/react";
+import CustomMealModal from "@/components/create-recipe/CustomMealPlanModal";
 
 export default function WeeklyPlan() {
   const daysOfWeek = [
@@ -47,6 +49,8 @@ export default function WeeklyPlan() {
   const [activeDay, setActiveDay] = useState<string>(daysOfWeek[0]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedSnackId, setSelectedSnackId] = useState<string>("");
+  const [showSnackModal, setShowSnackModal] = useState(false);
 
   const {
     mealPlan,
@@ -495,20 +499,63 @@ export default function WeeklyPlan() {
                 {/* Contenu de la carte */}
                 <div className="bg-neutral-50 p-4 flex flex-col justify-start items-start gap-5">
                   {mealType === "Snack" ? (
-                    <SnackCard
-                      day={activeDay}
-                      snackList={
+                    <>
+                      {/* Choisir un snack */}
+                      <button
+                        onClick={() => setShowSnackModal(true)}
+                        className="w-full px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg ring-1 ring-emerald-300 hover:bg-emerald-100 text-sm"
+                      >
+                        ➕ Ajouter un snack libre
+                      </button>
+                      {showSnackModal && (
+                        <CustomMealModal
+                          onSave={(custom) => {
+                            addSnackToPlan(activeDay, {
+                              meal: custom,
+                              portions: 1,
+                            });
+                            setShowSnackModal(false);
+                          }}
+                          onClose={() => setShowSnackModal(false)}
+                        />
+                      )}
+
+                      {/* Liste des snacks */}
+                      {(
                         (mealPlan[activeDay]?.["Snack"] as SnackEntry[]) || []
-                      }
-                      allMeals={meals}
-                      onAddSnack={addSnackToPlan}
-                      onRemoveSnack={removeSnackFromPlan}
-                    />
+                      ).map((snackEntry, snackIdx) => (
+                        <MealPlanCard
+                          key={`${activeDay}-Snack-${snackIdx}`}
+                          day={activeDay}
+                          mealType={`Snack-${snackIdx}`}
+                          meal={snackEntry.meal}
+                          portions={snackEntry.portions}
+                          meals={meals}
+                          onAddMeal={() => {}}
+                          onRemoveMeal={() => {
+                            removeSnackFromPlan(activeDay, snackIdx);
+                          }}
+                          onPortionChange={(day, type, newPortions) => {
+                            updateMealPlan((prev) => {
+                              const copy = { ...prev };
+                              const snackArr =
+                                (copy[day]["Snack"] as SnackEntry[]) || [];
+                              snackArr[snackIdx].portions = newPortions;
+                              copy[day] = {
+                                ...copy[day],
+                                Snack: [...snackArr],
+                              };
+                              return copy;
+                            });
+                          }}
+                        />
+                      ))}
+                    </>
                   ) : (
                     <MealPlanCard
+                      key={`${activeDay}-${mealType}`}
                       day={activeDay}
                       mealType={mealType}
-                      // On “cast” la valeur en MealPlanEntry puisque mealType ≠ "Snack"
                       meal={
                         (mealPlan[activeDay]?.[mealType] as MealPlanEntry)
                           ?.meal || null
